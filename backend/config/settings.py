@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "accounts",
     "company",
     "apps.employee",
+    "crm",
 
 ]
 

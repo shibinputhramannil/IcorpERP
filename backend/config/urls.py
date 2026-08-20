@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts.views import MeView,CompanyMemberListView,CompanyMemberCreateView,CompanyMemberUpdateView
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
+from crm.views import ContactListCreateView, ContactDetailView,LeadListCreateView,LeadDetailView
 
 
 urlpatterns = [
@@ -86,5 +87,28 @@ path(
     "api/companies/<int:company_id>/employees/<int:employee_id>/",
     EmployeeDetailView.as_view(),
     name="employee_detail",
+),
+path(
+    "api/companies/<int:company_id>/contacts/",
+    ContactListCreateView.as_view(),
+    name="contact_list_create",
+),
+path(
+    "api/companies/<int:company_id>/contacts/<int:contact_id>/",
+    ContactDetailView.as_view(),
+    name="contact_detail",
+),
+# List/Create leads for a company
+path(
+    "api/companies/<int:company_id>/leads/",
+    LeadListCreateView.as_view(),
+    name="lead_list_create",
+),
+
+# View/Update one lead
+path(
+    "api/companies/<int:company_id>/leads/<int:lead_id>/",
+    LeadDetailView.as_view(),
+    name="lead_detail",
 ),
 ]
