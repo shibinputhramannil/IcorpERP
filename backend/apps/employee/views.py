@@ -254,6 +254,101 @@ class EmployeeDetailView(APIView):
         serializer = EmployeeSerializer(employee)
 
         return Response(serializer.data)
+        # DELETE: Soft-delete one employee
+    def delete(self, request, company_id, employee_id):
+
+        # Super Admin can delete employees in any active company.
+        if request.user.is_superuser:
+            company = (
+                Company.objects
+                .filter(
+                    id=company_id,
+                    is_active=True,
+                )
+                .first()
+            )
+
+            # Company does not exist or is inactive.
+            if not company:
+                return Response(
+                    {
+                        "detail": "Company not found or inactive."
+                    },
+                    status=404,
+                )
+
+        # Company Admin can delete employees
+        # only from their own company.
+        else:
+            admin_membership = (
+                request.user.company_memberships
+                .select_related("company", "role")
+                .filter(
+                    company_id=company_id,
+                    company__is_active=True,
+                )
+                .first()
+            )
+
+            # User does not belong to this company.
+            if not admin_membership:
+                return Response(
+                    {
+                        "detail": "You do not have access to this company."
+                    },
+                    status=403,
+                )
+
+            # Only Company Admin can delete employees.
+            if (
+                not admin_membership.role
+                or admin_membership.role.name != "Company Admin"
+            ):
+                return Response(
+                    {
+                        "detail": "Company Admin permission required."
+                    },
+                    status=403,
+                )
+
+            # Use the company from the verified membership.
+            company = admin_membership.company
+
+        # Find the employee only inside this company.
+        employee = (
+            Employee.objects
+            .filter(
+                id=employee_id,
+                company=company,
+            )
+            .first()
+        )
+
+        # Employee does not exist.
+        if not employee:
+            return Response(
+                {
+                    "detail": "Employee not found."
+                },
+                status=404,
+            )
+
+        # Soft delete:
+        # Keep the employee in the database,
+        # but mark the employee as inactive.
+        employee.is_active = False
+
+        # Save only the changed field.
+        employee.save(
+            update_fields=["is_active"]
+        )
+
+        return Response(
+            {
+                "detail": "Employee deleted successfully."
+            },
+            status=200,
+        )
 
     def patch(self, request, company_id, employee_id):
         # Super Admin can update employees in any active company.
