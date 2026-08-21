@@ -290,6 +290,74 @@ class ContactDetailView(APIView):
             serializer.errors,
             status=400,
         )
+        # DELETE: Soft-delete one contact
+    def delete(self, request, company_id, contact_id):
+
+        # Check whether the logged-in user has access
+        # to the requested company.
+        company = self.get_company(request, company_id)
+
+        if not company:
+            return Response(
+                {"detail": "You do not have access to this company."},
+                status=403,
+            )
+
+        # Only Company Admin or Superuser can delete contacts.
+        if not request.user.is_superuser:
+
+            # Get the user's membership for this company.
+            membership = (
+                request.user.company_memberships
+                .select_related("role")
+                .filter(
+                    user=request.user,
+                    company_id=company.id,
+                    company__is_active=True,
+                )
+                .first()
+            )
+
+            # Employee or users without the required role
+            # cannot delete contacts.
+            if (
+                not membership
+                or not membership.role
+                or membership.role.name != "Company Admin"
+            ):
+                return Response(
+                    {"detail": "Company Admin permission required."},
+                    status=403,
+                )
+
+        # Find the contact only inside the requested company.
+        contact = (
+            Contact.objects
+            .filter(
+                id=contact_id,
+                company=company,
+            )
+            .first()
+        )
+
+        # Contact does not exist.
+        if not contact:
+            return Response(
+                {"detail": "Contact not found."},
+                status=404,
+            )
+
+        # Soft delete:
+        # Keep the contact in the database but mark it inactive.
+        contact.is_active = False
+
+        # Save only the changed field.
+        contact.save(update_fields=["is_active"])
+
+        return Response(
+            {"detail": "Contact deleted successfully."},
+            status=200,
+        )
 
 
 # ============================================================
