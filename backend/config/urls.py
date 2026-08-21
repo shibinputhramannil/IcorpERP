@@ -64,11 +64,6 @@ path(
     name="company_members",
 ),
 path(
-    "api/companies/<int:company_id>/members/",
-    CompanyMemberListView.as_view(),
-    name="company_members",
-),
-path(
     "api/companies/<int:company_id>/members/add/",
     CompanyMemberCreateView.as_view(),
     name="company_member_create",
