@@ -7,7 +7,7 @@ IcorpERP is a web-based Enterprise Resource Planning (ERP) system for managing b
 Version 1.0
 
 ## Goal
-Build a modern ERP system using React, Django, and PostgreSQL.
+Build a modern ERP system using React, Django, and PostgreSQL.and implementation of AI tools .
 
 ## Tech Stack
 Frontend: React
