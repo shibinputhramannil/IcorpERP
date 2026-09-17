@@ -1,0 +1,886 @@
+{
+	"info": {
+		"_postman_id": "icorp-erp-phase3-inventory-collection",
+		"name": "ICORP ERP - Phase 3 Inventory Collection",
+		"description": "Comprehensive Postman test suite for ICORP ERP Phase 3: Inventory (Products, Categories, Warehouses, Stock Levels, Atomic Movements/Transactions, Vendors, and Real Dashboard Metrics).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "category_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "product_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "warehouse_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "stock_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "vendor_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Acquire Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Categories",
+			"item": [
+				{
+					"name": "List Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/categories/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"categories",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"category_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Power Distribution & Converters\",\n    \"description\": \"Step-down transformers, power bricks, and regulated DC converters.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/categories/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"categories",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Category Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/categories/{{category_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"categories",
+								"{{category_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"High-efficiency power supplies, batteries, and DC converters.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/categories/{{category_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"categories",
+								"{{category_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Category",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/categories/{{category_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"categories",
+								"{{category_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Products",
+			"item": [
+				{
+					"name": "List Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"product_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"DC High-Current Buck Regulator 48V-12V\",\n    \"sku\": \"REG-4812-HC\",\n    \"category\": {{category_id}},\n    \"unit\": \"pcs\",\n    \"cost_price\": 65.00,\n    \"selling_price\": 115.00,\n    \"tax\": 5.00,\n    \"reorder_level\": 20,\n    \"description\": \"Synchronous buck converter with 40A sustained output.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/{{product_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								"{{product_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"selling_price\": 125.00,\n    \"reorder_level\": 25\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/{{product_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								"{{product_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/{{product_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								"{{product_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Warehouses",
+			"item": [
+				{
+					"name": "List Warehouses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/warehouses/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"warehouses",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Warehouse",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"warehouse_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Midwest Regional Depot\",\n    \"code\": \"MW-DEPOT-03\",\n    \"address\": \"500 Cargo Way, Indianapolis, IN\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/warehouses/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"warehouses",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Warehouse Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/warehouses/{{warehouse_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"warehouses",
+								"{{warehouse_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Warehouse",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/warehouses/{{warehouse_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"warehouses",
+								"{{warehouse_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Stock Levels",
+			"item": [
+				{
+					"name": "List Stock",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/stock/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"stock",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Stock Movements & Transactions",
+			"item": [
+				{
+					"name": "List Stock Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Record Stock In (Delivery)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product\": {{product_id}},\n    \"warehouse\": {{warehouse_id}},\n    \"transaction_type\": \"STOCK_IN\",\n    \"quantity\": 50.00,\n    \"reference\": \"PO-99100\",\n    \"notes\": \"Initial stock batch receiving\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Record Stock Out (Dispatch)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product\": {{product_id}},\n    \"warehouse\": {{warehouse_id}},\n    \"transaction_type\": \"STOCK_OUT\",\n    \"quantity\": 10.00,\n    \"reference\": \"DO-3320\",\n    \"notes\": \"Customer sales order dispatch\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Record Stock Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product\": {{product_id}},\n    \"warehouse\": 1,\n    \"destination_warehouse\": 2,\n    \"transaction_type\": \"TRANSFER\",\n    \"quantity\": 5.00,\n    \"reference\": \"TR-5544\",\n    \"notes\": \"Inter-warehouse inventory balancing\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Vendors / Suppliers",
+			"item": [
+				{
+					"name": "List Vendors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/vendors/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"vendors",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Vendor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"vendor_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Delta Power Electronics Corp\",\n    \"email\": \"orders@deltapower.com\",\n    \"phone\": \"+1-800-555-9011\",\n    \"tax_id\": \"US-EIN-55443322\",\n    \"address\": \"700 Energy Blvd, Dallas, TX\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/vendors/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"vendors",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Vendor Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/vendors/{{vendor_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"vendors",
+								"{{vendor_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Vendor",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/vendors/{{vendor_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"vendors",
+								"{{vendor_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Inventory Dashboard",
+			"item": [
+				{
+					"name": "Get Inventory Dashboard Metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/dashboard/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"dashboard",
+								""
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

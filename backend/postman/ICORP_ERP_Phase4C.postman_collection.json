@@ -1,0 +1,628 @@
+{
+  "info": {
+    "_postman_id": "icorp-erp-phase4c-sales-invoicing-payments-receipts",
+    "name": "ICORP ERP - Phase 4C Sales Invoicing, Payments & Receipts Collection",
+    "description": "Comprehensive Postman test suite for ICORP ERP Phase 4C: Sales Invoicing (Direct & From Sales Order), Partial & Full Payments with Row-Locked Balance Verification, Atomic Receipt Generation, Overpayment Prevention, and Financial Summary.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoice_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoice_number",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "receipt_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Acquire JWT Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access) { pm.collectionVariables.set('access_token', jsonData.access); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auth Me (Verify Profile & Memberships)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Financial Summary",
+      "item": [
+        {
+          "name": "Get Sales Financial Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "pm.test('Has financial metrics', function () {",
+                  "    pm.expect(data).to.have.property('total_invoiced_amount');",
+                  "    pm.expect(data).to.have.property('total_paid_amount');",
+                  "    pm.expect(data).to.have.property('total_outstanding_amount');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/financial-summary/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "financial-summary",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Invoices",
+      "item": [
+        {
+          "name": "List All Invoices",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Direct Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('invoice_id', data.id);",
+                  "pm.collectionVariables.set('invoice_number', data.invoice_number);",
+                  "pm.test('Invoice number generated', function () { pm.expect(data.invoice_number).to.include('INV-'); });",
+                  "pm.test('Totals calculated accurately', function () { pm.expect(data.total).to.eql('580.00'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"customer\": 1,\n    \"due_date\": \"2026-10-31\",\n    \"notes\": \"Direct Postman test invoice\",\n    \"items\": [\n        {\n            \"product\": 1,\n            \"description\": \"Postman Direct Line Item\",\n            \"quantity\": \"2.00\",\n            \"unit_price\": \"300.00\",\n            \"discount\": \"50.00\",\n            \"tax\": \"30.00\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Invoice from Sales Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([201, 400]); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"due_date\": \"2026-11-15\",\n    \"notes\": \"Converted from sales order in Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/invoice/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "orders",
+                "{{order_id}}",
+                "invoice",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Payments & Receipts",
+      "item": [
+        {
+          "name": "Record Partial Payment (Auto-Generates Receipt)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('payment_id', data.id);",
+                  "pm.test('Payment number generated', function () { pm.expect(data.payment_number).to.include('PAY-'); });",
+                  "pm.test('Receipt generated and linked', function () {",
+                  "    pm.expect(data.receipt).to.not.be.null;",
+                  "    pm.expect(data.receipt.receipt_number).to.include('REC-');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": \"250.00\",\n    \"payment_method\": \"BANK_TRANSFER\",\n    \"reference\": \"WIRE-PM-001\",\n    \"notes\": \"Postman partial payment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/payments/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                "payments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Attempt Overpayment (Expect HTTP 400 Rejection)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": \"9999.00\",\n    \"payment_method\": \"CASH\",\n    \"reference\": \"OVERPAY-TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/payments/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                "payments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Final Payment (Settles Invoice to PAID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "var data = pm.response.json();",
+                  "pm.test('Receipt generated for final payment', function () {",
+                  "    pm.expect(data.receipt).to.not.be.null;",
+                  "    pm.expect(data.receipt.receipt_number).to.include('REC-');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": \"330.00\",\n    \"payment_method\": \"CARD\",\n    \"reference\": \"AUTH-PM-FINAL\",\n    \"notes\": \"Final balance settlement\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/payments/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                "payments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Payments for Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/payments/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                "payments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Receipts for Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/invoices/{{invoice_id}}/receipts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "invoices",
+                "{{invoice_id}}",
+                "receipts",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List All Company Receipts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/sales/receipts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "sales",
+                "receipts",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

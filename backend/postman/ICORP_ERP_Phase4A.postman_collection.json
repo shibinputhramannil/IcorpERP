@@ -1,0 +1,637 @@
+{
+	"info": {
+		"_postman_id": "icorp-erp-phase4a-sales-foundation",
+		"name": "ICORP ERP - Phase 4A Sales Foundation Collection",
+		"description": "Comprehensive Postman test suite for ICORP ERP Phase 4A: Sales Foundation (Sales Quotations, Quotation Line Items, Sales Orders, Order Line Items, Atomic Conversion, Status Workflows, and Live Sales Dashboard Metrics).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "quotation_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Acquire Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Sales Dashboard",
+			"item": [
+				{
+					"name": "Get Sales Dashboard Metrics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Dashboard contains summary\", function () {",
+									"    pm.expect(data).to.have.property(\"summary\");",
+									"    pm.expect(data.summary).to.have.property(\"total_quotations\");",
+									"    pm.expect(data.summary).to.have.property(\"total_orders\");",
+									"    pm.expect(data.summary).to.have.property(\"conversion_rate_percentage\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/dashboard/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"dashboard",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Sales Quotations",
+			"item": [
+				{
+					"name": "List Quotations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"if (Array.isArray(data) && data.length > 0) {",
+									"    pm.collectionVariables.set(\"quotation_id\", data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Quotation with Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.collectionVariables.set(\"quotation_id\", data.id);",
+									"pm.test(\"Totals calculated accurately\", function () {",
+									"    pm.expect(parseFloat(data.total)).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer\": 1,\n    \"valid_until\": \"2026-12-31\",\n    \"notes\": \"Postman automated test quote\",\n    \"items\": [\n        {\n            \"product\": 1,\n            \"description\": \"Spatial LiDAR unit\",\n            \"quantity\": \"2.00\",\n            \"unit_price\": \"750.00\",\n            \"discount\": \"50.00\",\n            \"tax\": \"35.00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Quotation Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/{{quotation_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								"{{quotation_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Quotation (Status: ACCEPTED)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Status updated to ACCEPTED\", function () {",
+									"    pm.expect(data.status).to.eql(\"ACCEPTED\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"ACCEPTED\",\n    \"notes\": \"Customer accepted terms via email.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/{{quotation_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								"{{quotation_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Atomic Convert Quotation to Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.collectionVariables.set(\"order_id\", data.id);",
+									"pm.test(\"Created Sales Order is CONFIRMED\", function () {",
+									"    pm.expect(data.status).to.eql(\"CONFIRMED\");",
+									"    pm.expect(data.order_number).to.include(\"SO-\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/{{quotation_id}}/convert/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								"{{quotation_id}}",
+								"convert",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Prevent Duplicate Quotation Conversion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Duplicate convert rejected with 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/quotations/{{quotation_id}}/convert/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"quotations",
+								"{{quotation_id}}",
+								"convert",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Sales Orders",
+			"item": [
+				{
+					"name": "List Sales Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"if (Array.isArray(data) && data.length > 0) {",
+									"    pm.collectionVariables.set(\"order_id\", data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Direct Sales Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.collectionVariables.set(\"order_id\", data.id);",
+									"pm.test(\"Order number generated\", function () {",
+									"    pm.expect(data.order_number).to.include(\"SO-\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer\": 1,\n    \"status\": \"CONFIRMED\",\n    \"notes\": \"Direct factory order\",\n    \"items\": [\n        {\n            \"product\": 2,\n            \"description\": \"Servo Actuators\",\n            \"quantity\": \"5.00\",\n            \"unit_price\": \"320.00\",\n            \"discount\": \"0.00\",\n            \"tax\": \"80.00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Sales Order Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Sales Order Status to PROCESSING",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Status updated to PROCESSING\", function () {",
+									"    pm.expect(data.status).to.eql(\"PROCESSING\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"PROCESSING\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Sales Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

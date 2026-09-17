@@ -1,0 +1,944 @@
+{
+	"info": {
+		"_postman_id": "icorp-erp-phase2-crm-collection",
+		"name": "ICORP ERP - Phase 2 CRM Collection",
+		"description": "Comprehensive Postman test suite for ICORP ERP Phase 2: CRM (Leads, Customers, Contacts, Deals, Activities, Notes, and Gmail Service).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "lead_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "customer_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "contact_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "deal_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "activity_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Acquire Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. CRM - Leads",
+			"item": [
+				{
+					"name": "List Leads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Lead",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"lead_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Claire\",\n    \"last_name\": \"Redfield\",\n    \"email\": \"claire@terrasave.org\",\n    \"phone\": \"+1-555-9088\",\n    \"lead_company\": \"TerraSave International\",\n    \"source\": \"Website\",\n    \"status\": \"New\",\n    \"estimated_value\": 65000.00,\n    \"notes\": \"Interested in compliance tracking modules.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lead Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/{{lead_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								"{{lead_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Lead",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"Qualified\",\n    \"estimated_value\": 72000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/{{lead_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								"{{lead_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Convert Lead (Atomic Customer + Contact + Deal)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_name\": \"TerraSave International\",\n    \"create_deal\": true,\n    \"deal_title\": \"Global Compliance ERP Suite\",\n    \"deal_value\": 72000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/{{lead_id}}/convert/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								"{{lead_id}}",
+								"convert",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Lead",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/leads/{{lead_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"leads",
+								"{{lead_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. CRM - Customers",
+			"item": [
+				{
+					"name": "List Customers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"customer_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Vanguard Robotics\",\n    \"customer_type\": \"Corporate\",\n    \"industry\": \"Autonomous Systems\",\n    \"email\": \"contact@vanguardrobotics.com\",\n    \"phone\": \"+1-800-555-8811\",\n    \"website\": \"https://vanguardrobotics.com\",\n    \"address\": \"77 Innovation Blvd, Austin, TX\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Customer Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/{{customer_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								"{{customer_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"industry\": \"Robotics & Automation Hardware\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/{{customer_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								"{{customer_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Customer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/{{customer_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								"{{customer_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. CRM - Contacts",
+			"item": [
+				{
+					"name": "List Contacts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/contacts/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"contacts",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"contact_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer\": {{customer_id}},\n    \"first_name\": \"Giselle\",\n    \"last_name\": \"Yashar\",\n    \"email\": \"giselle@vanguardrobotics.com\",\n    \"phone\": \"+1-555-8812\",\n    \"designation\": \"Head of Procurement\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/contacts/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"contacts",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Contact Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/contacts/{{contact_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"contacts",
+								"{{contact_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Contact",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"designation\": \"VP of Supply Chain & Procurement\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/contacts/{{contact_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"contacts",
+								"{{contact_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Contact",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/contacts/{{contact_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"contacts",
+								"{{contact_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. CRM - Deals & Pipeline",
+			"item": [
+				{
+					"name": "List Deals with Pipeline Metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/deals/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"deals",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Deal",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"deal_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Automated Fleet Deployment\",\n    \"customer\": {{customer_id}},\n    \"value\": 110000.00,\n    \"stage\": \"Proposal\",\n    \"probability\": 50,\n    \"expected_close_date\": \"2026-11-30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/deals/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"deals",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Deal Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/deals/{{deal_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"deals",
+								"{{deal_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Deal Stage",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"stage\": \"Negotiation\",\n    \"probability\": 75\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/deals/{{deal_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"deals",
+								"{{deal_id}}",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Deal",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/deals/{{deal_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"deals",
+								"{{deal_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. CRM - Activities & Notes",
+			"item": [
+				{
+					"name": "List Activities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/activities/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"activities",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Log Note Activity",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set(\"activity_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activity_type\": \"Note\",\n    \"title\": \"Executive Review Meeting Summary\",\n    \"description\": \"Client agreed to contract terms subject to standard warranty clauses.\",\n    \"customer\": {{customer_id}},\n    \"status\": \"Completed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/activities/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"activities",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Log Email Activity (Local First Dispatch)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activity_type\": \"Email\",\n    \"title\": \"Service Agreement Signoff Confirmation\",\n    \"description\": \"Attached the finalized SLA agreement for review.\",\n    \"customer\": {{customer_id}},\n    \"status\": \"Completed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/activities/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"activities",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Activity",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/activities/{{activity_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"activities",
+								"{{activity_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Gmail Integration",
+			"item": [
+				{
+					"name": "Get Gmail Integration Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/gmail/status/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"gmail",
+								"status",
+								""
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

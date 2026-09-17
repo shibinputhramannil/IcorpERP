@@ -1,0 +1,830 @@
+{
+	"info": {
+		"_postman_id": "icorp-erp-phase4b-sales-inventory-reservation",
+		"name": "ICORP ERP - Phase 4B Sales Order & Inventory Reservation Collection",
+		"description": "Comprehensive Postman test suite for ICORP ERP Phase 4B: Sales Order & Inventory Reservation (Fulfillment Warehouses, Row-Locked Atomic Reservation, Stock Availability Verification, Reservation Release, Order Fulfillment with Immutable StockTransaction STOCK_OUT Ledger, Reservation Audit History, and Order Cancellation Auto-Release).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "warehouse_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "customer_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "product_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "order_number",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Acquire JWT Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Pre-requisites & Setup",
+			"item": [
+				{
+					"name": "List Warehouses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"if (data.length > 0) {",
+									"    pm.collectionVariables.set(\"warehouse_id\", data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/warehouses/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"warehouses",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "List Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"if (data.length > 0) {",
+									"    pm.collectionVariables.set(\"product_id\", data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/products/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"products",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "List Customers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"if (data.length > 0) {",
+									"    pm.collectionVariables.set(\"customer_id\", data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/customers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"customers",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Ensure Product Stock Level",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product\": {{product_id}},\n    \"warehouse\": {{warehouse_id}},\n    \"transaction_type\": \"STOCK_IN\",\n    \"quantity\": 50,\n    \"notes\": \"Replenishment for Phase 4B Postman test run\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Sales Order & Reservation Lifecycle",
+			"item": [
+				{
+					"name": "Create Sales Order with Fulfillment Warehouse",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.collectionVariables.set(\"order_id\", data.id);",
+									"pm.collectionVariables.set(\"order_number\", data.order_number);",
+									"pm.test(\"Order created with DRAFT status\", function () {",
+									"    pm.expect(data.status).to.eql(\"DRAFT\");",
+									"    pm.expect(data.warehouse).to.eql(parseInt(pm.collectionVariables.get(\"warehouse_id\")));",
+									"    pm.expect(data.reservation_status).to.eql(\"NONE\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer\": {{customer_id}},\n    \"warehouse\": {{warehouse_id}},\n    \"notes\": \"Phase 4B Postman Reservation Order\",\n    \"items\": [\n        {\n            \"product\": {{product_id}},\n            \"description\": \"Phase 4B Test Item\",\n            \"quantity\": 5,\n            \"unit_price\": \"120.00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Inspect Stock Before Reservation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/stock/?product={{product_id}}&warehouse={{warehouse_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"stock",
+								""
+							],
+							"query": [
+								{
+									"key": "product",
+									"value": "{{product_id}}"
+								},
+								{
+									"key": "warehouse",
+									"value": "{{warehouse_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Reserve Stock for Sales Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Order status is RESERVED\", function () {",
+									"    pm.expect(data.status).to.eql(\"RESERVED\");",
+									"    pm.expect(data.reservation_status).to.eql(\"ACTIVE\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/reserve/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								"reserve",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Inspect Stock After Reservation (Reserved Increased, Physical Unchanged)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Stock record exists with active reservation\", function () {",
+									"    pm.expect(data.length).to.be.above(0);",
+									"    pm.expect(parseFloat(data[0].reserved_quantity)).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/stock/?product={{product_id}}&warehouse={{warehouse_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"stock",
+								""
+							],
+							"query": [
+								{
+									"key": "product",
+									"value": "{{product_id}}"
+								},
+								{
+									"key": "warehouse",
+									"value": "{{warehouse_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Release Stock Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Order status reverted to CONFIRMED and reservation RELEASED\", function () {",
+									"    pm.expect(data.status).to.eql(\"CONFIRMED\");",
+									"    pm.expect(data.reservation_status).to.eql(\"RELEASED\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/release-reservation/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								"release-reservation",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Re-Reserve Stock",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Order status is RESERVED\", function () {",
+									"    pm.expect(data.status).to.eql(\"RESERVED\");",
+									"    pm.expect(data.reservation_status).to.eql(\"ACTIVE\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/reserve/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								"reserve",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Fulfill Sales Order (Deducts Stock & Writes STOCK_OUT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Order status is COMPLETED and reservation FULFILLED\", function () {",
+									"    pm.expect(data.status).to.eql(\"COMPLETED\");",
+									"    pm.expect(data.reservation_status).to.eql(\"FULFILLED\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/fulfill/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								"fulfill",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Verify Stock Transaction (STOCK_OUT Ledger Entry)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"var orderNum = pm.collectionVariables.get(\"order_number\");",
+									"var matching = data.filter(function(tx) {",
+									"    return tx.transaction_type === 'STOCK_OUT' && (tx.reference || '').indexOf(orderNum) !== -1;",
+									"});",
+									"pm.test(\"STOCK_OUT ledger entry found with order reference\", function () {",
+									"    pm.expect(matching.length).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/?product={{product_id}}&warehouse={{warehouse_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"inventory",
+								"transactions",
+								""
+							],
+							"query": [
+								{
+									"key": "product",
+									"value": "{{product_id}}"
+								},
+								{
+									"key": "warehouse",
+									"value": "{{warehouse_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Order Reservation Audit History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Audit entries recorded for reservation lifecycle\", function () {",
+									"    pm.expect(data.length).to.be.at.least(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/reservations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								"reservations",
+								""
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Error Handling & Edge Cases",
+			"item": [
+				{
+					"name": "Reject Over-Reservation (Insufficient Stock)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Error message contains Insufficient available stock\", function () {",
+									"    pm.expect(data.detail).to.include(\"Insufficient available stock\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer\": {{customer_id}},\n    \"warehouse\": {{warehouse_id}},\n    \"items\": [\n        {\n            \"product\": {{product_id}},\n            \"quantity\": 9999999,\n            \"unit_price\": \"100.00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								""
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancel Order (Auto-Releases Active Reservations)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Order cancelled and reservation auto-released\", function () {",
+									"    pm.expect(data.status).to.eql(\"CANCELLED\");",
+									"    pm.expect(data.reservation_status).to.eql(\"CANCELLED\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"CANCELLED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/sales/orders/{{order_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}",
+								"sales",
+								"orders",
+								"{{order_id}}",
+								""
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

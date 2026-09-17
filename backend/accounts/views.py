@@ -20,25 +20,42 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Get all company memberships of the logged-in user.
         memberships = request.user.company_memberships.select_related(
             "company",
             "role",
-        )
+        ).filter(company__is_active=True)
 
         companies = []
+        member_company_ids = set()
 
-        # Build the company and role information.
         for membership in memberships:
+            member_company_ids.add(membership.company.id)
             companies.append({
+                "id": membership.company.id,
                 "name": membership.company.name,
-                "role": membership.role.name if membership.role else None,
+                "role": membership.role.name if membership.role else ("Company Admin" if request.user.is_superuser else None),
+                "is_active": membership.company.is_active,
             })
 
+        # Super Admin has global access to all active companies
+        if request.user.is_superuser:
+            other_companies = Company.objects.filter(is_active=True).exclude(id__in=member_company_ids)
+            for c in other_companies:
+                companies.append({
+                    "id": c.id,
+                    "name": c.name,
+                    "role": "Super Admin",
+                    "is_active": c.is_active,
+                })
+
         return Response({
+            "id": request.user.id,
             "username": request.user.username,
             "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
             "is_staff": request.user.is_staff,
+            "is_superuser": request.user.is_superuser,
             "companies": companies,
         })
 

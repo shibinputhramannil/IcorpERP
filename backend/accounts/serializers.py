@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
 from .models import CompanyMembership
@@ -43,12 +43,20 @@ class CompanyMembershipSerializer(serializers.ModelSerializer):
 
 
 class CompanyMembershipCreateSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=False,
+    )
+    username = serializers.CharField(required=False, write_only=True)
+    email = serializers.EmailField(required=False, write_only=True)
     role = serializers.CharField()
 
     class Meta:
         model = CompanyMembership
         fields = [
             "user",
+            "username",
+            "email",
             "role",
         ]
 
@@ -61,7 +69,23 @@ class CompanyMembershipCreateSerializer(serializers.ModelSerializer):
             )
 
     def validate(self, attrs):
-        user = attrs["user"]
+        user = attrs.get("user")
+        username = attrs.pop("username", None)
+        email = attrs.pop("email", None)
+
+        if not user:
+            if username:
+                user = User.objects.filter(username=username).first()
+                if not user:
+                    raise serializers.ValidationError({"username": f"User with username '{username}' not found."})
+            elif email:
+                user = User.objects.filter(email__iexact=email).first()
+                if not user:
+                    raise serializers.ValidationError({"email": f"User with email '{email}' not found."})
+            else:
+                raise serializers.ValidationError("Either 'user', 'username', or 'email' must be provided.")
+
+        attrs["user"] = user
         company = self.context["company"]
 
         if CompanyMembership.objects.filter(

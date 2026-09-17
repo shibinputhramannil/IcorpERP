@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
-
 from .models import Employee
 from .serializers import EmployeeSerializer
 
@@ -11,440 +10,128 @@ from .serializers import EmployeeSerializer
 class EmployeeListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, company_id):
-        # Super Admin can view employees in any active company.
+    def _get_company_and_check_permission(self, request, company_id, require_admin=False):
         if request.user.is_superuser:
-            company = (
-                Company.objects
-                .filter(
-                    id=company_id,
-                    is_active=True,
-                )
-                .first()
-            )
-
+            company = Company.objects.filter(id=company_id, is_active=True).first()
             if not company:
-                return Response(
-                    {
-                        "detail": (
-                            "Company not found or inactive."
-                        )
-                    },
-                    status=404,
-                )
+                return None, Response({"detail": "Company not found or inactive."}, status=404)
+            return company, None
 
-        # Company Admin can view employees only in their own company.
-        else:
-            admin_membership = (
-                request.user.company_memberships
-                .select_related("company", "role")
-                .filter(
-                    company_id=company_id,
-                    company__is_active=True,
-                )
-                .first()
-            )
-
-            if not admin_membership:
-                return Response(
-                    {
-                        "detail": (
-                            "You do not have access to this company."
-                        )
-                    },
-                    status=403,
-                )
-
-            if (
-                not admin_membership.role
-                or admin_membership.role.name != "Company Admin"
-            ):
-                return Response(
-                    {
-                        "detail": (
-                            "Company Admin permission required."
-                        )
-                    },
-                    status=403,
-                )
-
-            company = admin_membership.company
-
-        employees = (
-            Employee.objects
-            .filter(
-                company=company,
-                is_active=True,
-            )
-            .select_related(
-                "user",
-                "company",
-            )
+        membership = (
+            request.user.company_memberships
+            .select_related("company", "role")
+            .filter(company_id=company_id, company__is_active=True)
+            .first()
         )
+        if not membership:
+            return None, Response({"detail": "You do not have access to this company."}, status=403)
 
-        serializer = EmployeeSerializer(
-            employees,
-            many=True,
-        )
+        if require_admin:
+            if not membership.role or membership.role.name != "Company Admin":
+                return None, Response({"detail": "Company Admin permission required."}, status=403)
 
+        return membership.company, None
+
+    def get(self, request, company_id):
+        company, err_response = self._get_company_and_check_permission(request, company_id, require_admin=False)
+        if err_response:
+            return err_response
+
+        show_all = request.query_params.get("all") == "true"
+        queryset = Employee.objects.filter(company=company)
+        if not show_all:
+            queryset = queryset.filter(is_active=True)
+
+        employees = queryset.select_related("user", "company").order_by("-created_at")
+        serializer = EmployeeSerializer(employees, many=True)
         return Response(serializer.data)
 
     def post(self, request, company_id):
-        # Super Admin can create employees in any active company.
-        if request.user.is_superuser:
-            company = (
-                Company.objects
-                .filter(
-                    id=company_id,
-                    is_active=True,
-                )
-                .first()
-            )
+        company, err_response = self._get_company_and_check_permission(request, company_id, require_admin=True)
+        if err_response:
+            return err_response
 
-            if not company:
-                return Response(
-                    {
-                        "detail": (
-                            "Company not found or inactive."
-                        )
-                    },
-                    status=404,
-                )
-
-        # Company Admin can create employees only in their own company.
-        else:
-            admin_membership = (
-                request.user.company_memberships
-                .select_related("company", "role")
-                .filter(
-                    company_id=company_id,
-                    company__is_active=True,
-                )
-                .first()
-            )
-
-            if not admin_membership:
-                return Response(
-                    {
-                        "detail": (
-                            "You do not have access to this company."
-                        )
-                    },
-                    status=403,
-                )
-
-            if (
-                not admin_membership.role
-                or admin_membership.role.name != "Company Admin"
-            ):
-                return Response(
-                    {
-                        "detail": (
-                            "Company Admin permission required."
-                        )
-                    },
-                    status=403,
-                )
-
-            company = admin_membership.company
-
-        serializer = EmployeeSerializer(
-            data=request.data,
-        )
-
+        serializer = EmployeeSerializer(data=request.data)
         if serializer.is_valid():
-            employee = serializer.save(
-                company=company,
-            )
+            employee = serializer.save(company=company)
+            return Response(EmployeeSerializer(employee).data, status=201)
 
-            return Response(
-                EmployeeSerializer(employee).data,
-                status=201,
-            )
-
-        return Response(
-            serializer.errors,
-            status=400,
-        )
+        return Response(serializer.errors, status=400)
 
 
 class EmployeeDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, company_id, employee_id):
-        # Super Admin can view employees in any active company.
+    def _get_company_and_check_permission(self, request, company_id, require_admin=False):
         if request.user.is_superuser:
-            company = (
-                Company.objects
-                .filter(
-                    id=company_id,
-                    is_active=True,
-                )
-                .first()
-            )
-
+            company = Company.objects.filter(id=company_id, is_active=True).first()
             if not company:
-                return Response(
-                    {
-                        "detail": (
-                            "Company not found or inactive."
-                        )
-                    },
-                    status=404,
-                )
+                return None, Response({"detail": "Company not found or inactive."}, status=404)
+            return company, None
 
-        # Company Admin can view employees only in their own company.
-        else:
-            admin_membership = (
-                request.user.company_memberships
-                .select_related("company", "role")
-                .filter(
-                    company_id=company_id,
-                    company__is_active=True,
-                )
-                .first()
-            )
+        membership = (
+            request.user.company_memberships
+            .select_related("company", "role")
+            .filter(company_id=company_id, company__is_active=True)
+            .first()
+        )
+        if not membership:
+            return None, Response({"detail": "You do not have access to this company."}, status=403)
 
-            if not admin_membership:
-                return Response(
-                    {
-                        "detail": (
-                            "You do not have access to this company."
-                        )
-                    },
-                    status=403,
-                )
+        if require_admin:
+            if not membership.role or membership.role.name != "Company Admin":
+                return None, Response({"detail": "Company Admin permission required."}, status=403)
 
-            if (
-                not admin_membership.role
-                or admin_membership.role.name != "Company Admin"
-            ):
-                return Response(
-                    {
-                        "detail": (
-                            "Company Admin permission required."
-                        )
-                    },
-                    status=403,
-                )
+        return membership.company, None
 
-            company = admin_membership.company
+    def get(self, request, company_id, employee_id):
+        company, err_response = self._get_company_and_check_permission(request, company_id, require_admin=False)
+        if err_response:
+            return err_response
 
         employee = (
             Employee.objects
-            .select_related(
-                "user",
-                "company",
-            )
-            .filter(
-                id=employee_id,
-                company=company,
-            )
+            .select_related("user", "company")
+            .filter(id=employee_id, company=company)
             .first()
         )
-
         if not employee:
-            return Response(
-                {
-                    "detail": "Employee not found."
-                },
-                status=404,
-            )
+            return Response({"detail": "Employee not found."}, status=404)
 
         serializer = EmployeeSerializer(employee)
-
         return Response(serializer.data)
-        # DELETE: Soft-delete one employee
-    def delete(self, request, company_id, employee_id):
-
-        # Super Admin can delete employees in any active company.
-        if request.user.is_superuser:
-            company = (
-                Company.objects
-                .filter(
-                    id=company_id,
-                    is_active=True,
-                )
-                .first()
-            )
-
-            # Company does not exist or is inactive.
-            if not company:
-                return Response(
-                    {
-                        "detail": "Company not found or inactive."
-                    },
-                    status=404,
-                )
-
-        # Company Admin can delete employees
-        # only from their own company.
-        else:
-            admin_membership = (
-                request.user.company_memberships
-                .select_related("company", "role")
-                .filter(
-                    company_id=company_id,
-                    company__is_active=True,
-                )
-                .first()
-            )
-
-            # User does not belong to this company.
-            if not admin_membership:
-                return Response(
-                    {
-                        "detail": "You do not have access to this company."
-                    },
-                    status=403,
-                )
-
-            # Only Company Admin can delete employees.
-            if (
-                not admin_membership.role
-                or admin_membership.role.name != "Company Admin"
-            ):
-                return Response(
-                    {
-                        "detail": "Company Admin permission required."
-                    },
-                    status=403,
-                )
-
-            # Use the company from the verified membership.
-            company = admin_membership.company
-
-        # Find the employee only inside this company.
-        employee = (
-            Employee.objects
-            .filter(
-                id=employee_id,
-                company=company,
-            )
-            .first()
-        )
-
-        # Employee does not exist.
-        if not employee:
-            return Response(
-                {
-                    "detail": "Employee not found."
-                },
-                status=404,
-            )
-
-        # Soft delete:
-        # Keep the employee in the database,
-        # but mark the employee as inactive.
-        employee.is_active = False
-
-        # Save only the changed field.
-        employee.save(
-            update_fields=["is_active"]
-        )
-
-        return Response(
-            {
-                "detail": "Employee deleted successfully."
-            },
-            status=200,
-        )
 
     def patch(self, request, company_id, employee_id):
-        # Super Admin can update employees in any active company.
-        if request.user.is_superuser:
-            company = (
-                Company.objects
-                .filter(
-                    id=company_id,
-                    is_active=True,
-                )
-                .first()
-            )
-
-            if not company:
-                return Response(
-                    {
-                        "detail": (
-                            "Company not found or inactive."
-                        )
-                    },
-                    status=404,
-                )
-
-        # Company Admin can update employees only in their own company.
-        else:
-            admin_membership = (
-                request.user.company_memberships
-                .select_related("company", "role")
-                .filter(
-                    company_id=company_id,
-                    company__is_active=True,
-                )
-                .first()
-            )
-
-            if not admin_membership:
-                return Response(
-                    {
-                        "detail": (
-                            "You do not have access to this company."
-                        )
-                    },
-                    status=403,
-                )
-
-            if (
-                not admin_membership.role
-                or admin_membership.role.name != "Company Admin"
-            ):
-                return Response(
-                    {
-                        "detail": (
-                            "Company Admin permission required."
-                        )
-                    },
-                    status=403,
-                )
-
-            company = admin_membership.company
+        company, err_response = self._get_company_and_check_permission(request, company_id, require_admin=True)
+        if err_response:
+            return err_response
 
         employee = (
             Employee.objects
-            .select_related(
-                "user",
-                "company",
-            )
-            .filter(
-                id=employee_id,
-                company=company,
-            )
+            .select_related("user", "company")
+            .filter(id=employee_id, company=company)
             .first()
         )
-
         if not employee:
-            return Response(
-                {
-                    "detail": "Employee not found."
-                },
-                status=404,
-            )
+            return Response({"detail": "Employee not found."}, status=404)
 
-        serializer = EmployeeSerializer(
-            employee,
-            data=request.data,
-            partial=True,
-        )
-
+        serializer = EmployeeSerializer(employee, data=request.data, partial=True)
         if serializer.is_valid():
             employee = serializer.save()
+            return Response(EmployeeSerializer(employee).data, status=200)
 
-            return Response(
-                EmployeeSerializer(employee).data,
-                status=200,
-            )
+        return Response(serializer.errors, status=400)
 
-        return Response(
-            serializer.errors,
-            status=400,
-        )
+    def delete(self, request, company_id, employee_id):
+        company, err_response = self._get_company_and_check_permission(request, company_id, require_admin=True)
+        if err_response:
+            return err_response
+
+        employee = Employee.objects.filter(id=employee_id, company=company).first()
+        if not employee:
+            return Response({"detail": "Employee not found."}, status=404)
+
+        # Soft delete: mark as inactive
+        employee.is_active = False
+        employee.save(update_fields=["is_active"])
+        return Response({"detail": "Employee deactivated successfully."}, status=200)

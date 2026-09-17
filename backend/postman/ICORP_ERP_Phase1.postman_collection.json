@@ -1,0 +1,438 @@
+{
+	"info": {
+		"_postman_id": "icorp-erp-phase1-collection",
+		"name": "ICORP ERP - Phase 1 Collection",
+		"description": "Postman test suite for ICORP ERP Phase 1: Authentication, Companies, and Employees",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "employee_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Username or Email)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"    pm.environment.set(\"access_token\", jsonData.access);",
+									"}",
+									"if (jsonData.refresh) {",
+									"    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh);",
+									"    pm.environment.set(\"refresh_token\", jsonData.refresh);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"shibin\",\n    \"password\": \"8590675644\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login", ""]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+									"    pm.environment.set(\"access_token\", jsonData.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "refresh", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Current User (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "me", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Companies",
+			"item": [
+				{
+					"name": "List Companies",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var data = pm.response.json();",
+									"if (data.id) {",
+									"    pm.collectionVariables.set(\"company_id\", data.id);",
+									"    pm.environment.set(\"company_id\", data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Nexus Global Innovations\",\n    \"email\": \"hq@nexusglobal.com\",\n    \"phone\": \"+1-800-555-0199\",\n    \"address\": \"450 Tech Boulevard, Suite 800, San Jose, CA\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/create/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "create", ""]
+						}
+					}
+				},
+				{
+					"name": "Company Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Company",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+1-800-555-9999\",\n    \"address\": \"500 Tech Boulevard, Suite 900, San Jose, CA\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Company",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "List Company Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/members/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "members", ""]
+						}
+					}
+				},
+				{
+					"name": "Add Company Member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"role\": \"Company Admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/members/add/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "members", "add", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Employees",
+			"item": [
+				{
+					"name": "List Employees",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/employees/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "employees", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Employee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var data = pm.response.json();",
+									"if (data.id) {",
+									"    pm.collectionVariables.set(\"employee_id\", data.id);",
+									"    pm.environment.set(\"employee_id\", data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employee_id\": \"EMP-1001\",\n    \"first_name\": \"David\",\n    \"last_name\": \"Warner\",\n    \"email\": \"david.warner@nexusglobal.com\",\n    \"phone\": \"+1-555-0144\",\n    \"department\": \"Engineering\",\n    \"designation\": \"Staff Software Engineer\",\n    \"joining_date\": \"2025-01-10\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/employees/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "employees", ""]
+						}
+					}
+				},
+				{
+					"name": "Employee Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/employees/{{employee_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "employees", "{{employee_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Employee",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"designation\": \"Principal Software Engineer\",\n    \"phone\": \"+1-555-9988\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/employees/{{employee_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "employees", "{{employee_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Employee",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/companies/{{company_id}}/employees/{{employee_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["companies", "{{company_id}}", "employees", "{{employee_id}}", ""]
+						}
+					}
+				}
+			]
+		}
+	]
+}
