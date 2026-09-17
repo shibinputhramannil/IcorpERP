@@ -15,6 +15,7 @@ import EmployeesPage from '../pages/EmployeesPage';
 import CRMPage from '../pages/CRMPage';
 import InventoryPage from '../pages/InventoryPage';
 import SalesPage from '../pages/SalesPage';
+import PurchasePage from '../pages/PurchasePage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -43,33 +44,7 @@ export default function AppRoutes() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/sales" element={<SalesPage />} />
 
-        <Route
-          path="/purchase"
-          element={
-            <ModulePlaceholderPage
-              title="Purchase Operations"
-              subtitle="Procurement workflow from purchase requisition to vendor payment."
-              category="Operations & Workflows"
-              phaseNumber={7}
-              features={[
-                'Vendor & supplier database',
-                'Purchase requisitions & approval flow',
-                'Purchase orders (PO)',
-                'Goods Received Notes (GRN)',
-                'Vendor bills & 3-way matching',
-                'Disbursements & payments',
-              ]}
-              workflowSteps={[
-                'Vendor',
-                'Purchase Request',
-                'Purchase Order',
-                'Goods Received',
-                'Purchase Bill',
-                'Payment',
-              ]}
-            />
-          }
-        />
+        <Route path="/purchase" element={<PurchasePage />} />
 
         <Route
           path="/finance"

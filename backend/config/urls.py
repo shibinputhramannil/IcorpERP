@@ -76,6 +76,15 @@ from sales.views import (
     SalesOrderReturnListView,
     SalesReturnListView,
 )
+from purchase.views import (
+    PurchaseQuotationListCreateView,
+    PurchaseQuotationDetailView,
+    PurchaseQuotationConvertToOrderView,
+    PurchaseOrderListCreateView,
+    PurchaseOrderDetailView,
+    PurchaseDashboardView,
+    VendorPurchaseHistoryView,
+)
 
 
 
@@ -192,5 +201,24 @@ urlpatterns = [
     path("api/companies/<int:company_id>/sales/orders/<int:order_id>/return/", SalesOrderReturnView.as_view(), name="sales_order_return"),
     path("api/companies/<int:company_id>/sales/orders/<int:order_id>/returns/", SalesOrderReturnListView.as_view(), name="sales_order_returns"),
     path("api/companies/<int:company_id>/sales/returns/", SalesReturnListView.as_view(), name="sales_return_list"),
+
+    # ============================================================
+    # Purchase - Phase 5A
+    # ============================================================
+    # Purchase - Quotations
+    path("api/companies/<int:company_id>/purchases/quotations/", PurchaseQuotationListCreateView.as_view(), name="purchase_quotation_list_create"),
+    path("api/companies/<int:company_id>/purchases/quotations/<int:pk>/", PurchaseQuotationDetailView.as_view(), name="purchase_quotation_detail"),
+    path("api/companies/<int:company_id>/purchases/quotations/<int:pk>/convert-to-order/", PurchaseQuotationConvertToOrderView.as_view(), name="purchase_quotation_convert_to_order"),
+    path("api/companies/<int:company_id>/purchases/quotations/<int:pk>/convert/", PurchaseQuotationConvertToOrderView.as_view(), name="purchase_quotation_convert"),
+
+    # Purchase - Orders
+    path("api/companies/<int:company_id>/purchases/orders/", PurchaseOrderListCreateView.as_view(), name="purchase_order_list_create"),
+    path("api/companies/<int:company_id>/purchases/orders/<int:pk>/", PurchaseOrderDetailView.as_view(), name="purchase_order_detail"),
+
+    # Purchase - Dashboard
+    path("api/companies/<int:company_id>/purchases/dashboard/", PurchaseDashboardView.as_view(), name="purchase_dashboard"),
+
+    # Purchase - Vendor History
+    path("api/companies/<int:company_id>/purchases/vendors/<int:vendor_id>/history/", VendorPurchaseHistoryView.as_view(), name="vendor_purchase_history"),
 ]
 

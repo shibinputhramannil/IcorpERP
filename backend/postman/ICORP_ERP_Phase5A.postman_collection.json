@@ -1,0 +1,557 @@
+{
+  "info": {
+    "_postman_id": "icorp-erp-phase5a-purchase-management-foundation",
+    "name": "ICORP ERP - Phase 5A Purchase Management Foundation Collection",
+    "description": "Comprehensive Postman test suite for ICORP ERP Phase 5A: Purchase Quotations, Quotation Items, Purchase Orders, Order Items, Quotation-to-Order Conversion with Duplicate Prevention, Purchase Dashboard Foundation, Vendor Purchase History, and Multi-Tenant Isolation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "vendor_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "warehouse_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "quotation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Has access token\", function () { pm.expect(jsonData.access || jsonData.tokens.access).to.be.a('string'); });",
+              "pm.collectionVariables.set(\"access_token\", jsonData.access || jsonData.tokens.access);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "02. Purchase Dashboard - Metrics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Contains metrics\", function () { pm.expect(jsonData.metrics).to.have.property('total_purchase_quotations'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/dashboard/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "dashboard",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "03. Create Purchase Quotation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+              "var jsonData = pm.response.json();",
+              "pm.expect(jsonData.quotation_number).to.match(/^PQT-\\d{4}-\\d{6}$/);",
+              "pm.collectionVariables.set(\"quotation_id\", jsonData.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendor\": {{vendor_id}},\n  \"quotation_date\": \"2026-09-17\",\n  \"valid_until\": \"2026-10-17\",\n  \"notes\": \"Postman procurement quotation\",\n  \"items\": [\n    {\n      \"product\": {{product_id}},\n      \"description\": \"Component Batch A\",\n      \"quantity\": \"10.00\",\n      \"unit_price\": \"120.00\",\n      \"discount\": \"20.00\",\n      \"tax\": \"10.00\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/quotations/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "quotations",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "04. List Purchase Quotations",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Is an array\", function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/quotations/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "quotations",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "05. Get Purchase Quotation Detail",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"ID matches\", function () { pm.expect(jsonData.id).to.eql(parseInt(pm.collectionVariables.get(\"quotation_id\"))); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/quotations/{{quotation_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "quotations",
+            "{{quotation_id}}",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "06. Convert Quotation to Purchase Order",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+              "var jsonData = pm.response.json();",
+              "pm.expect(jsonData.order_number).to.match(/^PO-\\d{4}-\\d{6}$/);",
+              "pm.collectionVariables.set(\"order_id\", jsonData.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"warehouse\": {{warehouse_id}},\n  \"notes\": \"Converted from quotation via Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/quotations/{{quotation_id}}/convert-to-order/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "quotations",
+            "{{quotation_id}}",
+            "convert-to-order",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "07. Reject Duplicate Quotation Conversion",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Error detail indicates already converted\", function () { pm.expect(jsonData.detail).to.include('already been converted'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/quotations/{{quotation_id}}/convert-to-order/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "quotations",
+            "{{quotation_id}}",
+            "convert-to-order",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "08. Create Direct Purchase Order",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+              "var jsonData = pm.response.json();",
+              "pm.expect(jsonData.order_number).to.match(/^PO-\\d{4}-\\d{6}$/);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendor\": {{vendor_id}},\n  \"warehouse\": {{warehouse_id}},\n  \"order_date\": \"2026-09-17\",\n  \"expected_date\": \"2026-09-28\",\n  \"notes\": \"Direct Postman order\",\n  \"items\": [\n    {\n      \"product\": {{product_id}},\n      \"quantity\": \"12.00\",\n      \"unit_price\": \"110.00\",\n      \"discount\": \"20.00\",\n      \"tax\": \"10.00\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "09. List Purchase Orders",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Is an array\", function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Update Purchase Order Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Status is PROCESSING\", function () { pm.expect(pm.response.json().status).to.eql('PROCESSING'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"PROCESSING\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            "{{order_id}}",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Vendor Purchase History Foundation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Vendor metrics present\", function () { pm.expect(jsonData.metrics).to.have.property('total_orders'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/vendors/{{vendor_id}}/history/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "vendors",
+            "{{vendor_id}}",
+            "history",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "12. Multi-Tenant Isolation - Cross Company Access Rejection",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 or 404\", function () { pm.expect([403, 404]).to.include(pm.response.code); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/99999/purchases/quotations/{{quotation_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "99999",
+            "purchases",
+            "quotations",
+            "{{quotation_id}}",
+            ""
+          ]
+        }
+      }
+    }
+  ]
+}
