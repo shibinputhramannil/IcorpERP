@@ -1,0 +1,660 @@
+{
+  "info": {
+    "_postman_id": "icorp-erp-phase5b-purchase-inventory-integration",
+    "name": "ICORP ERP - Phase 5B Purchase & Inventory Integration (Goods Receiving) Collection",
+    "description": "Comprehensive Postman test suite for ICORP ERP Phase 5B: Purchase Order Goods Receiving, Partial Receiving, Remaining Quantity Math, Real PostgreSQL Stock Updates, Immutable StockTransaction (STOCK_IN) Ledger, Sequential GRN Numbering (GRN-YYYY-######), and Purchase Dashboard Metrics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "4",
+      "type": "string"
+    },
+    {
+      "key": "order_item_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "warehouse_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "receipt_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "receipt_number",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "var token = jsonData.access || (jsonData.tokens && jsonData.tokens.access);",
+              "pm.collectionVariables.set('access_token', token);",
+              "pm.test('Access token stored', function () { pm.expect(token).to.be.a('string'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "02. Purchase Orders - List Orders",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Orders array returned', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });",
+              "if (jsonData.length > 0) {",
+              "    pm.collectionVariables.set('order_id', jsonData[0].id);",
+              "    if (jsonData[0].items && jsonData[0].items.length > 0) {",
+              "        pm.collectionVariables.set('order_item_id', jsonData[0].items[0].id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "03. Purchase Orders - Get Order Detail & Receiving Fields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has receiving fields', function () {",
+              "    pm.expect(jsonData).to.have.property('total_ordered_quantity');",
+              "    pm.expect(jsonData).to.have.property('total_received_quantity');",
+              "    pm.expect(jsonData).to.have.property('total_remaining_quantity');",
+              "    pm.expect(jsonData).to.have.property('receiving_percentage');",
+              "    pm.expect(jsonData).to.have.property('receipts');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            "{{order_id}}",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "04. Goods Receiving - Post Goods Receipt (Stock IN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (pm.response.code === 201) {",
+              "    pm.test('Goods Receipt created', function () {",
+              "        pm.expect(jsonData.receipt_number).to.match(/^GRN-\\d{4}-\\d{6}$/);",
+              "        pm.collectionVariables.set('receipt_id', jsonData.id);",
+              "        pm.collectionVariables.set('receipt_number', jsonData.receipt_number);",
+              "    });",
+              "} else {",
+              "    pm.test('Status code 201 or 400', function () { pm.expect([201, 400]).to.include(pm.response.code); });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"warehouse\": {{warehouse_id}},\n    \"receipt_date\": \"2026-09-17\",\n    \"notes\": \"Postman Goods Receipt Test\",\n    \"items\": [\n        {\n            \"purchase_order_item\": {{order_item_id}},\n            \"received_quantity\": \"10.00\",\n            \"notes\": \"Quality inspected OK\"\n        }\n    ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/receive/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            "{{order_id}}",
+            "receive",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "05. Goods Receiving - Over-Receiving Validation (Expected 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+              "var jsonData = pm.response.json();",
+              "pm.test('Has error detail', function () { pm.expect(jsonData.detail).to.be.a('string'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"warehouse\": {{warehouse_id}},\n    \"items\": [\n        {\n            \"purchase_order_item\": {{order_item_id}},\n            \"received_quantity\": \"999999.00\"\n        }\n    ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/receive/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            "{{order_id}}",
+            "receive",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "06. Goods Receipts - List Company GRNs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Receipts array returned', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });",
+              "if (jsonData.length > 0) {",
+              "    pm.collectionVariables.set('receipt_id', jsonData[0].id);",
+              "    pm.collectionVariables.set('receipt_number', jsonData[0].receipt_number);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/receipts/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "receipts",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "07. Goods Receipts - Filter by Receipt Number",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns filtered results', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/receipts/?receipt_number={{receipt_number}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "receipts",
+            ""
+          ],
+          "query": [
+            {
+              "key": "receipt_number",
+              "value": "{{receipt_number}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08. Goods Receipts - Get GRN Detail",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has GRN detail fields', function () {",
+              "    pm.expect(jsonData).to.have.property('receipt_number');",
+              "    pm.expect(jsonData).to.have.property('warehouse_name');",
+              "    pm.expect(jsonData).to.have.property('items');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/receipts/{{receipt_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "receipts",
+            "{{receipt_id}}",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "09. Purchase Orders - Get Order Receipts",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns list of order receipts', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/receipts/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "orders",
+            "{{order_id}}",
+            "receipts",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Inventory - Live Stock List",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns live stock list', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/inventory/stock/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "inventory",
+            "stock",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Inventory - Stock Transactions (STOCK_IN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns transaction audit records', function () { pm.expect(Array.isArray(jsonData)).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/inventory/transactions/?transaction_type=STOCK_IN",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "inventory",
+            "transactions",
+            ""
+          ],
+          "query": [
+            {
+              "key": "transaction_type",
+              "value": "STOCK_IN"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "12. Purchase Dashboard - Receiving KPIs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has receiving metrics', function () {",
+              "    pm.expect(jsonData.metrics).to.have.property('total_goods_receipts');",
+              "    pm.expect(jsonData.metrics).to.have.property('total_units_received');",
+              "    pm.expect(jsonData.metrics).to.have.property('pending_receiving_orders');",
+              "    pm.expect(jsonData.metrics).to.have.property('completed_receiving_orders');",
+              "    pm.expect(jsonData).to.have.property('recent_receipts');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/dashboard/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "purchases",
+            "dashboard",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "13. Cross-Tenant Isolation - Access Foreign Receipt (Expected 403 or 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Cross-tenant receipt access rejected (403 or 404)', function () {",
+              "    pm.expect([403, 404]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/99999/purchases/receipts/{{receipt_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "99999",
+            "purchases",
+            "receipts",
+            "{{receipt_id}}",
+            ""
+          ]
+        }
+      }
+    }
+  ]
+}

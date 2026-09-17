@@ -82,6 +82,10 @@ from purchase.views import (
     PurchaseQuotationConvertToOrderView,
     PurchaseOrderListCreateView,
     PurchaseOrderDetailView,
+    PurchaseOrderReceiveView,
+    PurchaseOrderReceiptListView,
+    PurchaseReceiptListCreateView,
+    PurchaseReceiptDetailView,
     PurchaseDashboardView,
     VendorPurchaseHistoryView,
 )
@@ -214,6 +218,12 @@ urlpatterns = [
     # Purchase - Orders
     path("api/companies/<int:company_id>/purchases/orders/", PurchaseOrderListCreateView.as_view(), name="purchase_order_list_create"),
     path("api/companies/<int:company_id>/purchases/orders/<int:pk>/", PurchaseOrderDetailView.as_view(), name="purchase_order_detail"),
+    path("api/companies/<int:company_id>/purchases/orders/<int:pk>/receive/", PurchaseOrderReceiveView.as_view(), name="purchase_order_receive"),
+    path("api/companies/<int:company_id>/purchases/orders/<int:pk>/receipts/", PurchaseOrderReceiptListView.as_view(), name="purchase_order_receipts"),
+
+    # Purchase - Goods Receipts (Phase 5B)
+    path("api/companies/<int:company_id>/purchases/receipts/", PurchaseReceiptListCreateView.as_view(), name="purchase_receipt_list_create"),
+    path("api/companies/<int:company_id>/purchases/receipts/<int:pk>/", PurchaseReceiptDetailView.as_view(), name="purchase_receipt_detail"),
 
     # Purchase - Dashboard
     path("api/companies/<int:company_id>/purchases/dashboard/", PurchaseDashboardView.as_view(), name="purchase_dashboard"),

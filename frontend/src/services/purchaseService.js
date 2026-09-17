@@ -1,4 +1,4 @@
-﻿import api from './api';
+import api from './api';
 
 export const purchaseService = {
   // ============================================================
@@ -71,7 +71,30 @@ export const purchaseService = {
   },
 
   // ============================================================
-  // 4. VENDOR PURCHASE HISTORY
+  // 4. GOODS RECEIVING & RECEIPTS (Phase 5B)
+  // ============================================================
+  receiveOrder: async (companyId, orderId, data) => {
+    const response = await api.post(`/companies/${companyId}/purchases/orders/${orderId}/receive/`, data);
+    return response.data;
+  },
+
+  getOrderReceipts: async (companyId, orderId) => {
+    const response = await api.get(`/companies/${companyId}/purchases/orders/${orderId}/receipts/`);
+    return response.data;
+  },
+
+  getReceipts: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/receipts/`, { params });
+    return response.data;
+  },
+
+  getReceipt: async (companyId, receiptId) => {
+    const response = await api.get(`/companies/${companyId}/purchases/receipts/${receiptId}/`);
+    return response.data;
+  },
+
+  // ============================================================
+  // 5. VENDOR PURCHASE HISTORY
   // ============================================================
   getVendorHistory: async (companyId, vendorId) => {
     const response = await api.get(`/companies/${companyId}/purchases/vendors/${vendorId}/history/`);

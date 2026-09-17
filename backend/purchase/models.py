@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -56,6 +56,34 @@ def generate_purchase_order_number(company=None):
 
     candidate = f"{prefix}{new_seq:06d}"
     while PurchaseOrder.objects.filter(order_number=candidate).exists():
+        new_seq += 1
+        candidate = f"{prefix}{new_seq:06d}"
+    return candidate
+
+
+def generate_purchase_receipt_number(company=None):
+    """
+    Generates a unique incremental purchase receipt number (Goods Received Note).
+    Format: GRN-YYYY-###### (e.g. GRN-2026-000001)
+    """
+    year = timezone.now().year
+    prefix = f"GRN-{year}-"
+    last_receipt = (
+        PurchaseReceipt.objects.filter(receipt_number__startswith=prefix)
+        .order_by("-receipt_number")
+        .first()
+    )
+    if last_receipt:
+        try:
+            last_seq = int(last_receipt.receipt_number.split("-")[-1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = PurchaseReceipt.objects.count() + 1
+    else:
+        new_seq = 1
+
+    candidate = f"{prefix}{new_seq:06d}"
+    while PurchaseReceipt.objects.filter(receipt_number=candidate).exists():
         new_seq += 1
         candidate = f"{prefix}{new_seq:06d}"
     return candidate
@@ -241,6 +269,56 @@ class PurchaseOrder(models.Model):
         self.tax = tax
         self.total = total
 
+    @property
+    def total_ordered_quantity(self):
+        return sum((item.quantity for item in self.items.all()), Decimal("0.00"))
+
+    @property
+    def total_received_quantity(self):
+        return sum((item.received_quantity for item in self.items.all()), Decimal("0.00"))
+
+    @property
+    def total_remaining_quantity(self):
+        return sum((item.remaining_quantity for item in self.items.all()), Decimal("0.00"))
+
+    @property
+    def receiving_percentage(self):
+        ordered = self.total_ordered_quantity
+        if ordered <= Decimal("0.00"):
+            return Decimal("0.00")
+        received = self.total_received_quantity
+        pct = (received / ordered) * Decimal("100.00")
+        return min(Decimal("100.00"), round(pct, 2))
+
+    def update_receiving_status(self):
+        """
+        Updates order status based on item receipt fulfillment:
+        - If all remaining quantities are 0 -> COMPLETED
+        - If any item has received > 0 but not all fulfilled -> PARTIALLY_RECEIVED
+        - If none received and current status is CONFIRMED -> leaves as CONFIRMED
+        """
+        if self.status in [self.PurchaseOrderStatus.CANCELLED, self.PurchaseOrderStatus.DRAFT]:
+            return self.status
+
+        items = list(self.items.all())
+        if not items:
+            return self.status
+
+        all_completed = all(item.remaining_quantity == Decimal("0.00") for item in items)
+        any_received = any(item.received_quantity > Decimal("0.00") for item in items)
+
+        if all_completed:
+            new_status = self.PurchaseOrderStatus.COMPLETED
+        elif any_received:
+            new_status = self.PurchaseOrderStatus.PARTIALLY_RECEIVED
+        else:
+            new_status = self.status
+
+        if self.status != new_status:
+            self.status = new_status
+            self.save(update_fields=["status", "updated_at"])
+        return self.status
+
 
 class PurchaseOrderItem(models.Model):
     purchase_order = models.ForeignKey(
@@ -275,3 +353,96 @@ class PurchaseOrderItem(models.Model):
             (self.quantity * self.unit_price) - self.discount + self.tax,
         )
         super().save(*args, **kwargs)
+
+    @property
+    def received_quantity(self):
+        total = self.receipt_items.filter(
+            receipt__status="RECEIVED"
+        ).aggregate(total=models.Sum("received_quantity"))["total"]
+        return total or Decimal("0.00")
+
+    @property
+    def remaining_quantity(self):
+        return max(Decimal("0.00"), self.quantity - self.received_quantity)
+
+
+class PurchaseReceipt(models.Model):
+    class ReceiptStatus(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        RECEIVED = "RECEIVED", "Received"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="purchase_receipts",
+    )
+    purchase_order = models.ForeignKey(
+        PurchaseOrder,
+        on_delete=models.CASCADE,
+        related_name="receipts",
+    )
+    receipt_number = models.CharField(max_length=50, unique=True)
+    receipt_date = models.DateField(default=timezone.localdate)
+    warehouse = models.ForeignKey(
+        "inventory.Warehouse",
+        on_delete=models.PROTECT,
+        related_name="purchase_receipts",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=ReceiptStatus.choices,
+        default=ReceiptStatus.RECEIVED,
+    )
+    notes = models.TextField(blank=True)
+    received_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="received_purchase_receipts",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Purchase Receipt"
+        verbose_name_plural = "Purchase Receipts"
+
+    def __str__(self):
+        return f"{self.receipt_number} - PO {self.purchase_order.order_number} ({self.status})"
+
+    @property
+    def total_quantity(self):
+        return sum((item.received_quantity for item in self.items.all()), Decimal("0.00"))
+
+
+class PurchaseReceiptItem(models.Model):
+    receipt = models.ForeignKey(
+        PurchaseReceipt,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    purchase_order_item = models.ForeignKey(
+        PurchaseOrderItem,
+        on_delete=models.PROTECT,
+        related_name="receipt_items",
+    )
+    product = models.ForeignKey(
+        "inventory.Product",
+        on_delete=models.PROTECT,
+        related_name="purchase_receipt_items",
+    )
+    ordered_quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    previously_received_quantity = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    received_quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Purchase Receipt Item"
+        verbose_name_plural = "Purchase Receipt Items"
+
+    def __str__(self):
+        return f"{self.receipt.receipt_number}: {self.received_quantity} x {self.product.name}"

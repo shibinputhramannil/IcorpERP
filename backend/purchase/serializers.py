@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 from inventory.models import Vendor, Product, Warehouse
@@ -7,8 +7,11 @@ from .models import (
     PurchaseQuotationItem,
     PurchaseOrder,
     PurchaseOrderItem,
+    PurchaseReceipt,
+    PurchaseReceiptItem,
     generate_purchase_quotation_number,
     generate_purchase_order_number,
+    generate_purchase_receipt_number,
 )
 
 
@@ -171,10 +174,78 @@ class PurchaseQuotationSerializer(serializers.ModelSerializer):
         return instance
 
 
+class PurchaseReceiptItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    product_sku = serializers.CharField(source="product.sku", read_only=True)
+
+    class Meta:
+        model = PurchaseReceiptItem
+        fields = [
+            "id",
+            "purchase_order_item",
+            "product",
+            "product_name",
+            "product_sku",
+            "ordered_quantity",
+            "previously_received_quantity",
+            "received_quantity",
+            "notes",
+        ]
+
+
+class PurchaseReceiptSerializer(serializers.ModelSerializer):
+    items = PurchaseReceiptItemSerializer(many=True, read_only=True)
+    purchase_order_number = serializers.CharField(source="purchase_order.order_number", read_only=True)
+    vendor_id = serializers.IntegerField(source="purchase_order.vendor_id", read_only=True)
+    vendor_name = serializers.CharField(source="purchase_order.vendor.name", read_only=True)
+    warehouse_name = serializers.CharField(source="warehouse.name", read_only=True)
+    received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
+    total_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    items_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PurchaseReceipt
+        fields = [
+            "id",
+            "company",
+            "purchase_order",
+            "purchase_order_number",
+            "vendor_id",
+            "vendor_name",
+            "receipt_number",
+            "receipt_date",
+            "warehouse",
+            "warehouse_name",
+            "status",
+            "notes",
+            "total_quantity",
+            "items",
+            "items_count",
+            "received_by",
+            "received_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "company",
+            "receipt_number",
+            "total_quantity",
+            "items_count",
+            "received_by",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_items_count(self, obj):
+        return obj.items.count()
+
+
 class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source="product.name", read_only=True)
     product_sku = serializers.CharField(source="product.sku", read_only=True)
     line_total = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    received_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    remaining_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = PurchaseOrderItem
@@ -185,6 +256,8 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
             "product_sku",
             "description",
             "quantity",
+            "received_quantity",
+            "remaining_quantity",
             "unit_price",
             "discount",
             "tax",
@@ -221,12 +294,18 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     items = PurchaseOrderItemSerializer(many=True, required=False)
+    receipts = PurchaseReceiptSerializer(many=True, read_only=True)
     vendor_name = serializers.CharField(source="vendor.name", read_only=True)
     vendor_email = serializers.CharField(source="vendor.email", read_only=True)
     quotation_number = serializers.CharField(source="quotation.quotation_number", read_only=True)
     warehouse_name = serializers.CharField(source="warehouse.name", read_only=True)
     created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
     items_count = serializers.SerializerMethodField()
+    total_ordered_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    total_received_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    total_remaining_quantity = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    receiving_percentage = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    receipts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = PurchaseOrder
@@ -251,6 +330,12 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
             "total",
             "items",
             "items_count",
+            "receipts",
+            "receipts_count",
+            "total_ordered_quantity",
+            "total_received_quantity",
+            "total_remaining_quantity",
+            "receiving_percentage",
             "created_by",
             "created_by_name",
             "created_at",
@@ -263,6 +348,12 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
             "discount",
             "tax",
             "total",
+            "receipts",
+            "receipts_count",
+            "total_ordered_quantity",
+            "total_received_quantity",
+            "total_remaining_quantity",
+            "receiving_percentage",
             "created_by",
             "created_at",
             "updated_at",
@@ -270,6 +361,9 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
     def get_items_count(self, obj):
         return obj.items.count()
+
+    def get_receipts_count(self, obj):
+        return obj.receipts.count()
 
     def validate_vendor(self, value):
         company = self.context.get("company")

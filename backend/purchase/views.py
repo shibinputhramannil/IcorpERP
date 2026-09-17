@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from django.db import transaction
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
@@ -8,19 +8,24 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
-from inventory.models import Vendor, Product, Warehouse
+from inventory.models import Vendor, Product, Warehouse, Stock, StockTransaction
 from .models import (
     PurchaseQuotation,
     PurchaseQuotationItem,
     PurchaseOrder,
     PurchaseOrderItem,
+    PurchaseReceipt,
+    PurchaseReceiptItem,
     generate_purchase_order_number,
+    generate_purchase_receipt_number,
 )
 from .serializers import (
     PurchaseQuotationSerializer,
     PurchaseQuotationItemSerializer,
     PurchaseOrderSerializer,
     PurchaseOrderItemSerializer,
+    PurchaseReceiptSerializer,
+    PurchaseReceiptItemSerializer,
 )
 
 
@@ -384,7 +389,333 @@ class PurchaseOrderDetailView(PurchaseBaseView):
 
 
 # ============================================================
-# 3. PURCHASE DASHBOARD VIEW
+# 3. GOODS RECEIVING & PURCHASE RECEIPT VIEWS
+# ============================================================
+
+class PurchaseOrderReceiveView(PurchaseBaseView):
+    """
+    Receives goods for a Purchase Order, updates live PostgreSQL inventory Stock,
+    creates immutable StockTransaction (STOCK_IN) records, and progresses PO status.
+    Atomic and multi-tenant isolated.
+    """
+    def post(self, request, company_id, pk):
+        company = self.get_company(request, company_id)
+        if not company:
+            return Response({"detail": "You do not have access to this company."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            order = PurchaseOrder.objects.filter(company=company, id=pk).select_related("vendor", "warehouse").get()
+        except PurchaseOrder.DoesNotExist:
+            return Response({"detail": "Purchase order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Disallow receiving on DRAFT, COMPLETED, or CANCELLED
+        if order.status == PurchaseOrder.PurchaseOrderStatus.DRAFT:
+            return Response(
+                {"detail": "Cannot receive goods for a draft purchase order. Please confirm it first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if order.status == PurchaseOrder.PurchaseOrderStatus.COMPLETED:
+            return Response(
+                {"detail": "This purchase order is already completed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if order.status == PurchaseOrder.PurchaseOrderStatus.CANCELLED:
+            return Response(
+                {"detail": "Cannot receive goods for a cancelled purchase order."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Resolve warehouse
+        warehouse_id = request.data.get("warehouse")
+        if warehouse_id:
+            warehouse = Warehouse.objects.filter(company=company, id=warehouse_id, is_active=True).first()
+            if not warehouse:
+                return Response(
+                    {"detail": "Invalid or inactive warehouse for this company."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        elif order.warehouse:
+            warehouse = order.warehouse
+        else:
+            warehouse = Warehouse.objects.filter(company=company, is_active=True).first()
+            if not warehouse:
+                return Response(
+                    {"detail": "No active warehouse found for receiving stock. Please create or select a warehouse."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        items_payload = request.data.get("items")
+        if not items_payload or not isinstance(items_payload, list) or len(items_payload) == 0:
+            return Response(
+                {"detail": "At least one item is required for receiving goods."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Map existing PO items
+        po_items = {item.id: item for item in order.items.select_related("product").all()}
+
+        parsed_items = []
+        total_receiving_qty = Decimal("0.00")
+
+        for idx, entry in enumerate(items_payload):
+            item_id = entry.get("purchase_order_item") or entry.get("item_id") or entry.get("id")
+            if not item_id:
+                return Response(
+                    {"detail": f"Item at index {idx} is missing purchase_order_item ID."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                item_id = int(item_id)
+            except (ValueError, TypeError):
+                return Response(
+                    {"detail": f"Invalid item ID '{item_id}' at index {idx}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if item_id not in po_items:
+                return Response(
+                    {"detail": f"Item {item_id} does not belong to purchase order {order.order_number}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            po_item = po_items[item_id]
+
+            # Validate quantity
+            qty_raw = entry.get("received_quantity")
+            if qty_raw is None:
+                return Response(
+                    {"detail": f"Received quantity is required for item {po_item.product.name}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                qty = Decimal(str(qty_raw))
+            except Exception:
+                return Response(
+                    {"detail": f"Invalid received quantity '{qty_raw}' for item {po_item.product.name}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if qty < Decimal("0.00"):
+                return Response(
+                    {"detail": f"Received quantity cannot be negative for item {po_item.product.name}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            remaining = po_item.remaining_quantity
+            if qty > remaining:
+                return Response(
+                    {
+                        "detail": f"Cannot receive {qty} units of '{po_item.product.name}'. Only {remaining} units remain to be received."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            parsed_items.append({
+                "po_item": po_item,
+                "received_qty": qty,
+                "notes": entry.get("notes", ""),
+            })
+            total_receiving_qty += qty
+
+        if total_receiving_qty <= Decimal("0.00"):
+            return Response(
+                {"detail": "Total received quantity across all items must be greater than zero."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        receipt_date = request.data.get("receipt_date") or timezone.localdate()
+        notes = request.data.get("notes", "")
+
+        # Execute atomically with row locking
+        with transaction.atomic():
+            # Re-fetch order with lock
+            locked_order = (
+                PurchaseOrder.objects.filter(company=company, id=order.id)
+                .select_for_update()
+                .first()
+            )
+            if locked_order.status in [
+                PurchaseOrder.PurchaseOrderStatus.DRAFT,
+                PurchaseOrder.PurchaseOrderStatus.COMPLETED,
+                PurchaseOrder.PurchaseOrderStatus.CANCELLED,
+            ]:
+                return Response(
+                    {"detail": f"Cannot receive goods for order with status '{locked_order.status}'."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Generate unique sequential GRN number
+            receipt_number = generate_purchase_receipt_number(company)
+
+            receipt = PurchaseReceipt.objects.create(
+                company=company,
+                purchase_order=locked_order,
+                receipt_number=receipt_number,
+                receipt_date=receipt_date,
+                warehouse=warehouse,
+                status=PurchaseReceipt.ReceiptStatus.RECEIVED,
+                notes=notes,
+                received_by=request.user,
+            )
+
+            for item_info in parsed_items:
+                po_item = item_info["po_item"]
+                received_qty = item_info["received_qty"]
+                item_notes = item_info["notes"]
+
+                if received_qty <= Decimal("0.00"):
+                    continue
+
+                prev_received = po_item.received_quantity
+
+                # Create Receipt Item record
+                PurchaseReceiptItem.objects.create(
+                    receipt=receipt,
+                    purchase_order_item=po_item,
+                    product=po_item.product,
+                    ordered_quantity=po_item.quantity,
+                    previously_received_quantity=prev_received,
+                    received_quantity=received_qty,
+                    notes=item_notes,
+                )
+
+                # Update live stock with row-level locking
+                stock, _ = Stock.objects.get_or_create(
+                    product=po_item.product,
+                    warehouse=warehouse,
+                    defaults={"quantity": Decimal("0.00"), "reserved_quantity": Decimal("0.00")},
+                )
+                stock = Stock.objects.select_for_update().get(id=stock.id)
+                stock.quantity += received_qty
+                stock.save(update_fields=["quantity", "updated_at"])
+
+                # Immutable StockTransaction audit log
+                StockTransaction.objects.create(
+                    company=company,
+                    product=po_item.product,
+                    warehouse=warehouse,
+                    transaction_type=StockTransaction.TransactionType.STOCK_IN,
+                    quantity=received_qty,
+                    reference=f"{locked_order.order_number} / {receipt.receipt_number}",
+                    notes=item_notes or f"Goods Received Note {receipt.receipt_number} for PO {locked_order.order_number}",
+                    created_by=request.user,
+                )
+
+            # If order was not assigned a warehouse, link it now
+            if not locked_order.warehouse:
+                locked_order.warehouse = warehouse
+                locked_order.save(update_fields=["warehouse", "updated_at"])
+
+            # Recalculate order status
+            locked_order.update_receiving_status()
+
+        receipt_data = PurchaseReceiptSerializer(receipt).data
+        return Response(receipt_data, status=status.HTTP_201_CREATED)
+
+
+class PurchaseOrderReceiptListView(PurchaseBaseView):
+    """
+    List all Goods Receipts (GRNs) associated with a specific Purchase Order.
+    """
+    def get(self, request, company_id, pk):
+        company = self.get_company(request, company_id)
+        if not company:
+            return Response({"detail": "You do not have access to this company."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            order = PurchaseOrder.objects.filter(company=company, id=pk).get()
+        except PurchaseOrder.DoesNotExist:
+            return Response({"detail": "Purchase order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        receipts = (
+            order.receipts.filter(company=company)
+            .select_related("purchase_order", "warehouse", "received_by")
+            .prefetch_related("items__product")
+            .order_by("-created_at")
+        )
+        return Response(PurchaseReceiptSerializer(receipts, many=True).data)
+
+
+class PurchaseReceiptListCreateView(PurchaseBaseView):
+    """
+    List all Goods Receipts for a company with comprehensive filtering.
+    """
+    def get(self, request, company_id):
+        company = self.get_company(request, company_id)
+        if not company:
+            return Response({"detail": "You do not have access to this company."}, status=status.HTTP_403_FORBIDDEN)
+
+        receipts = (
+            PurchaseReceipt.objects.filter(company=company)
+            .select_related("purchase_order", "warehouse", "received_by")
+            .prefetch_related("items__product")
+        )
+
+        order_param = request.query_params.get("purchase_order")
+        if order_param:
+            if str(order_param).isdigit():
+                receipts = receipts.filter(purchase_order_id=int(order_param))
+            else:
+                receipts = receipts.filter(purchase_order__order_number__icontains=order_param.strip())
+
+        warehouse_id = request.query_params.get("warehouse")
+        if warehouse_id:
+            receipts = receipts.filter(warehouse_id=warehouse_id)
+
+        receipt_number = request.query_params.get("receipt_number")
+        if receipt_number:
+            receipts = receipts.filter(receipt_number__icontains=receipt_number.strip())
+
+        status_param = request.query_params.get("status")
+        if status_param and status_param != "ALL":
+            receipts = receipts.filter(status=status_param)
+
+        date_from = request.query_params.get("date_from")
+        if date_from:
+            receipts = receipts.filter(receipt_date__gte=date_from)
+
+        date_to = request.query_params.get("date_to")
+        if date_to:
+            receipts = receipts.filter(receipt_date__lte=date_to)
+
+        search = request.query_params.get("search")
+        if search:
+            receipts = receipts.filter(
+                Q(receipt_number__icontains=search)
+                | Q(purchase_order__order_number__icontains=search)
+                | Q(purchase_order__vendor__name__icontains=search)
+                | Q(notes__icontains=search)
+            )
+
+        return Response(PurchaseReceiptSerializer(receipts, many=True).data)
+
+
+class PurchaseReceiptDetailView(PurchaseBaseView):
+    """
+    Retrieve details for a single Goods Receipt.
+    """
+    def get(self, request, company_id, pk):
+        company = self.get_company(request, company_id)
+        if not company:
+            return Response({"detail": "You do not have access to this company."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            receipt = (
+                PurchaseReceipt.objects.filter(company=company, id=pk)
+                .select_related("purchase_order", "warehouse", "received_by")
+                .prefetch_related("items__product")
+                .get()
+            )
+        except PurchaseReceipt.DoesNotExist:
+            return Response({"detail": "Goods receipt not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(PurchaseReceiptSerializer(receipt).data)
+
+
+# ============================================================
+# 4. PURCHASE DASHBOARD VIEW
 # ============================================================
 
 class PurchaseDashboardView(PurchaseBaseView):
@@ -427,6 +758,25 @@ class PurchaseDashboardView(PurchaseBaseView):
         # Active Vendors
         active_vendors_count = Vendor.objects.filter(company=company, is_active=True).count()
 
+        # Receiving Metrics
+        receipts_qs = PurchaseReceipt.objects.filter(company=company)
+        total_goods_receipts = receipts_qs.count()
+        partially_received_orders = orders_qs.filter(status=PurchaseOrder.PurchaseOrderStatus.PARTIALLY_RECEIVED).count()
+        pending_receiving_orders = orders_qs.filter(
+            status__in=[
+                PurchaseOrder.PurchaseOrderStatus.CONFIRMED,
+                PurchaseOrder.PurchaseOrderStatus.PROCESSING,
+                PurchaseOrder.PurchaseOrderStatus.PARTIALLY_RECEIVED,
+            ]
+        ).count()
+        total_units_received = (
+            PurchaseReceiptItem.objects.filter(
+                receipt__company=company,
+                receipt__status=PurchaseReceipt.ReceiptStatus.RECEIVED,
+            ).aggregate(total=Sum("received_quantity"))["total"]
+            or Decimal("0.00")
+        )
+
         # Status breakdowns
         orders_by_status = dict(
             orders_qs.values_list("status").annotate(count=Count("id")).values_list("status", "count")
@@ -446,6 +796,13 @@ class PurchaseDashboardView(PurchaseBaseView):
             many=True,
         ).data
 
+        recent_receipts = PurchaseReceiptSerializer(
+            receipts_qs.select_related("purchase_order", "warehouse", "received_by")
+            .prefetch_related("items__product")
+            .order_by("-created_at")[:5],
+            many=True,
+        ).data
+
         return Response({
             "metrics": {
                 "total_purchase_quotations": total_quotations,
@@ -455,6 +812,11 @@ class PurchaseDashboardView(PurchaseBaseView):
                 "confirmed_orders": confirmed_orders,
                 "completed_orders": completed_orders,
                 "cancelled_orders": cancelled_orders,
+                "pending_receiving_orders": pending_receiving_orders,
+                "partially_received_orders": partially_received_orders,
+                "completed_receiving_orders": completed_orders,
+                "total_goods_receipts": total_goods_receipts,
+                "total_units_received": str(total_units_received),
                 "total_purchase_value": str(total_purchase_val),
                 "pending_purchase_value": str(pending_purchase_val),
                 "active_vendors": active_vendors_count,
@@ -463,6 +825,7 @@ class PurchaseDashboardView(PurchaseBaseView):
             "quotations_by_status": quotations_by_status,
             "recent_quotations": recent_quotations,
             "recent_orders": recent_orders,
+            "recent_receipts": recent_receipts,
         })
 
 

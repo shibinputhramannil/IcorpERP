@@ -33,6 +33,7 @@ import {
   Select,
   MenuItem,
   Divider,
+  LinearProgress,
 } from '@mui/material';
 
 // Icons
@@ -52,6 +53,8 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
@@ -79,16 +82,23 @@ const ORDER_STATUS_COLORS = {
   CANCELLED: 'error',
 };
 
+const RECEIPT_STATUS_COLORS = {
+  DRAFT: 'default',
+  RECEIVED: 'success',
+  CANCELLED: 'error',
+};
+
 export default function PurchasePage() {
   const { activeCompany } = useCompany();
 
-  // Tab state: 0=Dashboard, 1=Quotations, 2=Purchase Orders, 3=Vendors & History
+  // Tab state: 0=Dashboard, 1=Quotations, 2=Purchase Orders, 3=Goods Receipts (GRN), 4=Vendors & History
   const [currentTab, setCurrentTab] = useState(0);
 
   // Data states
   const [dashboard, setDashboard] = useState(null);
   const [quotations, setQuotations] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [receipts, setReceipts] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -97,6 +107,7 @@ export default function PurchasePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [quoteStatusFilter, setQuoteStatusFilter] = useState('ALL');
   const [orderStatusFilter, setOrderStatusFilter] = useState('ALL');
+  const [receiptWarehouseFilter, setReceiptWarehouseFilter] = useState('ALL');
 
   // Loading & Feedback states
   const [loading, setLoading] = useState(false);
@@ -108,6 +119,14 @@ export default function PurchasePage() {
   const [openOrderModal, setOpenOrderModal] = useState(false);
   const [convertDialog, setConvertDialog] = useState({ open: false, quotation: null, warehouse: '' });
   const [viewDetailModal, setViewDetailModal] = useState({ open: false, type: '', data: null });
+  const [receiveModal, setReceiveModal] = useState({
+    open: false,
+    order: null,
+    warehouse: '',
+    receiptDate: '',
+    notes: '',
+    items: [],
+  });
   const [vendorHistoryModal, setVendorHistoryModal] = useState({
     open: false,
     vendorId: null,
@@ -156,16 +175,18 @@ export default function PurchasePage() {
     setLoading(true);
     try {
       if (currentTab === 0) {
-        const [dashData, vList, pList, wList] = await Promise.all([
+        const [dashData, vList, pList, wList, rList] = await Promise.all([
           purchaseService.getDashboard(activeCompany.id),
           inventoryService.getVendors(activeCompany.id),
           inventoryService.getProducts(activeCompany.id),
           inventoryService.getWarehouses(activeCompany.id),
+          purchaseService.getReceipts(activeCompany.id),
         ]);
         setDashboard(dashData);
         setVendors(vList || []);
         setProducts(pList || []);
         setWarehouses(wList || []);
+        setReceipts(rList || []);
       } else if (currentTab === 1) {
         const params = {};
         if (quoteStatusFilter !== 'ALL') params.status = quoteStatusFilter;
@@ -193,6 +214,16 @@ export default function PurchasePage() {
         setProducts(pList || []);
         setWarehouses(wList || []);
       } else if (currentTab === 3) {
+        const params = {};
+        if (receiptWarehouseFilter !== 'ALL') params.warehouse = receiptWarehouseFilter;
+        if (searchQuery) params.search = searchQuery;
+        const [rData, wList] = await Promise.all([
+          purchaseService.getReceipts(activeCompany.id, params),
+          inventoryService.getWarehouses(activeCompany.id),
+        ]);
+        setReceipts(rData || []);
+        setWarehouses(wList || []);
+      } else if (currentTab === 4) {
         const vList = await inventoryService.getVendors(activeCompany.id);
         setVendors(vList || []);
       }
@@ -202,7 +233,7 @@ export default function PurchasePage() {
     } finally {
       setLoading(false);
     }
-  }, [activeCompany?.id, currentTab, quoteStatusFilter, orderStatusFilter, searchQuery]);
+  }, [activeCompany?.id, currentTab, quoteStatusFilter, orderStatusFilter, receiptWarehouseFilter, searchQuery]);
 
   useEffect(() => {
     fetchData();
@@ -218,7 +249,14 @@ export default function PurchasePage() {
       valid_until: '',
       notes: '',
       items: [
-        { product: products.length > 0 ? products[0].id : '', description: '', quantity: '1.00', unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00', discount: '0.00', tax: '0.00' },
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: '0.00',
+        },
       ],
     });
     setOpenQuoteModal(true);
@@ -229,7 +267,14 @@ export default function PurchasePage() {
       ...prev,
       items: [
         ...prev.items,
-        { product: products.length > 0 ? products[0].id : '', description: '', quantity: '1.00', unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00', discount: '0.00', tax: '0.00' },
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: '0.00',
+        },
       ],
     }));
   };
@@ -248,8 +293,8 @@ export default function PurchasePage() {
       updated[index] = { ...updated[index], [field]: value };
       if (field === 'product') {
         const prod = products.find((p) => p.id === parseInt(value) || p.id === value);
-        if (prod) {
-          updated[index].unit_price = String(prod.cost_price || '0.00');
+        if (prod && prod.cost_price) {
+          updated[index].unit_price = String(prod.cost_price);
         }
       }
       return { ...prev, items: updated };
@@ -257,53 +302,71 @@ export default function PurchasePage() {
   };
 
   const calculateQuoteFormTotal = () => {
-    let sub = 0;
-    let disc = 0;
-    let tx = 0;
+    let subtotal = 0;
+    let discount = 0;
+    let tax = 0;
     quoteForm.items.forEach((itm) => {
       const q = parseFloat(itm.quantity) || 0;
       const p = parseFloat(itm.unit_price) || 0;
       const d = parseFloat(itm.discount) || 0;
       const t = parseFloat(itm.tax) || 0;
-      sub += q * p;
-      disc += d;
-      tx += t;
+      subtotal += q * p;
+      discount += d;
+      tax += t;
     });
-    return { subtotal: sub, discount: disc, tax: tx, total: Math.max(0, sub - disc + tx) };
+    const total = Math.max(0, subtotal - discount + tax);
+    return { subtotal, discount, tax, total };
   };
 
   const handleSubmitQuote = async (e) => {
     e.preventDefault();
     if (!activeCompany?.id) return;
     if (!quoteForm.vendor) {
-      showSnackbar('Please select a vendor.', 'error');
+      showSnackbar('Please select a vendor.', 'warning');
       return;
     }
+    if (quoteForm.items.some((itm) => !itm.product || parseFloat(itm.quantity) <= 0)) {
+      showSnackbar('Please select valid products and positive quantities for all items.', 'warning');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await purchaseService.createQuotation(activeCompany.id, quoteForm);
-      showSnackbar('Purchase quotation created successfully!');
+      const payload = {
+        vendor: quoteForm.vendor,
+        quotation_date: quoteForm.quotation_date,
+        valid_until: quoteForm.valid_until || null,
+        notes: quoteForm.notes,
+        items: quoteForm.items.map((itm) => ({
+          product: itm.product,
+          description: itm.description,
+          quantity: itm.quantity,
+          unit_price: itm.unit_price,
+          discount: itm.discount,
+          tax: itm.tax,
+        })),
+      };
+      await purchaseService.createQuotation(activeCompany.id, payload);
+      showSnackbar('Purchase quotation created successfully!', 'success');
       setOpenQuoteModal(false);
       fetchData();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Failed to create quotation.';
-      showSnackbar(msg, 'error');
+      console.error('Error creating quotation:', err);
+      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create quotation.';
+      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteQuote = async (quote) => {
-    if (!window.confirm(`Delete purchase quotation ${quote.quotation_number}?`)) return;
+    if (!window.confirm(`Delete quotation ${quote.quotation_number}?`)) return;
     try {
       await purchaseService.deleteQuotation(activeCompany.id, quote.id);
-      showSnackbar(`Quotation ${quote.quotation_number} deleted.`);
+      showSnackbar(`Quotation ${quote.quotation_number} deleted.`, 'success');
       fetchData();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to delete quotation.';
-      showSnackbar(msg, 'error');
+      showSnackbar('Failed to delete quotation.', 'error');
     }
   };
 
@@ -319,26 +382,27 @@ export default function PurchasePage() {
   };
 
   const handleConfirmConvert = async () => {
-    if (!convertDialog.quotation || !activeCompany?.id) return;
+    if (!activeCompany?.id || !convertDialog.quotation) return;
     setSubmitting(true);
     try {
       const payload = {};
       if (convertDialog.warehouse) payload.warehouse = convertDialog.warehouse;
-      const order = await purchaseService.convertToOrder(activeCompany.id, convertDialog.quotation.id, payload);
-      showSnackbar(`Quotation converted to Purchase Order ${order.order_number}!`);
+      const newOrder = await purchaseService.convertToOrder(activeCompany.id, convertDialog.quotation.id, payload);
+      showSnackbar(`Successfully converted to Purchase Order ${newOrder.order_number}!`, 'success');
       setConvertDialog({ open: false, quotation: null, warehouse: '' });
+      setCurrentTab(2);
       fetchData();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to convert quotation.';
-      showSnackbar(msg, 'error');
+      console.error('Error converting quotation:', err);
+      const detail = err.response?.data?.detail || 'Failed to convert quotation to order.';
+      showSnackbar(detail, 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   // ============================================================
-  // ORDER HANDLERS
+  // PURCHASE ORDER HANDLERS
   // ============================================================
   const handleOpenOrderModal = () => {
     setOrderForm({
@@ -348,7 +412,14 @@ export default function PurchasePage() {
       expected_date: '',
       notes: '',
       items: [
-        { product: products.length > 0 ? products[0].id : '', description: '', quantity: '1.00', unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00', discount: '0.00', tax: '0.00' },
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: '0.00',
+        },
       ],
     });
     setOpenOrderModal(true);
@@ -359,7 +430,14 @@ export default function PurchasePage() {
       ...prev,
       items: [
         ...prev.items,
-        { product: products.length > 0 ? products[0].id : '', description: '', quantity: '1.00', unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00', discount: '0.00', tax: '0.00' },
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: '0.00',
+        },
       ],
     }));
   };
@@ -378,8 +456,8 @@ export default function PurchasePage() {
       updated[index] = { ...updated[index], [field]: value };
       if (field === 'product') {
         const prod = products.find((p) => p.id === parseInt(value) || p.id === value);
-        if (prod) {
-          updated[index].unit_price = String(prod.cost_price || '0.00');
+        if (prod && prod.cost_price) {
+          updated[index].unit_price = String(prod.cost_price);
         }
       }
       return { ...prev, items: updated };
@@ -387,52 +465,61 @@ export default function PurchasePage() {
   };
 
   const calculateOrderFormTotal = () => {
-    let sub = 0;
-    let disc = 0;
-    let tx = 0;
+    let subtotal = 0;
+    let discount = 0;
+    let tax = 0;
     orderForm.items.forEach((itm) => {
       const q = parseFloat(itm.quantity) || 0;
       const p = parseFloat(itm.unit_price) || 0;
       const d = parseFloat(itm.discount) || 0;
       const t = parseFloat(itm.tax) || 0;
-      sub += q * p;
-      disc += d;
-      tx += t;
+      subtotal += q * p;
+      discount += d;
+      tax += t;
     });
-    return { subtotal: sub, discount: disc, tax: tx, total: Math.max(0, sub - disc + tx) };
+    const total = Math.max(0, subtotal - discount + tax);
+    return { subtotal, discount, tax, total };
   };
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (!activeCompany?.id) return;
     if (!orderForm.vendor) {
-      showSnackbar('Please select a vendor.', 'error');
+      showSnackbar('Please select a vendor.', 'warning');
       return;
     }
+    if (orderForm.items.some((itm) => !itm.product || parseFloat(itm.quantity) <= 0)) {
+      showSnackbar('Please select valid products and positive quantities for all items.', 'warning');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await purchaseService.createOrder(activeCompany.id, orderForm);
-      showSnackbar('Purchase order created successfully!');
+      const payload = {
+        vendor: orderForm.vendor,
+        warehouse: orderForm.warehouse || null,
+        order_date: orderForm.order_date,
+        expected_date: orderForm.expected_date || null,
+        notes: orderForm.notes,
+        items: orderForm.items.map((itm) => ({
+          product: itm.product,
+          description: itm.description,
+          quantity: itm.quantity,
+          unit_price: itm.unit_price,
+          discount: itm.discount,
+          tax: itm.tax,
+        })),
+      };
+      await purchaseService.createOrder(activeCompany.id, payload);
+      showSnackbar('Purchase order created successfully!', 'success');
       setOpenOrderModal(false);
       fetchData();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Failed to create order.';
-      showSnackbar(msg, 'error');
+      console.error('Error creating order:', err);
+      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create order.';
+      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
-    try {
-      await purchaseService.updateOrder(activeCompany.id, orderId, { status: newStatus });
-      showSnackbar(`Order status updated to ${newStatus}`);
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to update order status.';
-      showSnackbar(msg, 'error');
     }
   };
 
@@ -440,60 +527,182 @@ export default function PurchasePage() {
     if (!window.confirm(`Delete purchase order ${order.order_number}?`)) return;
     try {
       await purchaseService.deleteOrder(activeCompany.id, order.id);
-      showSnackbar(`Purchase order ${order.order_number} deleted.`);
+      showSnackbar(`Order ${order.order_number} deleted.`, 'success');
       fetchData();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to delete order.';
-      showSnackbar(msg, 'error');
+      const detail = err.response?.data?.detail || 'Failed to delete order.';
+      showSnackbar(detail, 'error');
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await purchaseService.updateOrder(activeCompany.id, orderId, { status: newStatus });
+      showSnackbar(`Order status updated to ${newStatus}.`, 'success');
+      fetchData();
+    } catch (err) {
+      showSnackbar('Failed to update status.', 'error');
     }
   };
 
   // ============================================================
-  // VENDOR HISTORY MODAL
+  // GOODS RECEIVING HANDLERS (Phase 5B)
+  // ============================================================
+  const handleOpenReceiveModal = (order) => {
+    const items = (order.items || []).map((itm) => {
+      const remaining = parseFloat(itm.remaining_quantity !== undefined ? itm.remaining_quantity : itm.quantity);
+      return {
+        purchase_order_item: itm.id,
+        product_name: itm.product_name,
+        product_sku: itm.product_sku,
+        ordered_quantity: parseFloat(itm.quantity),
+        previously_received_quantity: parseFloat(itm.received_quantity || 0),
+        remaining_quantity: remaining,
+        received_quantity: remaining > 0 ? remaining : 0,
+        notes: '',
+      };
+    });
+
+    setReceiveModal({
+      open: true,
+      order: order,
+      warehouse: order.warehouse || (warehouses.length > 0 ? warehouses[0].id : ''),
+      receiptDate: new Date().toISOString().split('T')[0],
+      notes: '',
+      items: items,
+    });
+  };
+
+  const handleReceiveItemQtyChange = (index, value) => {
+    setReceiveModal((prev) => {
+      const updated = [...prev.items];
+      const valNum = parseFloat(value);
+      updated[index] = {
+        ...updated[index],
+        received_quantity: isNaN(valNum) ? '' : valNum,
+      };
+      return { ...prev, items: updated };
+    });
+  };
+
+  const handleReceiveItemNotesChange = (index, value) => {
+    setReceiveModal((prev) => {
+      const updated = [...prev.items];
+      updated[index] = { ...updated[index], notes: value };
+      return { ...prev, items: updated };
+    });
+  };
+
+  const handleReceiveAllRemaining = () => {
+    setReceiveModal((prev) => ({
+      ...prev,
+      items: prev.items.map((itm) => ({
+        ...itm,
+        received_quantity: itm.remaining_quantity,
+      })),
+    }));
+  };
+
+  const handleClearReceiveQuantities = () => {
+    setReceiveModal((prev) => ({
+      ...prev,
+      items: prev.items.map((itm) => ({
+        ...itm,
+        received_quantity: 0,
+      })),
+    }));
+  };
+
+  const handleSubmitReceive = async (e) => {
+    e.preventDefault();
+    if (!activeCompany?.id || !receiveModal.order) return;
+    if (!receiveModal.warehouse) {
+      showSnackbar('Please select a destination warehouse.', 'warning');
+      return;
+    }
+
+    const itemsToSubmit = receiveModal.items
+      .filter((itm) => parseFloat(itm.received_quantity) > 0)
+      .map((itm) => ({
+        purchase_order_item: itm.purchase_order_item,
+        received_quantity: parseFloat(itm.received_quantity),
+        notes: itm.notes,
+      }));
+
+    if (itemsToSubmit.length === 0) {
+      showSnackbar('Please specify a received quantity greater than 0 for at least one item.', 'warning');
+      return;
+    }
+
+    // Client validation for over-receiving
+    for (const itm of receiveModal.items) {
+      const qty = parseFloat(itm.received_quantity || 0);
+      if (qty > itm.remaining_quantity) {
+        showSnackbar(
+          `Cannot receive ${qty} units for ${itm.product_name}. Only ${itm.remaining_quantity} units remain.`,
+          'error'
+        );
+        return;
+      }
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        warehouse: receiveModal.warehouse,
+        receipt_date: receiveModal.receiptDate,
+        notes: receiveModal.notes,
+        items: itemsToSubmit,
+      };
+      const res = await purchaseService.receiveOrder(activeCompany.id, receiveModal.order.id, payload);
+      showSnackbar(`Goods Receipt Note ${res.receipt_number} created! Stock updated in inventory.`, 'success');
+      setReceiveModal({ open: false, order: null, warehouse: '', receiptDate: '', notes: '', items: [] });
+      fetchData();
+    } catch (err) {
+      console.error('Error receiving goods:', err);
+      const detail = err.response?.data?.detail || 'Failed to receive goods.';
+      showSnackbar(detail, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ============================================================
+  // VENDOR HISTORY MODAL HANDLERS
   // ============================================================
   const handleOpenVendorHistory = async (vendorId, vendorName) => {
-    if (!vendorId || !activeCompany?.id) return;
+    if (!activeCompany?.id || !vendorId) return;
     setVendorHistoryModal({
       open: true,
       vendorId,
-      vendorName: vendorName || 'Vendor',
+      vendorName: vendorName || 'Vendor Profile',
       loading: true,
       data: null,
       tab: 0,
     });
     try {
       const data = await purchaseService.getVendorHistory(activeCompany.id, vendorId);
-      setVendorHistoryModal((prev) => ({
-        ...prev,
-        loading: false,
-        data,
-      }));
+      setVendorHistoryModal((prev) => ({ ...prev, data, loading: false }));
     } catch (err) {
-      console.error('Error loading vendor history:', err);
-      showSnackbar('Failed to load vendor purchase history.', 'error');
+      console.error('Error fetching vendor history:', err);
+      showSnackbar('Failed to load vendor history.', 'error');
       setVendorHistoryModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  // ============================================================
-  // RENDER
-  // ============================================================
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
+      {/* Header */}
       <PageHeader
         title="Purchase Management"
-        subtitle="Procurement quotations, purchase orders, vendor tracking, and lifecycle conversion"
+        subtitle="Manage supplier quotations, procurement orders, goods receiving (GRN), and vendor relationships."
         action={
           <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={fetchData}
-              disabled={loading}
-            >
-              Refresh
-            </Button>
+            <Tooltip title="Refresh Data">
+              <IconButton onClick={fetchData} color="primary">
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
             {currentTab === 1 && (
               <Button
                 variant="contained"
@@ -528,6 +737,7 @@ export default function PurchasePage() {
         <Tab icon={<ShoppingCartOutlinedIcon />} iconPosition="start" label="Dashboard" />
         <Tab icon={<RequestQuoteOutlinedIcon />} iconPosition="start" label="Purchase Quotations" />
         <Tab icon={<ReceiptLongOutlinedIcon />} iconPosition="start" label="Purchase Orders" />
+        <Tab icon={<LocalShippingOutlinedIcon />} iconPosition="start" label="Goods Receipts (GRN)" />
         <Tab icon={<StoreOutlinedIcon />} iconPosition="start" label="Vendors & History" />
       </Tabs>
 
@@ -542,7 +752,7 @@ export default function PurchasePage() {
             <EmptyState title="No procurement data available" />
           ) : (
             <Stack spacing={3}>
-              {/* Metric Cards */}
+              {/* Metric Cards Row 1: Quotations & Orders */}
               <Grid container spacing={2.5}>
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
@@ -564,72 +774,115 @@ export default function PurchasePage() {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
-                    title="Total Spend"
-                    value={`$${parseFloat(dashboard.metrics?.total_purchase_value || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                    subtitle="Committed procurement value"
+                    title="Total Procurement Value"
+                    value={`$${parseFloat(dashboard.metrics?.total_purchase_value || 0).toFixed(2)}`}
+                    subtitle={`Pending: $${parseFloat(dashboard.metrics?.pending_purchase_value || 0).toFixed(2)}`}
                     icon={MonetizationOnOutlinedIcon}
                     color="success"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
-                    title="Pending Orders Value"
-                    value={`$${parseFloat(dashboard.metrics?.pending_purchase_value || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                    subtitle={`${dashboard.metrics?.active_vendors || 0} active vendors`}
-                    icon={PendingActionsOutlinedIcon}
-                    color="warning"
+                    title="Active Vendors"
+                    value={dashboard.metrics?.active_vendors || 0}
+                    subtitle="Registered suppliers in Inventory"
+                    icon={StoreOutlinedIcon}
+                    color="secondary"
                   />
                 </Grid>
               </Grid>
 
-              {/* Recent Activity Grids */}
+              {/* Metric Cards Row 2: Goods Receiving & Stock IN (Phase 5B) */}
+              <Grid container spacing={2.5}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Goods Receipts (GRN)"
+                    value={dashboard.metrics?.total_goods_receipts || 0}
+                    subtitle="Total receiving notes posted"
+                    icon={LocalShippingOutlinedIcon}
+                    color="primary"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Total Units Received"
+                    value={parseFloat(dashboard.metrics?.total_units_received || 0).toFixed(0)}
+                    subtitle="Stock incremented into warehouses"
+                    icon={Inventory2OutlinedIcon}
+                    color="success"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Pending Receiving"
+                    value={dashboard.metrics?.pending_receiving_orders || 0}
+                    subtitle={`${dashboard.metrics?.partially_received_orders || 0} orders partially received`}
+                    icon={PendingActionsOutlinedIcon}
+                    color="warning"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Completed Fulfillment"
+                    value={dashboard.metrics?.completed_receiving_orders || 0}
+                    subtitle="Orders 100% received into stock"
+                    icon={CheckCircleOutlineOutlinedIcon}
+                    color="info"
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Recent Tables Grid */}
               <Grid container spacing={3}>
-                {/* Recent Quotations */}
-                <Grid item xs={12} lg={6}>
+                {/* Recent Orders */}
+                <Grid item xs={12} md={6}>
                   <Card variant="outlined">
-                    <CardContent sx={{ p: 2.5 }}>
+                    <CardContent sx={{ pb: 1 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                         <Typography variant="h6" fontWeight={700}>
-                          Recent Quotations
+                          Recent Purchase Orders
                         </Typography>
-                        <Button size="small" onClick={() => setCurrentTab(1)}>View All</Button>
+                        <Button size="small" onClick={() => setCurrentTab(2)}>
+                          View All
+                        </Button>
                       </Stack>
                       <TableContainer>
                         <Table size="small">
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
-                              <TableCell>Quote #</TableCell>
+                              <TableCell>Order #</TableCell>
                               <TableCell>Vendor</TableCell>
                               <TableCell align="right">Total</TableCell>
+                              <TableCell align="center">Fulfillment</TableCell>
                               <TableCell align="center">Status</TableCell>
-                              <TableCell align="right">Action</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {(dashboard.recent_quotations || []).length === 0 ? (
-                              <TableRow><TableCell colSpan={5} align="center">No quotations recorded yet</TableCell></TableRow>
+                            {(dashboard.recent_orders || []).length === 0 ? (
+                              <TableRow><TableCell colSpan={5} align="center">No recent orders</TableCell></TableRow>
                             ) : (
-                              dashboard.recent_quotations.map((q) => (
-                                <TableRow key={q.id} hover>
-                                  <TableCell sx={{ fontWeight: 600 }}>{q.quotation_number}</TableCell>
-                                  <TableCell>{q.vendor_name}</TableCell>
-                                  <TableCell align="right">${parseFloat(q.total).toFixed(2)}</TableCell>
-                                  <TableCell align="center">
-                                    <Chip label={q.status} size="small" color={QUOTATION_STATUS_COLORS[q.status] || 'default'} />
+                              dashboard.recent_orders.map((o) => (
+                                <TableRow key={o.id} hover>
+                                  <TableCell sx={{ fontWeight: 600 }}>{o.order_number}</TableCell>
+                                  <TableCell>{o.vendor_name}</TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                                    ${parseFloat(o.total).toFixed(2)}
                                   </TableCell>
-                                  <TableCell align="right">
-                                    {q.status !== 'CONVERTED' && (
-                                      <Tooltip title="Convert to Purchase Order">
-                                        <IconButton size="small" color="primary" onClick={() => handleOpenConvertDialog(q)}>
-                                          <TransformOutlinedIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                    )}
-                                    <Tooltip title="View Details">
-                                      <IconButton size="small" onClick={() => setViewDetailModal({ open: true, type: 'quote', data: q })}>
-                                        <VisibilityOutlinedIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                  <TableCell align="center" sx={{ width: 130 }}>
+                                    <Stack spacing={0.5}>
+                                      <Typography variant="caption" color="text.secondary">
+                                        {parseFloat(o.receiving_percentage || 0).toFixed(0)}%
+                                      </Typography>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={parseFloat(o.receiving_percentage || 0)}
+                                        color={parseFloat(o.receiving_percentage || 0) >= 100 ? 'success' : 'primary'}
+                                        sx={{ height: 6, borderRadius: 3 }}
+                                      />
+                                    </Stack>
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
                                   </TableCell>
                                 </TableRow>
                               ))
@@ -641,46 +894,44 @@ export default function PurchasePage() {
                   </Card>
                 </Grid>
 
-                {/* Recent Purchase Orders */}
-                <Grid item xs={12} lg={6}>
+                {/* Recent Goods Receipts */}
+                <Grid item xs={12} md={6}>
                   <Card variant="outlined">
-                    <CardContent sx={{ p: 2.5 }}>
+                    <CardContent sx={{ pb: 1 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                         <Typography variant="h6" fontWeight={700}>
-                          Recent Purchase Orders
+                          Recent Goods Receipts (GRN)
                         </Typography>
-                        <Button size="small" onClick={() => setCurrentTab(2)}>View All</Button>
+                        <Button size="small" onClick={() => setCurrentTab(3)}>
+                          View All
+                        </Button>
                       </Stack>
                       <TableContainer>
                         <Table size="small">
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell>GRN #</TableCell>
                               <TableCell>PO #</TableCell>
-                              <TableCell>Vendor</TableCell>
-                              <TableCell align="right">Total</TableCell>
-                              <TableCell align="center">Status</TableCell>
-                              <TableCell align="right">Action</TableCell>
+                              <TableCell>Warehouse</TableCell>
+                              <TableCell align="right">Units</TableCell>
+                              <TableCell align="center">Date</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {(dashboard.recent_orders || []).length === 0 ? (
-                              <TableRow><TableCell colSpan={5} align="center">No purchase orders recorded yet</TableCell></TableRow>
+                            {(dashboard.recent_receipts || []).length === 0 ? (
+                              <TableRow><TableCell colSpan={5} align="center">No recent goods receipts</TableCell></TableRow>
                             ) : (
-                              dashboard.recent_orders.map((o) => (
-                                <TableRow key={o.id} hover>
-                                  <TableCell sx={{ fontWeight: 600 }}>{o.order_number}</TableCell>
-                                  <TableCell>{o.vendor_name}</TableCell>
-                                  <TableCell align="right">${parseFloat(o.total).toFixed(2)}</TableCell>
-                                  <TableCell align="center">
-                                    <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
+                              dashboard.recent_receipts.map((r) => (
+                                <TableRow key={r.id} hover>
+                                  <TableCell sx={{ fontWeight: 600 }}>
+                                    <Chip label={r.receipt_number} size="small" variant="outlined" color="primary" />
                                   </TableCell>
-                                  <TableCell align="right">
-                                    <Tooltip title="View Details">
-                                      <IconButton size="small" onClick={() => setViewDetailModal({ open: true, type: 'order', data: o })}>
-                                        <VisibilityOutlinedIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                  <TableCell>{r.purchase_order_number}</TableCell>
+                                  <TableCell>{r.warehouse_name}</TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                                    {parseFloat(r.total_quantity).toFixed(0)}
                                   </TableCell>
+                                  <TableCell align="center">{r.receipt_date}</TableCell>
                                 </TableRow>
                               ))
                             )}
@@ -708,7 +959,7 @@ export default function PurchasePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Search quotation #, vendor, or notes..."
+                  placeholder="Search quote #, vendor, or notes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   InputProps={{
@@ -747,7 +998,7 @@ export default function PurchasePage() {
           ) : quotations.length === 0 ? (
             <EmptyState
               title="No Purchase Quotations Found"
-              description="Create a quotation from a supplier to begin the procurement workflow."
+              description="Create a purchase quotation to request pricing from vendors."
               action={
                 <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenQuoteModal}>
                   New Quotation
@@ -764,9 +1015,6 @@ export default function PurchasePage() {
                     <TableCell>Date</TableCell>
                     <TableCell>Valid Until</TableCell>
                     <TableCell align="center">Items</TableCell>
-                    <TableCell align="right">Subtotal</TableCell>
-                    <TableCell align="right">Discount</TableCell>
-                    <TableCell align="right">Tax</TableCell>
                     <TableCell align="right">Total</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -793,9 +1041,6 @@ export default function PurchasePage() {
                       <TableCell>{q.quotation_date}</TableCell>
                       <TableCell>{q.valid_until || '—'}</TableCell>
                       <TableCell align="center">{q.items_count}</TableCell>
-                      <TableCell align="right">${parseFloat(q.subtotal).toFixed(2)}</TableCell>
-                      <TableCell align="right">${parseFloat(q.discount).toFixed(2)}</TableCell>
-                      <TableCell align="right">${parseFloat(q.tax).toFixed(2)}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, color: 'primary.main' }}>
                         ${parseFloat(q.total).toFixed(2)}
                       </TableCell>
@@ -899,23 +1144,194 @@ export default function PurchasePage() {
                     <TableCell>Vendor</TableCell>
                     <TableCell>Warehouse</TableCell>
                     <TableCell>Date</TableCell>
-                    <TableCell>Expected</TableCell>
-                    <TableCell align="center">Items</TableCell>
                     <TableCell align="right">Total</TableCell>
+                    <TableCell align="center">Fulfillment Progress</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {orders.map((o) => (
-                    <TableRow key={o.id} hover>
+                  {orders.map((o) => {
+                    const pct = parseFloat(o.receiving_percentage || 0);
+                    const canReceive = ['CONFIRMED', 'PROCESSING', 'PARTIALLY_RECEIVED'].includes(o.status);
+                    return (
+                      <TableRow key={o.id} hover>
+                        <TableCell sx={{ fontWeight: 700 }}>
+                          <Chip label={o.order_number} size="small" variant="outlined" />
+                          {o.quotation_number && (
+                            <Typography variant="caption" display="block" color="text.secondary">
+                              Ref: {o.quotation_number}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title="View Vendor History">
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: 'primary.main' } }}
+                              onClick={() => handleOpenVendorHistory(o.vendor, o.vendor_name)}
+                            >
+                              {o.vendor_name}
+                            </Typography>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          {o.warehouse_name ? (
+                            <Chip icon={<WarehouseOutlinedIcon />} label={o.warehouse_name} size="small" variant="outlined" />
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>{o.order_date}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, color: 'info.main' }}>
+                          ${parseFloat(o.total).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center" sx={{ minWidth: 160 }}>
+                          <Stack spacing={0.5}>
+                            <Stack direction="row" justifyContent="space-between">
+                              <Typography variant="caption" color="text.secondary">
+                                {parseFloat(o.total_received_quantity || 0).toFixed(0)} / {parseFloat(o.total_ordered_quantity || 0).toFixed(0)} units
+                              </Typography>
+                              <Typography variant="caption" fontWeight={700} color={pct >= 100 ? 'success.main' : 'primary.main'}>
+                                {pct.toFixed(0)}%
+                              </Typography>
+                            </Stack>
+                            <LinearProgress
+                              variant="determinate"
+                              value={pct}
+                              color={pct >= 100 ? 'success' : 'primary'}
+                              sx={{ height: 6, borderRadius: 3 }}
+                            />
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
+                        </TableCell>
+                        <TableCell align="right">
+                          {/* Receive Goods Button */}
+                          {canReceive && (
+                            <Tooltip title="Receive Goods (Stock IN)">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => handleOpenReceiveModal(o)}
+                              >
+                                <LocalShippingOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          <Tooltip title="View Details">
+                            <IconButton size="small" onClick={() => setViewDetailModal({ open: true, type: 'order', data: o })}>
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && (
+                            <Tooltip title="Cancel Order">
+                              <IconButton size="small" color="error" onClick={() => handleUpdateOrderStatus(o.id, 'CANCELLED')}>
+                                <CancelOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {o.status !== 'COMPLETED' && (
+                            <Tooltip title="Delete Order">
+                              <IconButton size="small" color="error" onClick={() => handleDeleteOrder(o)}>
+                                <DeleteOutlineOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Stack>
+      )}
+
+      {/* ============================================================ */}
+      {/* TAB 3: GOODS RECEIPTS (GRN) (Phase 5B) */}
+      {/* ============================================================ */}
+      {currentTab === 3 && (
+        <Stack spacing={2.5}>
+          {/* Filters Bar */}
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search GRN #, order #, vendor, notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Warehouse</InputLabel>
+                  <Select
+                    value={receiptWarehouseFilter}
+                    label="Warehouse"
+                    onChange={(e) => setReceiptWarehouseFilter(e.target.value)}
+                  >
+                    <MenuItem value="ALL">All Warehouses</MenuItem>
+                    {warehouses.map((w) => (
+                      <MenuItem key={w.id} value={w.id}>{w.name} ({w.code})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Receipts Table */}
+          {loading ? (
+            <LoadingState message="Loading goods receipts..." />
+          ) : receipts.length === 0 ? (
+            <EmptyState
+              title="No Goods Receipts Found"
+              description="Receive goods against confirmed purchase orders to generate Goods Received Notes (GRN) and update stock."
+              action={
+                <Button variant="contained" startIcon={<ReceiptLongOutlinedIcon />} onClick={() => setCurrentTab(2)}>
+                  Go to Purchase Orders
+                </Button>
+              }
+            />
+          ) : (
+            <TableContainer component={Paper} variant="outlined">
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableCell>Receipt # (GRN)</TableCell>
+                    <TableCell>Purchase Order</TableCell>
+                    <TableCell>Vendor</TableCell>
+                    <TableCell>Warehouse</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell align="center">Items</TableCell>
+                    <TableCell align="right">Qty Received</TableCell>
+                    <TableCell>Received By</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {receipts.map((r) => (
+                    <TableRow key={r.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>
-                        <Chip label={o.order_number} size="small" variant="outlined" />
-                        {o.quotation_number && (
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            Ref: {o.quotation_number}
-                          </Typography>
-                        )}
+                        <Chip label={r.receipt_number} size="small" variant="outlined" color="primary" />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>
+                        {r.purchase_order_number}
                       </TableCell>
                       <TableCell>
                         <Tooltip title="View Vendor History">
@@ -923,48 +1339,30 @@ export default function PurchasePage() {
                             variant="body2"
                             fontWeight={600}
                             sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: 'primary.main' } }}
-                            onClick={() => handleOpenVendorHistory(o.vendor, o.vendor_name)}
+                            onClick={() => handleOpenVendorHistory(r.vendor_id, r.vendor_name)}
                           >
-                            {o.vendor_name}
+                            {r.vendor_name}
                           </Typography>
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        {o.warehouse_name ? (
-                          <Chip icon={<WarehouseOutlinedIcon />} label={o.warehouse_name} size="small" variant="outlined" />
-                        ) : (
-                          '—'
-                        )}
+                        <Chip icon={<WarehouseOutlinedIcon />} label={r.warehouse_name} size="small" variant="outlined" />
                       </TableCell>
-                      <TableCell>{o.order_date}</TableCell>
-                      <TableCell>{o.expected_date || '—'}</TableCell>
-                      <TableCell align="center">{o.items_count}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700, color: 'info.main' }}>
-                        ${parseFloat(o.total).toFixed(2)}
+                      <TableCell>{r.receipt_date}</TableCell>
+                      <TableCell align="center">{r.items_count}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+                        {parseFloat(r.total_quantity).toFixed(2)}
                       </TableCell>
+                      <TableCell>{r.received_by_name || 'System Admin'}</TableCell>
                       <TableCell align="center">
-                        <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
+                        <Chip label={r.status} size="small" color={RECEIPT_STATUS_COLORS[r.status] || 'default'} />
                       </TableCell>
                       <TableCell align="right">
-                        <Tooltip title="View Details">
-                          <IconButton size="small" onClick={() => setViewDetailModal({ open: true, type: 'order', data: o })}>
+                        <Tooltip title="View GRN Details">
+                          <IconButton size="small" onClick={() => setViewDetailModal({ open: true, type: 'receipt', data: r })}>
                             <VisibilityOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        {o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && (
-                          <Tooltip title="Cancel Order">
-                            <IconButton size="small" color="error" onClick={() => handleUpdateOrderStatus(o.id, 'CANCELLED')}>
-                              <CancelOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {o.status !== 'COMPLETED' && (
-                          <Tooltip title="Delete Order">
-                            <IconButton size="small" color="error" onClick={() => handleDeleteOrder(o)}>
-                              <DeleteOutlineOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -976,9 +1374,9 @@ export default function PurchasePage() {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: VENDORS & PURCHASE HISTORY */}
+      {/* TAB 4: VENDORS & PURCHASE HISTORY */}
       {/* ============================================================ */}
-      {currentTab === 3 && (
+      {currentTab === 4 && (
         <Stack spacing={2.5}>
           {loading ? (
             <LoadingState message="Loading vendors..." />
@@ -1056,52 +1454,56 @@ export default function PurchasePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  type="date"
                   label="Quotation Date"
-                  InputLabelProps={{ shrink: true }}
+                  type="date"
                   value={quoteForm.quotation_date}
                   onChange={(e) => setQuoteForm((prev) => ({ ...prev, quotation_date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={3}>
                 <TextField
                   fullWidth
                   size="small"
-                  type="date"
                   label="Valid Until"
-                  InputLabelProps={{ shrink: true }}
+                  type="date"
                   value={quoteForm.valid_until}
                   onChange={(e) => setQuoteForm((prev) => ({ ...prev, valid_until: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   size="small"
-                  label="Notes / Terms"
+                  label="Quotation Notes / Terms"
+                  multiline
+                  rows={2}
                   value={quoteForm.notes}
                   onChange={(e) => setQuoteForm((prev) => ({ ...prev, notes: e.target.value }))}
                 />
               </Grid>
             </Grid>
 
-            <Divider sx={{ my: 2 }} />
-
+            {/* Line Items */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-              <Typography variant="subtitle1" fontWeight={700}>Line Items</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={handleAddQuoteItem}>Add Item</Button>
+              <Typography variant="subtitle2" fontWeight={700}>Line Items</Typography>
+              <Button size="small" startIcon={<AddIcon />} onClick={handleAddQuoteItem}>
+                Add Item
+              </Button>
             </Stack>
 
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell sx={{ minWidth: 160 }}>Product</TableCell>
-                    <TableCell sx={{ width: 100 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 110 }}>Unit Price</TableCell>
-                    <TableCell sx={{ width: 100 }}>Discount</TableCell>
-                    <TableCell sx={{ width: 90 }}>Tax</TableCell>
-                    <TableCell align="right" sx={{ width: 110 }}>Line Total</TableCell>
+                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
+                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Unit Price ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
                 </TableHead>
@@ -1112,17 +1514,18 @@ export default function PurchasePage() {
                     const d = parseFloat(item.discount) || 0;
                     const t = parseFloat(item.tax) || 0;
                     const lineTotal = Math.max(0, q * p - d + t);
-
                     return (
                       <TableRow key={idx}>
                         <TableCell>
-                          <FormControl fullWidth size="small">
+                          <FormControl fullWidth size="small" required>
                             <Select
                               value={item.product}
                               onChange={(e) => handleQuoteItemChange(idx, 'product', e.target.value)}
                             >
-                              {products.map((pr) => (
-                                <MenuItem key={pr.id} value={pr.id}>{pr.name} [{pr.sku}]</MenuItem>
+                              {products.map((prod) => (
+                                <MenuItem key={prod.id} value={prod.id}>
+                                  {prod.name} [{prod.sku}]
+                                </MenuItem>
                               ))}
                             </Select>
                           </FormControl>
@@ -1134,6 +1537,7 @@ export default function PurchasePage() {
                             inputProps={{ min: 0.01, step: 'any' }}
                             value={item.quantity}
                             onChange={(e) => handleQuoteItemChange(idx, 'quantity', e.target.value)}
+                            required
                           />
                         </TableCell>
                         <TableCell>
@@ -1143,6 +1547,7 @@ export default function PurchasePage() {
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.unit_price}
                             onChange={(e) => handleQuoteItemChange(idx, 'unit_price', e.target.value)}
+                            required
                           />
                         </TableCell>
                         <TableCell>
@@ -1224,7 +1629,7 @@ export default function PurchasePage() {
       {/* ============================================================ */}
       <Dialog open={openOrderModal} onClose={() => setOpenOrderModal(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmitOrder}>
-          <DialogTitle>Create Direct Purchase Order</DialogTitle>
+          <DialogTitle>Create Purchase Order</DialogTitle>
           <DialogContent dividers sx={{ p: 3 }}>
             <Grid container spacing={2} sx={{ mb: 2.5 }}>
               <Grid item xs={12} sm={4}>
@@ -1249,7 +1654,7 @@ export default function PurchasePage() {
                     label="Destination Warehouse"
                     onChange={(e) => setOrderForm((prev) => ({ ...prev, warehouse: e.target.value }))}
                   >
-                    <MenuItem value=""><em>None / Unassigned</em></MenuItem>
+                    <MenuItem value=""><em>Unassigned / Direct Receiving</em></MenuItem>
                     {warehouses.map((w) => (
                       <MenuItem key={w.id} value={w.id}>{w.name} ({w.code})</MenuItem>
                     ))}
@@ -1260,52 +1665,56 @@ export default function PurchasePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  type="date"
                   label="Order Date"
-                  InputLabelProps={{ shrink: true }}
+                  type="date"
                   value={orderForm.order_date}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, order_date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={2}>
                 <TextField
                   fullWidth
                   size="small"
-                  type="date"
                   label="Expected Date"
-                  InputLabelProps={{ shrink: true }}
+                  type="date"
                   value={orderForm.expected_date}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, expected_date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   size="small"
-                  label="Notes"
+                  label="Purchase Order Notes / Instructions"
+                  multiline
+                  rows={2}
                   value={orderForm.notes}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, notes: e.target.value }))}
                 />
               </Grid>
             </Grid>
 
-            <Divider sx={{ my: 2 }} />
-
+            {/* Line Items */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-              <Typography variant="subtitle1" fontWeight={700}>Line Items</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={handleAddOrderItem}>Add Item</Button>
+              <Typography variant="subtitle2" fontWeight={700}>Order Items</Typography>
+              <Button size="small" startIcon={<AddIcon />} onClick={handleAddOrderItem}>
+                Add Item
+              </Button>
             </Stack>
 
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell sx={{ minWidth: 160 }}>Product</TableCell>
-                    <TableCell sx={{ width: 100 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 110 }}>Unit Price</TableCell>
-                    <TableCell sx={{ width: 100 }}>Discount</TableCell>
-                    <TableCell sx={{ width: 90 }}>Tax</TableCell>
-                    <TableCell align="right" sx={{ width: 110 }}>Line Total</TableCell>
+                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
+                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Unit Price ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
                 </TableHead>
@@ -1316,17 +1725,18 @@ export default function PurchasePage() {
                     const d = parseFloat(item.discount) || 0;
                     const t = parseFloat(item.tax) || 0;
                     const lineTotal = Math.max(0, q * p - d + t);
-
                     return (
                       <TableRow key={idx}>
                         <TableCell>
-                          <FormControl fullWidth size="small">
+                          <FormControl fullWidth size="small" required>
                             <Select
                               value={item.product}
                               onChange={(e) => handleOrderItemChange(idx, 'product', e.target.value)}
                             >
-                              {products.map((pr) => (
-                                <MenuItem key={pr.id} value={pr.id}>{pr.name} [{pr.sku}]</MenuItem>
+                              {products.map((prod) => (
+                                <MenuItem key={prod.id} value={prod.id}>
+                                  {prod.name} [{prod.sku}]
+                                </MenuItem>
                               ))}
                             </Select>
                           </FormControl>
@@ -1338,6 +1748,7 @@ export default function PurchasePage() {
                             inputProps={{ min: 0.01, step: 'any' }}
                             value={item.quantity}
                             onChange={(e) => handleOrderItemChange(idx, 'quantity', e.target.value)}
+                            required
                           />
                         </TableCell>
                         <TableCell>
@@ -1347,6 +1758,7 @@ export default function PurchasePage() {
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.unit_price}
                             onChange={(e) => handleOrderItemChange(idx, 'unit_price', e.target.value)}
+                            required
                           />
                         </TableCell>
                         <TableCell>
@@ -1455,14 +1867,261 @@ export default function PurchasePage() {
       </Dialog>
 
       {/* ============================================================ */}
-      {/* DETAIL MODAL */}
+      {/* RECEIVE GOODS DIALOG (Phase 5B) */}
+      {/* ============================================================ */}
+      <Dialog
+        open={receiveModal.open}
+        onClose={() => setReceiveModal({ open: false, order: null, warehouse: '', receiptDate: '', notes: '', items: [] })}
+        maxWidth="md"
+        fullWidth
+      >
+        <form onSubmit={handleSubmitReceive}>
+          <DialogTitle sx={{ pb: 1 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Receive Goods — {receiveModal.order?.order_number}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Post incoming shipment into warehouse stock and generate Goods Received Note (GRN)
+                </Typography>
+              </Box>
+              <Chip label={receiveModal.order?.status} size="small" color={ORDER_STATUS_COLORS[receiveModal.order?.status] || 'default'} />
+            </Stack>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 3 }}>
+            {/* Header info */}
+            <Grid container spacing={2} sx={{ mb: 2.5 }}>
+              <Grid item xs={12} sm={4}>
+                <Typography variant="caption" color="text.secondary">Vendor</Typography>
+                <Typography variant="body1" fontWeight={600}>{receiveModal.order?.vendor_name}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth size="small" required>
+                  <InputLabel>Receiving Warehouse</InputLabel>
+                  <Select
+                    value={receiveModal.warehouse}
+                    label="Receiving Warehouse"
+                    onChange={(e) => setReceiveModal((prev) => ({ ...prev, warehouse: e.target.value }))}
+                  >
+                    {warehouses.map((w) => (
+                      <MenuItem key={w.id} value={w.id}>{w.name} ({w.code})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Receipt Date"
+                  type="date"
+                  value={receiveModal.receiptDate}
+                  onChange={(e) => setReceiveModal((prev) => ({ ...prev, receiptDate: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Goods Receipt Notes / Delivery Reference"
+                  multiline
+                  rows={2}
+                  placeholder="e.g. Delivery Challan #, Pallet Count, Carrier Name..."
+                  value={receiveModal.notes}
+                  onChange={(e) => setReceiveModal((prev) => ({ ...prev, notes: e.target.value }))}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Actions for prefilling */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+              <Typography variant="subtitle2" fontWeight={700}>
+                Items to Receive
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button size="small" variant="outlined" onClick={handleReceiveAllRemaining}>
+                  Receive All Remaining
+                </Button>
+                <Button size="small" variant="text" color="inherit" onClick={handleClearReceiveQuantities}>
+                  Clear
+                </Button>
+              </Stack>
+            </Stack>
+
+            {/* Line items table */}
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableCell>Product</TableCell>
+                    <TableCell align="right" sx={{ width: 100 }}>Ordered</TableCell>
+                    <TableCell align="right" sx={{ width: 100 }}>Prev Recv</TableCell>
+                    <TableCell align="right" sx={{ width: 110 }}>Remaining</TableCell>
+                    <TableCell sx={{ width: 140 }}>Receive Now</TableCell>
+                    <TableCell sx={{ width: 180 }}>Line Notes</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {receiveModal.items.map((itm, idx) => (
+                    <TableRow key={itm.purchase_order_item} hover>
+                      <TableCell sx={{ fontWeight: 600 }}>
+                        {itm.product_name}
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          SKU: {itm.product_sku}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">{itm.ordered_quantity.toFixed(2)}</TableCell>
+                      <TableCell align="right">{itm.previously_received_quantity.toFixed(2)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: itm.remaining_quantity > 0 ? 'warning.main' : 'success.main' }}>
+                        {itm.remaining_quantity.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          type="number"
+                          inputProps={{
+                            min: 0,
+                            max: itm.remaining_quantity,
+                            step: 'any',
+                          }}
+                          value={itm.received_quantity}
+                          onChange={(e) => handleReceiveItemQtyChange(idx, e.target.value)}
+                          disabled={itm.remaining_quantity <= 0}
+                          error={parseFloat(itm.received_quantity || 0) > itm.remaining_quantity}
+                          helperText={
+                            parseFloat(itm.received_quantity || 0) > itm.remaining_quantity
+                              ? `Max ${itm.remaining_quantity}`
+                              : ''
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Condition / Batch..."
+                          value={itm.notes}
+                          onChange={(e) => handleReceiveItemNotesChange(idx, e.target.value)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button
+              onClick={() => setReceiveModal({ open: false, order: null, warehouse: '', receiptDate: '', notes: '', items: [] })}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              type="submit"
+              startIcon={<LocalShippingOutlinedIcon />}
+              disabled={submitting}
+            >
+              {submitting ? <CircularProgress size={22} color="inherit" /> : 'Confirm & Post Stock IN'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* DETAIL MODAL (Quotes, Orders, and GRN Receipts) */}
       {/* ============================================================ */}
       <Dialog open={viewDetailModal.open} onClose={() => setViewDetailModal({ open: false, type: '', data: null })} maxWidth="md" fullWidth>
         <DialogTitle>
-          {viewDetailModal.type === 'quote' ? `Purchase Quotation: ${viewDetailModal.data?.quotation_number}` : `Purchase Order: ${viewDetailModal.data?.order_number}`}
+          {viewDetailModal.type === 'quote' && `Purchase Quotation: ${viewDetailModal.data?.quotation_number}`}
+          {viewDetailModal.type === 'order' && `Purchase Order: ${viewDetailModal.data?.order_number}`}
+          {viewDetailModal.type === 'receipt' && `Goods Receipt Note: ${viewDetailModal.data?.receipt_number}`}
         </DialogTitle>
         <DialogContent dividers sx={{ p: 3 }}>
-          {viewDetailModal.data && (
+          {viewDetailModal.data && viewDetailModal.type === 'receipt' ? (
+            /* GRN RECEIPT DETAIL */
+            <Box>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Receipt Number</Typography>
+                  <Typography variant="body1" fontWeight={700} color="primary.main">{viewDetailModal.data.receipt_number}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Purchase Order</Typography>
+                  <Typography variant="body1" fontWeight={600}>{viewDetailModal.data.purchase_order_number}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Vendor</Typography>
+                  <Typography variant="body1" fontWeight={600}>{viewDetailModal.data.vendor_name}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Warehouse</Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip icon={<WarehouseOutlinedIcon />} label={viewDetailModal.data.warehouse_name} size="small" variant="outlined" />
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Receipt Date</Typography>
+                  <Typography variant="body2">{viewDetailModal.data.receipt_date}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Received By</Typography>
+                  <Typography variant="body2">{viewDetailModal.data.received_by_name || 'System Admin'}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Status</Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip label={viewDetailModal.data.status} size="small" color={RECEIPT_STATUS_COLORS[viewDetailModal.data.status] || 'default'} />
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="caption" color="text.secondary">Total Quantity Received</Typography>
+                  <Typography variant="body1" fontWeight={700} color="success.main">
+                    {parseFloat(viewDetailModal.data.total_quantity).toFixed(2)} units
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              {viewDetailModal.data.notes && (
+                <Alert severity="info" sx={{ mb: 2.5 }}>
+                  {viewDetailModal.data.notes}
+                </Alert>
+              )}
+
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>Received Items</Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                      <TableCell>Product</TableCell>
+                      <TableCell align="right">Ordered Qty</TableCell>
+                      <TableCell align="right">Previously Received</TableCell>
+                      <TableCell align="right">Quantity Received</TableCell>
+                      <TableCell>Notes</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(viewDetailModal.data.items || []).map((itm) => (
+                      <TableRow key={itm.id} hover>
+                        <TableCell sx={{ fontWeight: 600 }}>{itm.product_name} [{itm.product_sku}]</TableCell>
+                        <TableCell align="right">{parseFloat(itm.ordered_quantity).toFixed(2)}</TableCell>
+                        <TableCell align="right">{parseFloat(itm.previously_received_quantity).toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+                          +{parseFloat(itm.received_quantity).toFixed(2)}
+                        </TableCell>
+                        <TableCell>{itm.notes || '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          ) : viewDetailModal.data ? (
+            /* QUOTATION OR PURCHASE ORDER DETAIL */
             <Box>
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={6} sm={3}>
@@ -1495,6 +2154,43 @@ export default function PurchasePage() {
                 </Grid>
               </Grid>
 
+              {/* Order Receiving Progress Bar */}
+              {viewDetailModal.type === 'order' && (
+                <Card variant="outlined" sx={{ p: 2, mb: 2.5, bgcolor: 'background.default' }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={8}>
+                      <Typography variant="caption" color="text.secondary">Goods Receiving Progress</Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={parseFloat(viewDetailModal.data.receiving_percentage || 0)}
+                        color={parseFloat(viewDetailModal.data.receiving_percentage || 0) >= 100 ? 'success' : 'primary'}
+                        sx={{ height: 8, borderRadius: 4, my: 1 }}
+                      />
+                      <Typography variant="caption" fontWeight={600}>
+                        Received {parseFloat(viewDetailModal.data.total_received_quantity || 0).toFixed(0)} of {parseFloat(viewDetailModal.data.total_ordered_quantity || 0).toFixed(0)} units ({parseFloat(viewDetailModal.data.receiving_percentage || 0).toFixed(0)}%)
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4} sx={{ textAlign: { sm: 'right' } }}>
+                      {['CONFIRMED', 'PROCESSING', 'PARTIALLY_RECEIVED'].includes(viewDetailModal.data.status) && (
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<LocalShippingOutlinedIcon />}
+                          onClick={() => {
+                            const order = viewDetailModal.data;
+                            setViewDetailModal({ open: false, type: '', data: null });
+                            handleOpenReceiveModal(order);
+                          }}
+                        >
+                          Receive Goods
+                        </Button>
+                      )}
+                    </Grid>
+                  </Grid>
+                </Card>
+              )}
+
               {viewDetailModal.data.notes && (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   {viewDetailModal.data.notes}
@@ -1507,7 +2203,9 @@ export default function PurchasePage() {
                   <TableHead>
                     <TableRow sx={{ bgcolor: 'action.hover' }}>
                       <TableCell>Product</TableCell>
-                      <TableCell align="right">Qty</TableCell>
+                      <TableCell align="right">Qty Ordered</TableCell>
+                      {viewDetailModal.type === 'order' && <TableCell align="right">Qty Received</TableCell>}
+                      {viewDetailModal.type === 'order' && <TableCell align="right">Remaining</TableCell>}
                       <TableCell align="right">Unit Price</TableCell>
                       <TableCell align="right">Discount</TableCell>
                       <TableCell align="right">Tax</TableCell>
@@ -1519,6 +2217,16 @@ export default function PurchasePage() {
                       <TableRow key={itm.id}>
                         <TableCell sx={{ fontWeight: 600 }}>{itm.product_name} [{itm.product_sku}]</TableCell>
                         <TableCell align="right">{parseFloat(itm.quantity).toFixed(2)}</TableCell>
+                        {viewDetailModal.type === 'order' && (
+                          <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                            {parseFloat(itm.received_quantity || 0).toFixed(2)}
+                          </TableCell>
+                        )}
+                        {viewDetailModal.type === 'order' && (
+                          <TableCell align="right" sx={{ fontWeight: 600, color: parseFloat(itm.remaining_quantity || 0) > 0 ? 'warning.main' : 'text.secondary' }}>
+                            {parseFloat(itm.remaining_quantity !== undefined ? itm.remaining_quantity : itm.quantity).toFixed(2)}
+                          </TableCell>
+                        )}
                         <TableCell align="right">${parseFloat(itm.unit_price).toFixed(2)}</TableCell>
                         <TableCell align="right">${parseFloat(itm.discount).toFixed(2)}</TableCell>
                         <TableCell align="right">${parseFloat(itm.tax).toFixed(2)}</TableCell>
@@ -1529,6 +2237,46 @@ export default function PurchasePage() {
                 </Table>
               </TableContainer>
 
+              {/* Related GRN Receipts Section for Orders */}
+              {viewDetailModal.type === 'order' && (viewDetailModal.data.receipts || []).length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                    Linked Goods Received Notes (GRN)
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>Receipt #</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell>Warehouse</TableCell>
+                          <TableCell align="right">Qty Received</TableCell>
+                          <TableCell align="center">Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {viewDetailModal.data.receipts.map((rcpt) => (
+                          <TableRow key={rcpt.id} hover>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              <Chip label={rcpt.receipt_number} size="small" variant="outlined" color="primary" />
+                            </TableCell>
+                            <TableCell>{rcpt.receipt_date}</TableCell>
+                            <TableCell>{rcpt.warehouse_name}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                              +{parseFloat(rcpt.total_quantity).toFixed(2)}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip label={rcpt.status} size="small" color={RECEIPT_STATUS_COLORS[rcpt.status] || 'default'} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )}
+
+              {/* Totals Summary */}
               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Box sx={{ width: 260 }}>
                   <Stack spacing={1}>
@@ -1555,7 +2303,7 @@ export default function PurchasePage() {
                 </Box>
               </Box>
             </Box>
-          )}
+          ) : null}
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setViewDetailModal({ open: false, type: '', data: null })}>Close</Button>
