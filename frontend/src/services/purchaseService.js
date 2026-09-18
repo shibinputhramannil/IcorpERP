@@ -100,6 +100,98 @@ export const purchaseService = {
     const response = await api.get(`/companies/${companyId}/purchases/vendors/${vendorId}/history/`);
     return response.data;
   },
+
+  // ============================================================
+  // 6. PURCHASE INVOICES (FINANCE)
+  // ============================================================
+  getInvoices: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/invoices/`, { params });
+    return response.data;
+  },
+
+  getInvoice: async (companyId, invoiceId) => {
+    const response = await api.get(`/companies/${companyId}/purchases/invoices/${invoiceId}/`);
+    return response.data;
+  },
+
+  createInvoice: async (companyId, data) => {
+    const response = await api.post(`/companies/${companyId}/purchases/invoices/`, data);
+    return response.data;
+  },
+
+  updateInvoice: async (companyId, invoiceId, data) => {
+    const response = await api.patch(`/companies/${companyId}/purchases/invoices/${invoiceId}/`, data);
+    return response.data;
+  },
+
+  cancelInvoice: async (companyId, invoiceId) => {
+    const response = await api.delete(`/companies/${companyId}/purchases/invoices/${invoiceId}/`);
+    return response.data;
+  },
+
+  createOrderInvoice: async (companyId, orderId, data = {}) => {
+    const response = await api.post(`/companies/${companyId}/purchases/orders/${orderId}/invoice/`, data);
+    return response.data;
+  },
+
+  // ============================================================
+  // 7. PURCHASE PAYMENTS
+  // ============================================================
+  getInvoicePayments: async (companyId, invoiceId) => {
+    const response = await api.get(`/companies/${companyId}/purchases/invoices/${invoiceId}/payments/`);
+    return response.data;
+  },
+
+  recordPayment: async (companyId, invoiceId, data) => {
+    const response = await api.post(`/companies/${companyId}/purchases/invoices/${invoiceId}/payments/`, data);
+    return response.data;
+  },
+
+  getPayments: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/payments/`, { params });
+    return response.data;
+  },
+
+  // ============================================================
+  // 8. PURCHASE ANALYTICS (Phase 5D)
+  // ============================================================
+  getAnalytics: async (companyId) => {
+    const response = await api.get(`/companies/${companyId}/purchases/analytics/`);
+    return response.data;
+  },
+
+  // ============================================================
+  // 9. PURCHASE REPORTS (Phase 5D)
+  // ============================================================
+  getReports: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/`, { params });
+    return response.data;
+  },
+
+  getReportSummary: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/summary/`, { params });
+    return response.data;
+  },
+
+  getReportOrders: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/orders/`, { params });
+    return response.data;
+  },
+
+  getReportVendors: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/vendors/`, { params });
+    return response.data;
+  },
+
+  getReportReceiving: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/receiving/`, { params });
+    return response.data;
+  },
+
+  getReportFinancial: async (companyId, params = {}) => {
+    const response = await api.get(`/companies/${companyId}/purchases/reports/financial/`, { params });
+    return response.data;
+  },
 };
 
 export default purchaseService;

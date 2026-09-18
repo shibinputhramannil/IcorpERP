@@ -55,6 +55,12 @@ import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlin
 import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
+import PostAddOutlinedIcon from '@mui/icons-material/PostAddOutlined';
+import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
+import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
@@ -88,10 +94,18 @@ const RECEIPT_STATUS_COLORS = {
   CANCELLED: 'error',
 };
 
+const INVOICE_STATUS_COLORS = {
+  DRAFT: 'default',
+  ISSUED: 'info',
+  PARTIALLY_PAID: 'warning',
+  PAID: 'success',
+  CANCELLED: 'error',
+};
+
 export default function PurchasePage() {
   const { activeCompany } = useCompany();
 
-  // Tab state: 0=Dashboard, 1=Quotations, 2=Purchase Orders, 3=Goods Receipts (GRN), 4=Vendors & History
+  // Tab state: 0=Dashboard, 1=Quotations, 2=Purchase Orders, 3=Goods Receipts (GRN), 4=Invoices & Payments, 5=Analytics & Reports, 6=Vendors & History
   const [currentTab, setCurrentTab] = useState(0);
 
   // Data states
@@ -99,6 +113,10 @@ export default function PurchasePage() {
   const [quotations, setQuotations] = useState([]);
   const [orders, setOrders] = useState([]);
   const [receipts, setReceipts] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [reportsData, setReportsData] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -108,6 +126,15 @@ export default function PurchasePage() {
   const [quoteStatusFilter, setQuoteStatusFilter] = useState('ALL');
   const [orderStatusFilter, setOrderStatusFilter] = useState('ALL');
   const [receiptWarehouseFilter, setReceiptWarehouseFilter] = useState('ALL');
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('ALL');
+
+  // Reports Filter states
+  const [reportType, setReportType] = useState('summary');
+  const [reportDateFrom, setReportDateFrom] = useState('');
+  const [reportDateTo, setReportDateTo] = useState('');
+  const [reportVendorFilter, setReportVendorFilter] = useState('');
+  const [reportWarehouseFilter, setReportWarehouseFilter] = useState('');
+  const [reportStatusFilter, setReportStatusFilter] = useState('ALL');
 
   // Loading & Feedback states
   const [loading, setLoading] = useState(false);
@@ -126,6 +153,23 @@ export default function PurchasePage() {
     receiptDate: '',
     notes: '',
     items: [],
+  });
+  const [recordPaymentModal, setRecordPaymentModal] = useState({
+    open: false,
+    invoice: null,
+    amount: '',
+    payment_method: 'BANK_TRANSFER',
+    payment_date: new Date().toISOString().split('T')[0],
+    reference: '',
+    notes: '',
+  });
+  const [createInvoiceModal, setCreateInvoiceModal] = useState({
+    open: false,
+    order: null,
+    invoice_date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    vendor_invoice_number: '',
+    notes: '',
   });
   const [vendorHistoryModal, setVendorHistoryModal] = useState({
     open: false,
@@ -224,6 +268,35 @@ export default function PurchasePage() {
         setReceipts(rData || []);
         setWarehouses(wList || []);
       } else if (currentTab === 4) {
+        const params = {};
+        if (invoiceStatusFilter !== 'ALL') params.status = invoiceStatusFilter;
+        if (searchQuery) params.search = searchQuery;
+        const [iData, pData, vList] = await Promise.all([
+          purchaseService.getInvoices(activeCompany.id, params),
+          purchaseService.getPayments(activeCompany.id),
+          inventoryService.getVendors(activeCompany.id),
+        ]);
+        setInvoices(iData || []);
+        setPayments(pData || []);
+        setVendors(vList || []);
+      } else if (currentTab === 5) {
+        const rParams = { report_type: reportType };
+        if (reportDateFrom) rParams.date_from = reportDateFrom;
+        if (reportDateTo) rParams.date_to = reportDateTo;
+        if (reportVendorFilter) rParams.vendor = reportVendorFilter;
+        if (reportWarehouseFilter) rParams.warehouse = reportWarehouseFilter;
+        if (reportStatusFilter !== 'ALL') rParams.status = reportStatusFilter;
+        const [anData, repData, vList, wList] = await Promise.all([
+          purchaseService.getAnalytics(activeCompany.id),
+          purchaseService.getReports(activeCompany.id, rParams),
+          inventoryService.getVendors(activeCompany.id),
+          inventoryService.getWarehouses(activeCompany.id),
+        ]);
+        setAnalytics(anData || null);
+        setReportsData(repData || null);
+        setVendors(vList || []);
+        setWarehouses(wList || []);
+      } else if (currentTab === 6) {
         const vList = await inventoryService.getVendors(activeCompany.id);
         setVendors(vList || []);
       }
@@ -233,7 +306,21 @@ export default function PurchasePage() {
     } finally {
       setLoading(false);
     }
-  }, [activeCompany?.id, currentTab, quoteStatusFilter, orderStatusFilter, receiptWarehouseFilter, searchQuery]);
+  }, [
+    activeCompany?.id,
+    currentTab,
+    quoteStatusFilter,
+    orderStatusFilter,
+    receiptWarehouseFilter,
+    invoiceStatusFilter,
+    reportType,
+    reportDateFrom,
+    reportDateTo,
+    reportVendorFilter,
+    reportWarehouseFilter,
+    reportStatusFilter,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -668,6 +755,105 @@ export default function PurchasePage() {
   };
 
   // ============================================================
+  // INVOICE & PAYMENT HANDLERS (Phase 5C / 5D)
+  // ============================================================
+  const handleOpenCreateInvoiceModal = (order) => {
+    setCreateInvoiceModal({
+      open: true,
+      order: order,
+      invoice_date: new Date().toISOString().split('T')[0],
+      due_date: '',
+      vendor_invoice_number: '',
+      notes: '',
+    });
+  };
+
+  const handleCreateInvoiceSubmit = async (e) => {
+    e.preventDefault();
+    if (!activeCompany?.id || !createInvoiceModal.order) return;
+    setSubmitting(true);
+    try {
+      const payload = {
+        invoice_date: createInvoiceModal.invoice_date,
+        due_date: createInvoiceModal.due_date || null,
+        vendor_invoice_number: createInvoiceModal.vendor_invoice_number,
+        notes: createInvoiceModal.notes,
+      };
+      await purchaseService.createOrderInvoice(activeCompany.id, createInvoiceModal.order.id, payload);
+      showSnackbar('Purchase Invoice created successfully!', 'success');
+      setCreateInvoiceModal({ open: false, order: null, invoice_date: '', due_date: '', vendor_invoice_number: '', notes: '' });
+      fetchData();
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create invoice.';
+      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleOpenRecordPayment = (invoice) => {
+    setRecordPaymentModal({
+      open: true,
+      invoice: invoice,
+      amount: invoice.balance_due || invoice.total,
+      payment_method: 'BANK_TRANSFER',
+      payment_date: new Date().toISOString().split('T')[0],
+      reference: '',
+      notes: '',
+    });
+  };
+
+  const handleRecordPaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (!activeCompany?.id || !recordPaymentModal.invoice) return;
+    const amountVal = parseFloat(recordPaymentModal.amount);
+    if (isNaN(amountVal) || amountVal <= 0) {
+      showSnackbar('Payment amount must be greater than zero.', 'warning');
+      return;
+    }
+    const balance = parseFloat(recordPaymentModal.invoice.balance_due || recordPaymentModal.invoice.total);
+    if (amountVal > balance + 0.001) {
+      showSnackbar(`Payment amount cannot exceed balance due ($${balance.toFixed(2)}).`, 'warning');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        amount: recordPaymentModal.amount,
+        payment_method: recordPaymentModal.payment_method,
+        payment_date: recordPaymentModal.payment_date,
+        reference: recordPaymentModal.reference,
+        notes: recordPaymentModal.notes,
+      };
+      await purchaseService.recordPayment(activeCompany.id, recordPaymentModal.invoice.id, payload);
+      showSnackbar('Payment recorded successfully!', 'success');
+      setRecordPaymentModal({ open: false, invoice: null, amount: '', payment_method: 'BANK_TRANSFER', payment_date: '', reference: '', notes: '' });
+      fetchData();
+    } catch (err) {
+      console.error('Error recording payment:', err);
+      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to record payment.';
+      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelInvoice = async (invoice) => {
+    if (!window.confirm(`Cancel purchase invoice ${invoice.invoice_number}?`)) return;
+    try {
+      await purchaseService.cancelInvoice(activeCompany.id, invoice.id);
+      showSnackbar(`Invoice ${invoice.invoice_number} cancelled.`, 'success');
+      fetchData();
+    } catch (err) {
+      console.error('Error cancelling invoice:', err);
+      const detail = err.response?.data?.detail || 'Failed to cancel invoice.';
+      showSnackbar(detail, 'error');
+    }
+  };
+
+  // ============================================================
   // VENDOR HISTORY MODAL HANDLERS
   // ============================================================
   const handleOpenVendorHistory = async (vendorId, vendorName) => {
@@ -738,6 +924,8 @@ export default function PurchasePage() {
         <Tab icon={<RequestQuoteOutlinedIcon />} iconPosition="start" label="Purchase Quotations" />
         <Tab icon={<ReceiptLongOutlinedIcon />} iconPosition="start" label="Purchase Orders" />
         <Tab icon={<LocalShippingOutlinedIcon />} iconPosition="start" label="Goods Receipts (GRN)" />
+        <Tab icon={<PaymentOutlinedIcon />} iconPosition="start" label="Invoices & Payments" />
+        <Tab icon={<BarChartOutlinedIcon />} iconPosition="start" label="Analytics & Reports" />
         <Tab icon={<StoreOutlinedIcon />} iconPosition="start" label="Vendors & History" />
       </Tabs>
 
@@ -832,7 +1020,55 @@ export default function PurchasePage() {
                 </Grid>
               </Grid>
 
-              {/* Recent Tables Grid */}
+              {/* Metric Cards Row 3: Finance & Accounts Payable (Phase 5D) */}
+              <Grid container spacing={2.5}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Total Invoiced"
+                    value={`$${parseFloat(dashboard.metrics?.total_invoiced_amount || 0).toFixed(2)}`}
+                    subtitle="Purchase bills registered"
+                    icon={ReceiptLongOutlinedIcon}
+                    color="primary"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Total Paid"
+                    value={`$${parseFloat(dashboard.metrics?.total_paid_amount || 0).toFixed(2)}`}
+                    subtitle="Supplier payments completed"
+                    icon={PaymentOutlinedIcon}
+                    color="success"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Outstanding AP"
+                    value={`$${parseFloat(dashboard.metrics?.total_outstanding_amount || 0).toFixed(2)}`}
+                    subtitle="Unsettled payable balance"
+                    icon={MonetizationOnOutlinedIcon}
+                    color="warning"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <StatCard
+                    title="Payment Fulfillment"
+                    value={
+                      parseFloat(dashboard.metrics?.total_invoiced_amount || 0) > 0
+                        ? `${(
+                            (parseFloat(dashboard.metrics?.total_paid_amount || 0) /
+                              parseFloat(dashboard.metrics?.total_invoiced_amount || 1)) *
+                            100
+                          ).toFixed(1)}%`
+                        : '0%'
+                    }
+                    subtitle="Disbursed / Invoiced ratio"
+                    icon={TrendingUpOutlinedIcon}
+                    color="info"
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Recent Tables Grid Row 1: Orders & Goods Receipts */}
               <Grid container spacing={3}>
                 {/* Recent Orders */}
                 <Grid item xs={12} md={6}>
@@ -932,6 +1168,107 @@ export default function PurchasePage() {
                                     {parseFloat(r.total_quantity).toFixed(0)}
                                   </TableCell>
                                   <TableCell align="center">{r.receipt_date}</TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* Recent Tables Grid Row 2: Invoices & Payments (Phase 5D) */}
+              <Grid container spacing={3}>
+                {/* Recent Invoices */}
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Typography variant="h6" fontWeight={700}>
+                          Recent Purchase Invoices
+                        </Typography>
+                        <Button size="small" onClick={() => setCurrentTab(4)}>
+                          View All
+                        </Button>
+                      </Stack>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell>Invoice #</TableCell>
+                              <TableCell>Vendor</TableCell>
+                              <TableCell align="right">Total</TableCell>
+                              <TableCell align="right">Balance Due</TableCell>
+                              <TableCell align="center">Status</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {(dashboard.recent_invoices || []).length === 0 ? (
+                              <TableRow><TableCell colSpan={5} align="center">No recent invoices</TableCell></TableRow>
+                            ) : (
+                              dashboard.recent_invoices.map((inv) => (
+                                <TableRow key={inv.id} hover>
+                                  <TableCell sx={{ fontWeight: 600 }}>{inv.invoice_number}</TableCell>
+                                  <TableCell>{inv.vendor_name}</TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                                    ${parseFloat(inv.total).toFixed(2)}
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600, color: parseFloat(inv.balance_due) > 0 ? 'warning.main' : 'success.main' }}>
+                                    ${parseFloat(inv.balance_due).toFixed(2)}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Chip label={inv.status} size="small" color={INVOICE_STATUS_COLORS[inv.status] || 'default'} />
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Recent Payments */}
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Typography variant="h6" fontWeight={700}>
+                          Recent Supplier Payments
+                        </Typography>
+                        <Button size="small" onClick={() => setCurrentTab(4)}>
+                          View All
+                        </Button>
+                      </Stack>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell>Payment #</TableCell>
+                              <TableCell>Vendor</TableCell>
+                              <TableCell align="right">Amount</TableCell>
+                              <TableCell>Method</TableCell>
+                              <TableCell align="center">Date</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {(dashboard.recent_payments || []).length === 0 ? (
+                              <TableRow><TableCell colSpan={5} align="center">No recent payments</TableCell></TableRow>
+                            ) : (
+                              dashboard.recent_payments.map((pay) => (
+                                <TableRow key={pay.id} hover>
+                                  <TableCell sx={{ fontWeight: 600 }}>{pay.payment_number}</TableCell>
+                                  <TableCell>{pay.vendor_name}</TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+                                    ${parseFloat(pay.amount).toFixed(2)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Chip label={pay.payment_method} size="small" variant="outlined" />
+                                  </TableCell>
+                                  <TableCell align="center">{pay.payment_date}</TableCell>
                                 </TableRow>
                               ))
                             )}
@@ -1207,6 +1544,17 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell align="center">
                           <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
+                          {o.payment_status && (
+                            <Box sx={{ mt: 0.5 }}>
+                              <Chip
+                                label={o.payment_status}
+                                size="small"
+                                variant="outlined"
+                                color={o.payment_status === 'PAID' ? 'success' : o.payment_status === 'PARTIALLY_PAID' ? 'warning' : 'default'}
+                                sx={{ fontSize: '0.68rem', height: 20 }}
+                              />
+                            </Box>
+                          )}
                         </TableCell>
                         <TableCell align="right">
                           {/* Receive Goods Button */}
@@ -1218,6 +1566,19 @@ export default function PurchasePage() {
                                 onClick={() => handleOpenReceiveModal(o)}
                               >
                                 <LocalShippingOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          {/* Create Invoice / Bill Button */}
+                          {['CONFIRMED', 'PROCESSING', 'PARTIALLY_RECEIVED', 'COMPLETED'].includes(o.status) && (
+                            <Tooltip title="Create Bill / Invoice">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => handleOpenCreateInvoiceModal(o)}
+                              >
+                                <PostAddOutlinedIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -1374,9 +1735,691 @@ export default function PurchasePage() {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 4: VENDORS & PURCHASE HISTORY */}
+      {/* TAB 4: INVOICES & PAYMENTS (Phase 5C / 5D) */}
       {/* ============================================================ */}
       {currentTab === 4 && (
+        <Stack spacing={2.5}>
+          {/* Filters Bar */}
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search invoice #, vendor, or notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Invoice Status</InputLabel>
+                  <Select
+                    value={invoiceStatusFilter}
+                    label="Invoice Status"
+                    onChange={(e) => setInvoiceStatusFilter(e.target.value)}
+                  >
+                    <MenuItem value="ALL">All Statuses</MenuItem>
+                    <MenuItem value="DRAFT">Draft</MenuItem>
+                    <MenuItem value="ISSUED">Issued</MenuItem>
+                    <MenuItem value="PARTIALLY_PAID">Partially Paid</MenuItem>
+                    <MenuItem value="PAID">Paid</MenuItem>
+                    <MenuItem value="CANCELLED">Cancelled</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <Button fullWidth variant="outlined" startIcon={<RefreshIcon />} onClick={fetchData}>
+                  Filter
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Invoices List */}
+          {loading ? (
+            <LoadingState message="Loading invoices & payments..." />
+          ) : invoices.length === 0 ? (
+            <EmptyState
+              title="No purchase invoices found"
+              description="Create a purchase invoice directly or generate one from a confirmed Purchase Order."
+            />
+          ) : (
+            <TableContainer component={Paper} variant="outlined">
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableCell>Invoice #</TableCell>
+                    <TableCell>PO Reference</TableCell>
+                    <TableCell>Vendor</TableCell>
+                    <TableCell>Invoice Date</TableCell>
+                    <TableCell>Due Date</TableCell>
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell align="right">Paid</TableCell>
+                    <TableCell align="right">Balance Due</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {invoices.map((inv) => {
+                    const balanceNum = parseFloat(inv.balance_due || 0);
+                    const canPay = inv.status !== 'PAID' && inv.status !== 'CANCELLED' && balanceNum > 0;
+                    return (
+                      <TableRow key={inv.id} hover>
+                        <TableCell sx={{ fontWeight: 700 }}>
+                          <Chip label={inv.invoice_number} size="small" variant="outlined" color="primary" />
+                          {inv.vendor_invoice_number && (
+                            <Typography variant="caption" display="block" color="text.secondary">
+                              Bill: {inv.vendor_invoice_number}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {inv.purchase_order_number ? (
+                            <Chip label={inv.purchase_order_number} size="small" variant="outlined" />
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: 'primary.main' } }}
+                            onClick={() => handleOpenVendorHistory(inv.vendor, inv.vendor_name)}
+                          >
+                            {inv.vendor_name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{inv.invoice_date}</TableCell>
+                        <TableCell>{inv.due_date || '—'}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>
+                          ${parseFloat(inv.total).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                          ${parseFloat(inv.paid_amount || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, color: balanceNum > 0 ? 'warning.main' : 'success.main' }}>
+                          ${balanceNum.toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip label={inv.status} size="small" color={INVOICE_STATUS_COLORS[inv.status] || 'default'} />
+                        </TableCell>
+                        <TableCell align="right">
+                          {canPay && (
+                            <Tooltip title="Record Payment">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => handleOpenRecordPayment(inv)}
+                              >
+                                <PaymentOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip title="View Invoice Details">
+                            <IconButton
+                              size="small"
+                              onClick={() => setViewDetailModal({ open: true, type: 'invoice', data: inv })}
+                            >
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+                            <Tooltip title="Cancel Invoice">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleCancelInvoice(inv)}
+                              >
+                                <CancelOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {/* Supplier Payments Ledger Section */}
+          <Card variant="outlined" sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                Supplier Payments Ledger
+              </Typography>
+              {(payments || []).length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No payment transactions recorded yet.
+                </Typography>
+              ) : (
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: 'action.hover' }}>
+                        <TableCell>Payment #</TableCell>
+                        <TableCell>Invoice #</TableCell>
+                        <TableCell>Vendor</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                        <TableCell>Method</TableCell>
+                        <TableCell>Reference</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {payments.map((p) => (
+                        <TableRow key={p.id} hover>
+                          <TableCell sx={{ fontWeight: 600 }}>{p.payment_number}</TableCell>
+                          <TableCell>{p.invoice_number}</TableCell>
+                          <TableCell>{p.vendor_name}</TableCell>
+                          <TableCell>{p.payment_date}</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+                            ${parseFloat(p.amount).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={p.payment_method} size="small" variant="outlined" />
+                          </TableCell>
+                          <TableCell>{p.reference || '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </CardContent>
+          </Card>
+        </Stack>
+      )}
+
+      {/* ============================================================ */}
+      {/* TAB 5: ANALYTICS & REPORTS (Phase 5D) */}
+      {/* ============================================================ */}
+      {currentTab === 5 && (
+        <Stack spacing={3}>
+          {/* Executive Analytics KPIs */}
+          {analytics && (
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Goods Fulfillment Rate
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700} color="primary.main" sx={{ my: 1 }}>
+                    {analytics.ordered_vs_received?.fulfillment_rate_percentage || 0}%
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, analytics.ordered_vs_received?.fulfillment_rate_percentage || 0)}
+                    color={analytics.ordered_vs_received?.fulfillment_rate_percentage >= 100 ? 'success' : 'primary'}
+                    sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {parseFloat(analytics.ordered_vs_received?.total_received_quantity || 0).toFixed(0)} received /{' '}
+                    {parseFloat(analytics.ordered_vs_received?.total_ordered_quantity || 0).toFixed(0)} units ordered
+                  </Typography>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Payment Settlement Rate
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700} color="success.main" sx={{ my: 1 }}>
+                    {analytics.financial_overview?.payment_rate_percentage || 0}%
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, analytics.financial_overview?.payment_rate_percentage || 0)}
+                    color="success"
+                    sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    ${parseFloat(analytics.financial_overview?.total_paid || 0).toFixed(2)} paid /{' '}
+                    ${parseFloat(analytics.financial_overview?.total_invoiced || 0).toFixed(2)} billed (AP: ${parseFloat(analytics.financial_overview?.total_outstanding || 0).toFixed(2)})
+                  </Typography>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Quotation Conversion Rate
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700} color="info.main" sx={{ my: 1 }}>
+                    {analytics.quotation_conversion?.conversion_rate_percentage || 0}%
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, analytics.quotation_conversion?.conversion_rate_percentage || 0)}
+                    color="info"
+                    sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {analytics.quotation_conversion?.converted_quotations || 0} converted /{' '}
+                    {analytics.quotation_conversion?.total_quotations || 0} quotations received
+                  </Typography>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Monthly Procurement Trends */}
+          {analytics?.monthly_trends && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                  Procurement & Financial Trends (Past 12 Months)
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: 'action.hover' }}>
+                        <TableCell>Month</TableCell>
+                        <TableCell align="center">Orders Count</TableCell>
+                        <TableCell align="right">Purchase Total</TableCell>
+                        <TableCell align="right">Received Goods Value</TableCell>
+                        <TableCell align="right">Invoiced Amount</TableCell>
+                        <TableCell align="right">Paid Amount</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {analytics.monthly_trends.map((t) => (
+                        <TableRow key={t.month} hover>
+                          <TableCell sx={{ fontWeight: 600 }}>{t.month}</TableCell>
+                          <TableCell align="center">{t.orders_count}</TableCell>
+                          <TableCell align="right">${parseFloat(t.purchase_total).toFixed(2)}</TableCell>
+                          <TableCell align="right" sx={{ color: 'primary.main' }}>
+                            ${parseFloat(t.received_value).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">${parseFloat(t.invoiced_total).toFixed(2)}</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                            ${parseFloat(t.paid_total).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Top Vendors & Top Products */}
+          {analytics && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                      Top Vendors by Procurement Spend
+                    </Typography>
+                    {(analytics.top_vendors || []).length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">No vendor data available</Typography>
+                    ) : (
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell>Vendor</TableCell>
+                              <TableCell align="center">Orders</TableCell>
+                              <TableCell align="right">Total Spent</TableCell>
+                              <TableCell align="right">Paid</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {analytics.top_vendors.map((v) => (
+                              <TableRow key={v.vendor_id} hover>
+                                <TableCell sx={{ fontWeight: 600 }}>{v.vendor_name}</TableCell>
+                                <TableCell align="center">{v.order_count}</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 600 }}>
+                                  ${parseFloat(v.total_spent).toFixed(2)}
+                                </TableCell>
+                                <TableCell align="right" sx={{ color: 'success.main' }}>
+                                  ${parseFloat(v.paid_total).toFixed(2)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                      Top Products by Purchase Volume
+                    </Typography>
+                    {(analytics.top_products || []).length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">No product data available</Typography>
+                    ) : (
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell>Product</TableCell>
+                              <TableCell align="right">Ordered</TableCell>
+                              <TableCell align="right">Received</TableCell>
+                              <TableCell align="right">Spend</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {analytics.top_products.map((p) => (
+                              <TableRow key={p.product_id} hover>
+                                <TableCell sx={{ fontWeight: 600 }}>
+                                  {p.product_name} [{p.product_sku}]
+                                </TableCell>
+                                <TableCell align="right">{parseFloat(p.quantity_ordered).toFixed(0)}</TableCell>
+                                <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>
+                                  {parseFloat(p.quantity_received).toFixed(0)}
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 600 }}>
+                                  ${parseFloat(p.purchase_amount).toFixed(2)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* ============================================================ */}
+          {/* PURCHASE REPORTS GENERATOR SUITE */}
+          {/* ============================================================ */}
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={2.5}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center">
+                  <Box>
+                    <Typography variant="h6" fontWeight={700}>
+                      Procurement & Financial Reports Suite
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Comprehensive PostgreSQL-derived audit trails and operational reports
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {/* Report Type Selector */}
+                <Tabs
+                  value={reportType}
+                  onChange={(e, val) => setReportType(val)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ borderBottom: 1, borderColor: 'divider' }}
+                >
+                  <Tab value="summary" label="Summary Report" icon={<AssessmentOutlinedIcon />} iconPosition="start" />
+                  <Tab value="orders" label="Purchase Orders" icon={<ReceiptLongOutlinedIcon />} iconPosition="start" />
+                  <Tab value="vendors" label="Vendor Performance" icon={<StoreOutlinedIcon />} iconPosition="start" />
+                  <Tab value="receiving" label="Goods Receiving" icon={<LocalShippingOutlinedIcon />} iconPosition="start" />
+                  <Tab value="financial" label="Financial & AP" icon={<PaymentOutlinedIcon />} iconPosition="start" />
+                </Tabs>
+
+                {/* Report Filter Controls */}
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        type="date"
+                        label="Date From"
+                        InputLabelProps={{ shrink: true }}
+                        value={reportDateFrom}
+                        onChange={(e) => setReportDateFrom(e.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        type="date"
+                        label="Date To"
+                        InputLabelProps={{ shrink: true }}
+                        value={reportDateTo}
+                        onChange={(e) => setReportDateTo(e.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Vendor</InputLabel>
+                        <Select
+                          value={reportVendorFilter}
+                          label="Vendor"
+                          onChange={(e) => setReportVendorFilter(e.target.value)}
+                        >
+                          <MenuItem value="">All Vendors</MenuItem>
+                          {vendors.map((v) => (
+                            <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <Button fullWidth variant="contained" startIcon={<RefreshIcon />} onClick={fetchData}>
+                        Generate Report
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                {/* Report Content Table */}
+                {!reportsData ? (
+                  <LoadingState message="Generating report data..." />
+                ) : reportType === 'summary' ? (
+                  <Box>
+                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">Total Orders</Typography>
+                          <Typography variant="h5" fontWeight={700} color="primary.main">
+                            {reportsData.summary?.total_orders || 0}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">Total Purchase Spend</Typography>
+                          <Typography variant="h5" fontWeight={700} color="info.main">
+                            ${parseFloat(reportsData.summary?.total_purchase_amount || 0).toFixed(2)}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">Total Invoiced</Typography>
+                          <Typography variant="h5" fontWeight={700} color="success.main">
+                            ${parseFloat(reportsData.summary?.total_invoiced_amount || 0).toFixed(2)}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">Total Paid</Typography>
+                          <Typography variant="h5" fontWeight={700} color="success.dark">
+                            ${parseFloat(reportsData.summary?.total_paid_amount || 0).toFixed(2)}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                ) : reportType === 'orders' ? (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>Order #</TableCell>
+                          <TableCell>Vendor</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                          <TableCell align="center">Fulfillment %</TableCell>
+                          <TableCell align="right">Paid</TableCell>
+                          <TableCell align="right">Balance</TableCell>
+                          <TableCell align="center">Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(reportsData.data || []).length === 0 ? (
+                          <TableRow><TableCell colSpan={8} align="center">No orders match filter criteria</TableCell></TableRow>
+                        ) : (
+                          reportsData.data.map((o) => (
+                            <TableRow key={o.id} hover>
+                              <TableCell sx={{ fontWeight: 600 }}>{o.order_number}</TableCell>
+                              <TableCell>{o.vendor_name}</TableCell>
+                              <TableCell>{o.order_date}</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(o.total).toFixed(2)}</TableCell>
+                              <TableCell align="center">{parseFloat(o.receiving_percentage || 0).toFixed(0)}%</TableCell>
+                              <TableCell align="right" sx={{ color: 'success.main' }}>${parseFloat(o.paid_amount || 0).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'warning.main', fontWeight: 600 }}>${parseFloat(o.outstanding_amount || 0).toFixed(2)}</TableCell>
+                              <TableCell align="center">
+                                <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : reportType === 'vendors' ? (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>Vendor</TableCell>
+                          <TableCell align="center">Orders</TableCell>
+                          <TableCell align="center">Invoices</TableCell>
+                          <TableCell align="right">Total Spent</TableCell>
+                          <TableCell align="right">Received Goods</TableCell>
+                          <TableCell align="right">Invoiced</TableCell>
+                          <TableCell align="right">Paid</TableCell>
+                          <TableCell align="right">Balance Due</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(reportsData.data || []).length === 0 ? (
+                          <TableRow><TableCell colSpan={8} align="center">No vendor records found</TableCell></TableRow>
+                        ) : (
+                          reportsData.data.map((v) => (
+                            <TableRow key={v.vendor_id} hover>
+                              <TableCell sx={{ fontWeight: 600 }}>{v.vendor_name}</TableCell>
+                              <TableCell align="center">{v.order_count}</TableCell>
+                              <TableCell align="center">{v.invoice_count}</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(v.total_spent).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'primary.main' }}>${parseFloat(v.received_value).toFixed(2)}</TableCell>
+                              <TableCell align="right">${parseFloat(v.invoiced_total).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'success.main' }}>${parseFloat(v.paid_total).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'warning.main', fontWeight: 600 }}>${parseFloat(v.balance_due).toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : reportType === 'receiving' ? (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>GRN #</TableCell>
+                          <TableCell>PO #</TableCell>
+                          <TableCell>Warehouse</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell align="center">Lines</TableCell>
+                          <TableCell align="right">Total Quantity</TableCell>
+                          <TableCell align="center">Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(reportsData.data || []).length === 0 ? (
+                          <TableRow><TableCell colSpan={7} align="center">No goods receipts match criteria</TableCell></TableRow>
+                        ) : (
+                          reportsData.data.map((r) => (
+                            <TableRow key={r.id} hover>
+                              <TableCell sx={{ fontWeight: 600 }}>{r.receipt_number}</TableCell>
+                              <TableCell>{r.purchase_order_number}</TableCell>
+                              <TableCell>{r.warehouse_name}</TableCell>
+                              <TableCell>{r.receipt_date}</TableCell>
+                              <TableCell align="center">{r.items_count}</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>{parseFloat(r.total_quantity).toFixed(0)}</TableCell>
+                              <TableCell align="center">
+                                <Chip label={r.status} size="small" color={RECEIPT_STATUS_COLORS[r.status] || 'default'} />
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>Invoice #</TableCell>
+                          <TableCell>PO #</TableCell>
+                          <TableCell>Vendor</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell>Due Date</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                          <TableCell align="right">Paid</TableCell>
+                          <TableCell align="right">Balance Due</TableCell>
+                          <TableCell align="center">Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(reportsData.data || []).length === 0 ? (
+                          <TableRow><TableCell colSpan={9} align="center">No invoices found for criteria</TableCell></TableRow>
+                        ) : (
+                          reportsData.data.map((inv) => (
+                            <TableRow key={inv.id} hover>
+                              <TableCell sx={{ fontWeight: 600 }}>{inv.invoice_number}</TableCell>
+                              <TableCell>{inv.purchase_order_number || '—'}</TableCell>
+                              <TableCell>{inv.vendor_name}</TableCell>
+                              <TableCell>{inv.invoice_date}</TableCell>
+                              <TableCell>{inv.due_date || '—'}</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(inv.total).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'success.main' }}>${parseFloat(inv.paid_amount || 0).toFixed(2)}</TableCell>
+                              <TableCell align="right" sx={{ color: 'warning.main', fontWeight: 600 }}>${parseFloat(inv.balance_due).toFixed(2)}</TableCell>
+                              <TableCell align="center">
+                                <Chip label={inv.status} size="small" color={INVOICE_STATUS_COLORS[inv.status] || 'default'} />
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      )}
+
+      {/* ============================================================ */}
+      {/* TAB 6: VENDORS & PURCHASE HISTORY */}
+      {/* ============================================================ */}
+      {currentTab === 6 && (
         <Stack spacing={2.5}>
           {loading ? (
             <LoadingState message="Loading vendors..." />
@@ -2278,7 +3321,7 @@ export default function PurchasePage() {
 
               {/* Totals Summary */}
               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                <Box sx={{ width: 260 }}>
+                <Box sx={{ width: 280 }}>
                   <Stack spacing={1}>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="body2" color="text.secondary">Subtotal:</Typography>
@@ -2299,15 +3342,238 @@ export default function PurchasePage() {
                         ${parseFloat(viewDetailModal.data.total).toFixed(2)}
                       </Typography>
                     </Stack>
+                    {viewDetailModal.type === 'invoice' && (
+                      <>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography variant="body2" color="text.secondary">Paid Amount:</Typography>
+                          <Typography variant="body2" fontWeight={600} color="success.main">
+                            ${parseFloat(viewDetailModal.data.paid_amount || 0).toFixed(2)}
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography variant="subtitle2" fontWeight={700}>Balance Due:</Typography>
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight={700}
+                            color={parseFloat(viewDetailModal.data.balance_due || 0) > 0 ? 'warning.main' : 'success.main'}
+                          >
+                            ${parseFloat(viewDetailModal.data.balance_due || 0).toFixed(2)}
+                          </Typography>
+                        </Stack>
+                      </>
+                    )}
                   </Stack>
                 </Box>
               </Box>
+
+              {/* Linked Payments Table for Invoices */}
+              {viewDetailModal.type === 'invoice' && (viewDetailModal.data.payments || []).length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                    Payment History
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableCell>Payment #</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell align="right">Amount</TableCell>
+                          <TableCell>Method</TableCell>
+                          <TableCell>Reference</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {viewDetailModal.data.payments.map((p) => (
+                          <TableRow key={p.id} hover>
+                            <TableCell sx={{ fontWeight: 600 }}>{p.payment_number}</TableCell>
+                            <TableCell>{p.payment_date}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                              ${parseFloat(p.amount).toFixed(2)}
+                            </TableCell>
+                            <TableCell><Chip label={p.payment_method} size="small" variant="outlined" /></TableCell>
+                            <TableCell>{p.reference || '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )}
             </Box>
           ) : null}
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setViewDetailModal({ open: false, type: '', data: null })}>Close</Button>
         </DialogActions>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* CREATE PURCHASE INVOICE DIALOG */}
+      {/* ============================================================ */}
+      <Dialog open={createInvoiceModal.open} onClose={() => setCreateInvoiceModal((prev) => ({ ...prev, open: false }))} maxWidth="sm" fullWidth>
+        <form onSubmit={handleCreateInvoiceSubmit}>
+          <DialogTitle>Generate Purchase Invoice / Bill</DialogTitle>
+          <DialogContent dividers sx={{ p: 3 }}>
+            {createInvoiceModal.order && (
+              <Box sx={{ mb: 2.5, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                <Typography variant="subtitle2" fontWeight={700}>
+                  PO Reference: {createInvoiceModal.order.order_number}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Vendor: {createInvoiceModal.order.vendor_name} | Total Amount: ${parseFloat(createInvoiceModal.order.total).toFixed(2)}
+                </Typography>
+              </Box>
+            )}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  type="date"
+                  label="Invoice Date"
+                  InputLabelProps={{ shrink: true }}
+                  value={createInvoiceModal.invoice_date}
+                  onChange={(e) => setCreateInvoiceModal((prev) => ({ ...prev, invoice_date: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Due Date"
+                  InputLabelProps={{ shrink: true }}
+                  value={createInvoiceModal.due_date}
+                  onChange={(e) => setCreateInvoiceModal((prev) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Vendor Bill / Invoice #"
+                  placeholder="e.g. VEND-INV-9923"
+                  value={createInvoiceModal.vendor_invoice_number}
+                  onChange={(e) => setCreateInvoiceModal((prev) => ({ ...prev, vendor_invoice_number: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Notes / Terms"
+                  placeholder="Payment terms or notes..."
+                  value={createInvoiceModal.notes}
+                  onChange={(e) => setCreateInvoiceModal((prev) => ({ ...prev, notes: e.target.value }))}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={() => setCreateInvoiceModal((prev) => ({ ...prev, open: false }))}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? 'Generating...' : 'Create Invoice'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* RECORD SUPPLIER PAYMENT DIALOG */}
+      {/* ============================================================ */}
+      <Dialog open={recordPaymentModal.open} onClose={() => setRecordPaymentModal((prev) => ({ ...prev, open: false }))} maxWidth="sm" fullWidth>
+        <form onSubmit={handleRecordPaymentSubmit}>
+          <DialogTitle>Record Supplier Payment</DialogTitle>
+          <DialogContent dividers sx={{ p: 3 }}>
+            {recordPaymentModal.invoice && (
+              <Box sx={{ mb: 2.5, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                <Typography variant="subtitle2" fontWeight={700}>
+                  Invoice: {recordPaymentModal.invoice.invoice_number}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Vendor: {recordPaymentModal.invoice.vendor_name}
+                </Typography>
+                <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
+                  <Typography variant="body2">
+                    Total: <strong>${parseFloat(recordPaymentModal.invoice.total).toFixed(2)}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Paid: <strong style={{ color: '#2e7d32' }}>${parseFloat(recordPaymentModal.invoice.paid_amount || 0).toFixed(2)}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Balance: <strong style={{ color: '#ed6c02' }}>${parseFloat(recordPaymentModal.invoice.balance_due || 0).toFixed(2)}</strong>
+                  </Typography>
+                </Stack>
+              </Box>
+            )}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  type="number"
+                  inputProps={{ step: '0.01', min: '0.01' }}
+                  label="Payment Amount ($)"
+                  value={recordPaymentModal.amount}
+                  onChange={(e) => setRecordPaymentModal((prev) => ({ ...prev, amount: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  type="date"
+                  label="Payment Date"
+                  InputLabelProps={{ shrink: true }}
+                  value={recordPaymentModal.payment_date}
+                  onChange={(e) => setRecordPaymentModal((prev) => ({ ...prev, payment_date: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Payment Method</InputLabel>
+                  <Select
+                    value={recordPaymentModal.payment_method}
+                    label="Payment Method"
+                    onChange={(e) => setRecordPaymentModal((prev) => ({ ...prev, payment_method: e.target.value }))}
+                  >
+                    <MenuItem value="BANK_TRANSFER">Bank Transfer</MenuItem>
+                    <MenuItem value="CASH">Cash</MenuItem>
+                    <MenuItem value="CHECK">Check</MenuItem>
+                    <MenuItem value="CREDIT_CARD">Credit Card</MenuItem>
+                    <MenuItem value="OTHER">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Reference / Check #"
+                  placeholder="e.g. Wire Ref #8821"
+                  value={recordPaymentModal.reference}
+                  onChange={(e) => setRecordPaymentModal((prev) => ({ ...prev, reference: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Payment Notes"
+                  placeholder="Additional payment details..."
+                  value={recordPaymentModal.notes}
+                  onChange={(e) => setRecordPaymentModal((prev) => ({ ...prev, notes: e.target.value }))}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={() => setRecordPaymentModal((prev) => ({ ...prev, open: false }))}>Cancel</Button>
+            <Button type="submit" variant="contained" color="success" disabled={submitting}>
+              {submitting ? 'Recording...' : 'Submit Payment'}
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
 
       {/* ============================================================ */}
@@ -2340,43 +3606,51 @@ export default function PurchasePage() {
             <Box>
               {/* Lifetime Metrics Cards */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6} md={2.4}>
-                  <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Total Quotations</Typography>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">Quotations</Typography>
                     <Typography variant="h6" fontWeight={700} color="primary.main">
                       {vendorHistoryModal.data.metrics?.total_quotations || 0}
                     </Typography>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
-                  <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Total Orders</Typography>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">Orders</Typography>
                     <Typography variant="h6" fontWeight={700} color="info.main">
                       {vendorHistoryModal.data.metrics?.total_orders || 0}
                     </Typography>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
-                  <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Completed Orders</Typography>
-                    <Typography variant="h6" fontWeight={700} color="success.main">
-                      {vendorHistoryModal.data.metrics?.completed_orders || 0}
-                    </Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
-                  <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Pending Orders</Typography>
-                    <Typography variant="h6" fontWeight={700} color="warning.main">
-                      {vendorHistoryModal.data.metrics?.pending_orders || 0}
-                    </Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
-                  <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">Total Spend</Typography>
-                    <Typography variant="h6" fontWeight={700} color="success.dark">
+                    <Typography variant="h6" fontWeight={700}>
                       ${parseFloat(vendorHistoryModal.data.metrics?.total_purchased_amount || 0).toFixed(2)}
+                    </Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">Invoiced</Typography>
+                    <Typography variant="h6" fontWeight={700} color="primary.dark">
+                      ${parseFloat(vendorHistoryModal.data.metrics?.total_invoiced_amount || 0).toFixed(2)}
+                    </Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">Paid</Typography>
+                    <Typography variant="h6" fontWeight={700} color="success.main">
+                      ${parseFloat(vendorHistoryModal.data.metrics?.total_paid_amount || 0).toFixed(2)}
+                    </Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <Card variant="outlined" sx={{ p: 1.5, textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">Outstanding</Typography>
+                    <Typography variant="h6" fontWeight={700} color="warning.main">
+                      ${parseFloat(vendorHistoryModal.data.metrics?.outstanding_amount || 0).toFixed(2)}
                     </Typography>
                   </Card>
                 </Grid>
@@ -2390,6 +3664,8 @@ export default function PurchasePage() {
               >
                 <Tab label={`Purchase Orders (${vendorHistoryModal.data.orders?.length || 0})`} />
                 <Tab label={`Quotations (${vendorHistoryModal.data.quotations?.length || 0})`} />
+                <Tab label={`Invoices (${vendorHistoryModal.data.invoices?.length || 0})`} />
+                <Tab label={`Payments (${vendorHistoryModal.data.payments?.length || 0})`} />
               </Tabs>
 
               {/* Orders Tab */}
@@ -2452,6 +3728,80 @@ export default function PurchasePage() {
                             <TableCell align="center">
                               <Chip label={q.status} size="small" color={QUOTATION_STATUS_COLORS[q.status] || 'default'} />
                             </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+
+              {/* Invoices Tab */}
+              {vendorHistoryModal.tab === 2 && (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: 'action.hover' }}>
+                        <TableCell>Invoice #</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Due Date</TableCell>
+                        <TableCell align="right">Total</TableCell>
+                        <TableCell align="right">Paid</TableCell>
+                        <TableCell align="right">Balance Due</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(vendorHistoryModal.data.invoices || []).length === 0 ? (
+                        <TableRow><TableCell colSpan={7} align="center">No invoices found for this vendor</TableCell></TableRow>
+                      ) : (
+                        vendorHistoryModal.data.invoices.map((inv) => (
+                          <TableRow key={inv.id} hover>
+                            <TableCell sx={{ fontWeight: 600 }}>{inv.invoice_number}</TableCell>
+                            <TableCell>{inv.invoice_date}</TableCell>
+                            <TableCell>{inv.due_date || '—'}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(inv.total).toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ color: 'success.main' }}>${parseFloat(inv.paid_amount || 0).toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ color: 'warning.main', fontWeight: 600 }}>${parseFloat(inv.balance_due).toFixed(2)}</TableCell>
+                            <TableCell align="center">
+                              <Chip label={inv.status} size="small" color={INVOICE_STATUS_COLORS[inv.status] || 'default'} />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+
+              {/* Payments Tab */}
+              {vendorHistoryModal.tab === 3 && (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: 'action.hover' }}>
+                        <TableCell>Payment #</TableCell>
+                        <TableCell>Invoice #</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                        <TableCell>Method</TableCell>
+                        <TableCell>Reference</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(vendorHistoryModal.data.payments || []).length === 0 ? (
+                        <TableRow><TableCell colSpan={6} align="center">No payments found for this vendor</TableCell></TableRow>
+                      ) : (
+                        vendorHistoryModal.data.payments.map((p) => (
+                          <TableRow key={p.id} hover>
+                            <TableCell sx={{ fontWeight: 600 }}>{p.payment_number}</TableCell>
+                            <TableCell>{p.invoice_number}</TableCell>
+                            <TableCell>{p.payment_date}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+                              ${parseFloat(p.amount).toFixed(2)}
+                            </TableCell>
+                            <TableCell><Chip label={p.payment_method} size="small" variant="outlined" /></TableCell>
+                            <TableCell>{p.reference || '—'}</TableCell>
                           </TableRow>
                         ))
                       )}

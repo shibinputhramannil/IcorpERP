@@ -1,0 +1,552 @@
+{
+  "info": {
+    "_postman_id": "icorp-erp-phase5d-purchase-finalization-reporting",
+    "name": "ICORP ERP - Phase 5D Purchase Finalization, Reporting & Financial Integration Collection",
+    "description": "Comprehensive Postman test suite for ICORP ERP Phase 5D: Purchase Dashboard Finalization (AP KPIs), Purchase Analytics (12-Month Trends & Rates), Purchase Reports Suite (Summary, Orders, Vendors, Receiving, Financial), Vendor Purchase History, Purchase Invoices (Vendor Bills), and Supplier Payments (AP Disbursements).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "vendor_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "invoice_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "var token = jsonData.access || (jsonData.tokens && jsonData.tokens.access);",
+              "pm.expect(token).to.not.be.undefined;",
+              "pm.collectionVariables.set('access_token', token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login/",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login", ""]
+        }
+      }
+    },
+    {
+      "name": "02. Purchase Dashboard Finalization (AP & Operational KPIs)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Dashboard contains metrics and AP figures', function () {",
+              "    pm.expect(jsonData).to.have.property('metrics');",
+              "    pm.expect(jsonData.metrics).to.have.property('total_purchase_value');",
+              "    pm.expect(jsonData.metrics).to.have.property('total_invoiced_amount');",
+              "    pm.expect(jsonData.metrics).to.have.property('total_paid_amount');",
+              "    pm.expect(jsonData.metrics).to.have.property('total_outstanding_amount');",
+              "    pm.expect(jsonData).to.have.property('recent_invoices');",
+              "    pm.expect(jsonData).to.have.property('recent_payments');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/dashboard/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "dashboard", ""]
+        }
+      }
+    },
+    {
+      "name": "03. Purchase Analytics (12-Month Trends & Fulfillment/Payment Rates)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Analytics has trends and distribution data', function () {",
+              "    pm.expect(jsonData).to.have.property('monthly_trends');",
+              "    pm.expect(jsonData.monthly_trends).to.be.an('array').with.lengthOf(12);",
+              "    pm.expect(jsonData).to.have.property('ordered_vs_received');",
+              "    pm.expect(jsonData.ordered_vs_received).to.have.property('fulfillment_rate_percentage');",
+              "    pm.expect(jsonData).to.have.property('financial_overview');",
+              "    pm.expect(jsonData.financial_overview).to.have.property('payment_rate_percentage');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/analytics/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "analytics", ""]
+        }
+      }
+    },
+    {
+      "name": "04. Reports Suite - Summary Report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Summary report valid', function () {",
+              "    pm.expect(jsonData.report_type).to.eql('summary');",
+              "    pm.expect(jsonData).to.have.property('summary');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/reports/summary/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "reports", "summary", ""]
+        }
+      }
+    },
+    {
+      "name": "05. Reports Suite - Orders Report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Orders report contains rows', function () {",
+              "    pm.expect(jsonData.report_type).to.eql('orders');",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/reports/orders/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "reports", "orders", ""]
+        }
+      }
+    },
+    {
+      "name": "06. Reports Suite - Vendors Performance Report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Vendors report contains metrics', function () {",
+              "    pm.expect(jsonData.report_type).to.eql('vendors');",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/reports/vendors/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "reports", "vendors", ""]
+        }
+      }
+    },
+    {
+      "name": "07. Reports Suite - Goods Receiving Report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Receiving report contains receipts', function () {",
+              "    pm.expect(jsonData.report_type).to.eql('receiving');",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/reports/receiving/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "reports", "receiving", ""]
+        }
+      }
+    },
+    {
+      "name": "08. Reports Suite - Financial & AP Ledger Report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Financial report contains invoices and payments', function () {",
+              "    pm.expect(jsonData.report_type).to.eql('financial');",
+              "    pm.expect(jsonData).to.have.property('summary');",
+              "    pm.expect(jsonData).to.have.property('invoices');",
+              "    pm.expect(jsonData).to.have.property('payments');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/reports/financial/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "reports", "financial", ""]
+        }
+      }
+    },
+    {
+      "name": "09. Create Purchase Invoice from Purchase Order",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('Generated invoice has PINV prefix and balance due', function () {",
+              "    pm.expect(jsonData.invoice_number).to.include('PINV-');",
+              "    pm.expect(jsonData).to.have.property('balance_due');",
+              "    pm.collectionVariables.set('invoice_id', jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendor_invoice_number\": \"BILL-PM-001\",\n  \"invoice_date\": \"2026-09-18\",\n  \"notes\": \"Generated via Postman Phase 5D Suite\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/orders/{{order_id}}/invoice/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "orders", "{{order_id}}", "invoice", ""]
+        }
+      }
+    },
+    {
+      "name": "10. List Purchase Invoices (with Status Filter)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Invoices list returned', function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/invoices/?status=ALL",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "invoices", ""],
+          "query": [
+            {
+              "key": "status",
+              "value": "ALL"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Record Partial Supplier Payment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('Payment recorded with PPAY prefix', function () {",
+              "    pm.expect(jsonData.payment_number).to.include('PPAY-');",
+              "    pm.collectionVariables.set('payment_id', jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": \"500.00\",\n  \"payment_method\": \"BANK_TRANSFER\",\n  \"payment_date\": \"2026-09-18\",\n  \"reference\": \"WIRE-POSTMAN-5D\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/invoices/{{invoice_id}}/payments/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "invoices", "{{invoice_id}}", "payments", ""]
+        }
+      }
+    },
+    {
+      "name": "12. Overpayment Rejection Safety Test",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": \"99999999.00\",\n  \"payment_method\": \"CASH\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/invoices/{{invoice_id}}/payments/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "invoices", "{{invoice_id}}", "payments", ""]
+        }
+      }
+    },
+    {
+      "name": "13. List Purchase Payments Ledger",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Payments list returned', function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/payments/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "payments", ""]
+        }
+      }
+    },
+    {
+      "name": "14. Vendor Purchase History (360-degree Lifetime Audit)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Vendor history contains all lifecycle modules', function () {",
+              "    pm.expect(jsonData).to.have.property('vendor');",
+              "    pm.expect(jsonData).to.have.property('metrics');",
+              "    pm.expect(jsonData).to.have.property('quotations');",
+              "    pm.expect(jsonData).to.have.property('orders');",
+              "    pm.expect(jsonData).to.have.property('receipts');",
+              "    pm.expect(jsonData).to.have.property('invoices');",
+              "    pm.expect(jsonData).to.have.property('payments');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/purchases/vendors/{{vendor_id}}/history/",
+          "host": ["{{base_url}}"],
+          "path": ["companies", "{{company_id}}", "purchases", "vendors", "{{vendor_id}}", "history", ""]
+        }
+      }
+    }
+  ]
+}

@@ -14,9 +14,14 @@ from purchase.models import (
     PurchaseOrderItem,
     PurchaseReceipt,
     PurchaseReceiptItem,
+    PurchaseInvoice,
+    PurchaseInvoiceItem,
+    PurchasePayment,
     generate_purchase_quotation_number,
     generate_purchase_order_number,
     generate_purchase_receipt_number,
+    generate_purchase_invoice_number,
+    generate_purchase_payment_number,
 )
 
 
@@ -1189,4 +1194,758 @@ class PurchaseInventoryIntegrationTests(APITestCase):
             "items": [{"purchase_order_item": item.id, "received_quantity": "10.00"}]
         }, format="json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+
+# ============================================================
+# PHASE 5D: PURCHASE FINALIZATION, REPORTING & INTEGRATION TESTS
+# ============================================================
+
+class PurchaseFinalizationAndIntegrationTests(APITestCase):
+    """
+    29 focused tests verifying:
+    - Dashboard AP financial KPIs
+    - Analytics 12-month trends & distributions
+    - All 5 Reports (summary, orders, vendors, receiving, financial)
+    - Report multi-criteria query filters
+    - Purchase Invoice creation (from PO and direct)
+    - Purchase Payment recording & balance recalculation
+    - Overpayment rejection
+    - Purchase Order payment_status progression
+    - Vendor purchase history completeness
+    - Tenant isolation on invoices, payments, analytics, reports
+    - End-to-end full procurement & payment lifecycle
+    """
+    def setUp(self):
+        # 1. User roles
+        self.admin_group, _ = Group.objects.get_or_create(name="Company Admin")
+
+        # 2. Users
+        self.user1 = User.objects.create_user(
+            username="p5d_admin1", email="p5d1@corp1.com", password="password123"
+        )
+        self.user2 = User.objects.create_user(
+            username="p5d_admin2", email="p5d2@corp2.com", password="password123"
+        )
+        self.superuser = User.objects.create_superuser(
+            username="p5d_super", email="p5d_super@corp.com", password="password123"
+        )
+
+        # 3. Companies
+        self.comp1 = Company.objects.create(name="Apex Enterprise", email="apex@corp.com", is_active=True)
+        self.comp2 = Company.objects.create(name="Zenith Corp", email="zenith@corp.com", is_active=True)
+
+        # 4. Memberships
+        CompanyMembership.objects.create(user=self.user1, company=self.comp1, role=self.admin_group)
+        CompanyMembership.objects.create(user=self.user2, company=self.comp2, role=self.admin_group)
+
+        # 5. Base Data for Comp1
+        self.cat1 = Category.objects.create(company=self.comp1, name="Electronics")
+        self.prod1 = Product.objects.create(
+            company=self.comp1,
+            category=self.cat1,
+            name="GPU X1",
+            sku="GPU-001",
+            cost_price=Decimal("200.00"),
+            selling_price=Decimal("350.00"),
+        )
+        self.prod2 = Product.objects.create(
+            company=self.comp1,
+            category=self.cat1,
+            name="RAM 16GB",
+            sku="RAM-016",
+            cost_price=Decimal("50.00"),
+            selling_price=Decimal("90.00"),
+        )
+        self.wh1 = Warehouse.objects.create(company=self.comp1, name="North Depot", code="WH-N", is_active=True)
+        self.vendor1 = Vendor.objects.create(
+            company=self.comp1,
+            name="Silicon Tech Ltd",
+            email="sales@silicon.com",
+            phone="12345",
+            is_active=True,
+        )
+        self.vendor2 = Vendor.objects.create(
+            company=self.comp1,
+            name="Global Micro",
+            email="info@micro.com",
+            phone="67890",
+            is_active=True,
+        )
+
+        # 6. Base Data for Comp2
+        self.cat2 = Category.objects.create(company=self.comp2, name="Raw Materials")
+        self.prod_c2 = Product.objects.create(
+            company=self.comp2,
+            category=self.cat2,
+            name="Copper Wire",
+            sku="COP-01",
+            cost_price=Decimal("10.00"),
+            selling_price=Decimal("20.00"),
+        )
+        self.wh_c2 = Warehouse.objects.create(company=self.comp2, name="Zenith WH", code="Z-WH", is_active=True)
+        self.vendor_c2 = Vendor.objects.create(company=self.comp2, name="Zenith Supplier", is_active=True)
+
+        self.client.force_authenticate(user=self.user1)
+
+    def _create_order(self, vendor=None, warehouse=None, items=None, status_val=PurchaseOrder.PurchaseOrderStatus.CONFIRMED):
+        v = vendor or self.vendor1
+        w = warehouse or self.wh1
+        itms = items or [(self.prod1, Decimal("10.00"), Decimal("200.00"))]
+
+        order = PurchaseOrder.objects.create(
+            company=self.comp1,
+            vendor=v,
+            warehouse=w,
+            order_number=generate_purchase_order_number(),
+            order_date=timezone.localdate(),
+            status=status_val,
+            created_by=self.user1,
+        )
+        subtotal = Decimal("0.00")
+        for prod, qty, price in itms:
+            line_tot = qty * price
+            subtotal += line_tot
+            PurchaseOrderItem.objects.create(
+                purchase_order=order,
+                product=prod,
+                quantity=qty,
+                unit_price=price,
+                line_total=line_tot,
+            )
+        order.subtotal = subtotal
+        order.total = subtotal
+        order.save()
+        return order
+
+    def _create_invoice(self, order=None, vendor=None, total=Decimal("2000.00"), status_val=PurchaseInvoice.InvoiceStatus.ISSUED):
+        v = vendor or (order.vendor if order else self.vendor1)
+        inv = PurchaseInvoice.objects.create(
+            company=self.comp1,
+            purchase_order=order,
+            vendor=v,
+            invoice_number=generate_purchase_invoice_number(),
+            invoice_date=timezone.localdate(),
+            subtotal=total,
+            total=total,
+            balance_due=total,
+            amount_paid=Decimal("0.00"),
+            status=status_val,
+            created_by=self.user1,
+        )
+        return inv
+
+    # ------------------------------------------------------------
+    # 1. Dashboard AP Financial KPIs
+    # ------------------------------------------------------------
+    def test_01_dashboard_kpis_and_ap_financials(self):
+        order1 = self._create_order()  # Total 2000
+        inv1 = self._create_invoice(order=order1, total=Decimal("2000.00"))
+
+        # Pay 800
+        PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv1,
+            vendor=inv1.vendor,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("800.00"),
+            payment_method=PurchasePayment.PaymentMethod.BANK_TRANSFER,
+            created_by=self.user1,
+        )
+        inv1.paid_amount = Decimal("800.00")
+        inv1.balance_due = Decimal("1200.00")
+        inv1.status = PurchaseInvoice.InvoiceStatus.PARTIALLY_PAID
+        inv1.save()
+
+        url = f"/api/companies/{self.comp1.id}/purchases/dashboard/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        metrics = resp.data["metrics"]
+
+        self.assertEqual(Decimal(str(metrics["total_purchase_value"])), Decimal("2000.00"))
+        self.assertEqual(Decimal(str(metrics["total_invoiced_amount"])), Decimal("2000.00"))
+        self.assertEqual(Decimal(str(metrics["total_paid_amount"])), Decimal("800.00"))
+        self.assertEqual(Decimal(str(metrics["total_outstanding_amount"])), Decimal("1200.00"))
+        self.assertEqual(len(resp.data["recent_invoices"]), 1)
+        self.assertEqual(len(resp.data["recent_payments"]), 1)
+        self.assertIn("PARTIALLY_PAID", resp.data["invoices_by_status"])
+
+    # ------------------------------------------------------------
+    # 2. Analytics Monthly Trends
+    # ------------------------------------------------------------
+    def test_02_analytics_monthly_trends(self):
+        self._create_order()
+        inv = self._create_invoice()
+        PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv,
+            vendor=inv.vendor,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("500.00"),
+            payment_method=PurchasePayment.PaymentMethod.BANK_TRANSFER,
+            created_by=self.user1,
+        )
+
+        url = f"/api/companies/{self.comp1.id}/purchases/analytics/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        trends = resp.data["monthly_trends"]
+        self.assertEqual(len(trends), 12)
+        current_m = trends[-1]
+        self.assertGreaterEqual(Decimal(str(current_m["purchase_total"])), Decimal("2000.00"))
+        self.assertGreaterEqual(Decimal(str(current_m["paid_total"])), Decimal("500.00"))
+
+    # ------------------------------------------------------------
+    # 3. Analytics Order and Invoice Distributions
+    # ------------------------------------------------------------
+    def test_03_analytics_order_and_invoice_distributions(self):
+        self._create_order(status_val=PurchaseOrder.PurchaseOrderStatus.CONFIRMED)
+        self._create_invoice(status_val=PurchaseInvoice.InvoiceStatus.ISSUED)
+
+        url = f"/api/companies/{self.comp1.id}/purchases/analytics/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        order_dist = {d["status"]: d["count"] for d in resp.data["order_status_distribution"]}
+        self.assertGreaterEqual(order_dist.get("CONFIRMED", 0), 1)
+
+        inv_dist = {d["status"]: d["count"] for d in resp.data["invoice_status_distribution"]}
+        self.assertGreaterEqual(inv_dist.get("ISSUED", 0), 1)
+
+    # ------------------------------------------------------------
+    # 4. Analytics Top Vendors and Top Products
+    # ------------------------------------------------------------
+    def test_04_analytics_top_vendors_and_products(self):
+        order = self._create_order(vendor=self.vendor1, items=[(self.prod1, Decimal("10.00"), Decimal("200.00"))])
+        self._create_invoice(order=order, total=Decimal("2000.00"))
+
+        url = f"/api/companies/{self.comp1.id}/purchases/analytics/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        vendors = resp.data["top_vendors"]
+        self.assertTrue(any(v["vendor_name"] == "Silicon Tech Ltd" for v in vendors))
+
+        products = resp.data["top_products"]
+        self.assertTrue(any(p["product_name"] == "GPU X1" for p in products))
+
+    # ------------------------------------------------------------
+    # 5. Analytics Rates & Empty Company Safety
+    # ------------------------------------------------------------
+    def test_05_analytics_rates_and_empty_company(self):
+        # Empty company check (Comp 2)
+        self.client.force_authenticate(user=self.user2)
+        url = f"/api/companies/{self.comp2.id}/purchases/analytics/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["ordered_vs_received"]["fulfillment_rate_percentage"], 0.0)
+        self.assertEqual(resp.data["financial_overview"]["payment_rate_percentage"], 0.0)
+        self.assertEqual(resp.data["quotation_conversion"]["conversion_rate_percentage"], 0.0)
+
+    # ------------------------------------------------------------
+    # 6. Reports Summary Endpoint
+    # ------------------------------------------------------------
+    def test_06_reports_summary_endpoint(self):
+        self._create_order()
+        self._create_invoice()
+
+        # Test both query param and dedicated subview
+        url1 = f"/api/companies/{self.comp1.id}/purchases/reports/?report_type=summary"
+        url2 = f"/api/companies/{self.comp1.id}/purchases/reports/summary/"
+        for u in [url1, url2]:
+            resp = self.client.get(u)
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+            self.assertEqual(resp.data["report_type"], "summary")
+            self.assertIn("summary", resp.data)
+            self.assertGreaterEqual(resp.data["summary"]["total_orders"], 1)
+
+    # ------------------------------------------------------------
+    # 7. Reports Orders Endpoint
+    # ------------------------------------------------------------
+    def test_07_reports_orders_endpoint(self):
+        order = self._create_order()
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["report_type"], "orders")
+        self.assertGreaterEqual(len(resp.data["data"]), 1)
+        row = resp.data["data"][0]
+        self.assertEqual(row["order_number"], order.order_number)
+        self.assertIn("receiving_percentage", row)
+
+    # ------------------------------------------------------------
+    # 8. Reports Vendors Endpoint
+    # ------------------------------------------------------------
+    def test_08_reports_vendors_endpoint(self):
+        self._create_order(vendor=self.vendor1)
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/vendors/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["report_type"], "vendors")
+        self.assertGreaterEqual(len(resp.data["data"]), 1)
+        v_entry = next((item for item in resp.data["data"] if item["vendor_id"] == self.vendor1.id), None)
+        self.assertIsNotNone(v_entry)
+        self.assertGreaterEqual(v_entry["order_count"], 1)
+
+    # ------------------------------------------------------------
+    # 9. Reports Receiving Endpoint
+    # ------------------------------------------------------------
+    def test_09_reports_receiving_endpoint(self):
+        order = self._create_order()
+        item = order.items.first()
+        # Post GRN
+        self.client.post(f"/api/companies/{self.comp1.id}/purchases/orders/{order.id}/receive/", {
+            "items": [{"purchase_order_item": item.id, "received_quantity": "5.00"}]
+        }, format="json")
+
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/receiving/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["report_type"], "receiving")
+        self.assertGreaterEqual(len(resp.data["data"]), 1)
+        self.assertEqual(Decimal(str(resp.data["data"][0]["total_quantity"])), Decimal("5.00"))
+
+    # ------------------------------------------------------------
+    # 10. Reports Financial Endpoint
+    # ------------------------------------------------------------
+    def test_10_reports_financial_endpoint(self):
+        inv = self._create_invoice()
+        PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv,
+            vendor=inv.vendor,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("400.00"),
+            payment_method=PurchasePayment.PaymentMethod.BANK_TRANSFER,
+            created_by=self.user1,
+        )
+
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/financial/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["report_type"], "financial")
+        self.assertIn("invoices", resp.data)
+        self.assertIn("payments", resp.data)
+        self.assertGreaterEqual(len(resp.data["invoices"]), 1)
+        self.assertGreaterEqual(len(resp.data["payments"]), 1)
+
+    # ------------------------------------------------------------
+    # 11. Reports Date Filtering
+    # ------------------------------------------------------------
+    def test_11_reports_date_filtering(self):
+        self._create_order()
+        # Querying date in year 2099 should yield 0 results
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/?date_from=2099-01-01"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data["data"]), 0)
+
+    # ------------------------------------------------------------
+    # 12. Reports Vendor Filtering
+    # ------------------------------------------------------------
+    def test_12_reports_vendor_filtering(self):
+        order1 = self._create_order(vendor=self.vendor1)
+        self._create_order(vendor=self.vendor2)
+
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/?vendor={self.vendor1.id}"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data["data"]), 1)
+        self.assertEqual(resp.data["data"][0]["order_number"], order1.order_number)
+
+    # ------------------------------------------------------------
+    # 13. Reports Warehouse Filtering
+    # ------------------------------------------------------------
+    def test_13_reports_warehouse_filtering(self):
+        order = self._create_order(warehouse=self.wh1)
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/?warehouse={self.wh1.id}"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data["data"]), 1)
+        self.assertEqual(resp.data["data"][0]["order_number"], order.order_number)
+
+    # ------------------------------------------------------------
+    # 14. Reports Status Filtering
+    # ------------------------------------------------------------
+    def test_14_reports_status_filtering(self):
+        self._create_order(status_val=PurchaseOrder.PurchaseOrderStatus.CONFIRMED)
+        self._create_order(status_val=PurchaseOrder.PurchaseOrderStatus.CANCELLED)
+
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/?status=CONFIRMED"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(all(o["status"] == "CONFIRMED" for o in resp.data["data"]))
+
+    # ------------------------------------------------------------
+    # 15. Reports Product Filtering
+    # ------------------------------------------------------------
+    def test_15_reports_product_filtering(self):
+        self._create_order(items=[(self.prod1, Decimal("2.00"), Decimal("200.00"))])
+        self._create_order(items=[(self.prod2, Decimal("5.00"), Decimal("50.00"))])
+
+        url = f"/api/companies/{self.comp1.id}/purchases/reports/orders/?product={self.prod1.id}"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data["data"]), 1)
+
+    # ------------------------------------------------------------
+    # 16. Create Invoice from Purchase Order
+    # ------------------------------------------------------------
+    def test_16_create_invoice_from_purchase_order(self):
+        order = self._create_order(items=[
+            (self.prod1, Decimal("5.00"), Decimal("200.00")),
+            (self.prod2, Decimal("10.00"), Decimal("50.00")),
+        ])
+        url = f"/api/companies/{self.comp1.id}/purchases/orders/{order.id}/invoice/"
+        payload = {
+            "invoice_date": "2026-09-18",
+            "vendor_invoice_number": "VEND-BILL-101",
+            "notes": "Net 30 terms",
+        }
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(resp.data["invoice_number"].startswith("PINV-"))
+        self.assertEqual(resp.data["vendor_invoice_number"], "VEND-BILL-101")
+        self.assertEqual(Decimal(str(resp.data["total"])), Decimal("1500.00"))
+        self.assertEqual(Decimal(str(resp.data["balance_due"])), Decimal("1500.00"))
+        self.assertEqual(len(resp.data["items"]), 2)
+
+    # ------------------------------------------------------------
+    # 17. Create Direct Purchase Invoice
+    # ------------------------------------------------------------
+    def test_17_create_direct_purchase_invoice(self):
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/"
+        payload = {
+            "vendor": self.vendor1.id,
+            "invoice_date": "2026-09-18",
+            "vendor_invoice_number": "DIRECT-BILL-01",
+            "items": [
+                {
+                    "product": self.prod1.id,
+                    "description": "Direct Procurement",
+                    "quantity": "4.00",
+                    "unit_price": "200.00",
+                    "discount": "50.00",
+                    "tax": "25.00",
+                }
+            ],
+        }
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Decimal(str(resp.data["subtotal"])), Decimal("800.00"))
+        self.assertEqual(Decimal(str(resp.data["discount"])), Decimal("50.00"))
+        self.assertEqual(Decimal(str(resp.data["tax"])), Decimal("25.00"))
+        self.assertEqual(Decimal(str(resp.data["total"])), Decimal("775.00"))
+        self.assertEqual(Decimal(str(resp.data["balance_due"])), Decimal("775.00"))
+
+    # ------------------------------------------------------------
+    # 18. Purchase Invoice Detail & Cancellation
+    # ------------------------------------------------------------
+    def test_18_purchase_invoice_detail_and_cancel(self):
+        inv = self._create_invoice()
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["invoice_number"], inv.invoice_number)
+
+        del_resp = self.client.delete(url)
+        self.assertEqual(del_resp.status_code, status.HTTP_200_OK)
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, PurchaseInvoice.InvoiceStatus.CANCELLED)
+
+    # ------------------------------------------------------------
+    # 19. Cannot Cancel Paid Invoice
+    # ------------------------------------------------------------
+    def test_19_cannot_cancel_paid_invoice(self):
+        inv = self._create_invoice(status_val=PurchaseInvoice.InvoiceStatus.PAID)
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/"
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("paid", resp.data["detail"].lower())
+
+    # ------------------------------------------------------------
+    # 20. Record Partial Payment
+    # ------------------------------------------------------------
+    def test_20_record_partial_payment(self):
+        inv = self._create_invoice(total=Decimal("1000.00"))
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/payments/"
+        payload = {
+            "amount": "400.00",
+            "payment_method": "BANK_TRANSFER",
+            "payment_date": "2026-09-18",
+            "reference": "WIRE-992",
+        }
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(resp.data["payment_number"].startswith("PPAY-"))
+
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, PurchaseInvoice.InvoiceStatus.PARTIALLY_PAID)
+        self.assertEqual(inv.paid_amount, Decimal("400.00"))
+        self.assertEqual(inv.balance_due, Decimal("600.00"))
+
+    # ------------------------------------------------------------
+    # 21. Record Full Payment (Completes Invoice)
+    # ------------------------------------------------------------
+    def test_21_record_full_payment(self):
+        inv = self._create_invoice(total=Decimal("1000.00"))
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/payments/"
+
+        # First payment: 400
+        self.client.post(url, {"amount": "400.00", "payment_method": "CASH"}, format="json")
+        # Second payment: 600
+        resp = self.client.post(url, {"amount": "600.00", "payment_method": "BANK_TRANSFER"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, PurchaseInvoice.InvoiceStatus.PAID)
+        self.assertEqual(inv.paid_amount, Decimal("1000.00"))
+        self.assertEqual(inv.balance_due, Decimal("0.00"))
+
+    # ------------------------------------------------------------
+    # 22. Overpayment Rejected
+    # ------------------------------------------------------------
+    def test_22_overpayment_rejected(self):
+        inv = self._create_invoice(total=Decimal("500.00"))
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/payments/"
+        resp = self.client.post(url, {"amount": "600.00", "payment_method": "CASH"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        detail_msg = resp.data.get("detail")
+        if isinstance(detail_msg, list):
+            detail_msg = detail_msg[0]
+        self.assertIn("cannot exceed balance due", str(detail_msg).lower())
+
+    # ------------------------------------------------------------
+    # 23. Purchase Order Payment Status Progression
+    # ------------------------------------------------------------
+    def test_23_purchase_order_payment_status_progression(self):
+        order = self._create_order(items=[(self.prod1, Decimal("5.00"), Decimal("200.00"))])
+        self.assertEqual(order.payment_status, "UNINVOICED")
+
+        # Create invoice
+        inv = self._create_invoice(order=order, total=Decimal("1000.00"))
+        self.assertEqual(order.payment_status, "UNPAID")
+
+        # Partial payment
+        url = f"/api/companies/{self.comp1.id}/purchases/invoices/{inv.id}/payments/"
+        self.client.post(url, {"amount": "400.00", "payment_method": "CASH"}, format="json")
+        self.assertEqual(order.payment_status, "PARTIALLY_PAID")
+
+        # Full payment
+        self.client.post(url, {"amount": "600.00", "payment_method": "BANK_TRANSFER"}, format="json")
+        self.assertEqual(order.payment_status, "PAID")
+
+    # ------------------------------------------------------------
+    # 24. Payments List & Filtering
+    # ------------------------------------------------------------
+    def test_24_payments_list_and_filters(self):
+        inv1 = self._create_invoice(vendor=self.vendor1, total=Decimal("500.00"))
+        inv2 = self._create_invoice(vendor=self.vendor2, total=Decimal("300.00"))
+
+        p1 = PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv1,
+            vendor=self.vendor1,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("500.00"),
+            payment_method=PurchasePayment.PaymentMethod.BANK_TRANSFER,
+            created_by=self.user1,
+        )
+        p2 = PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv2,
+            vendor=self.vendor2,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("300.00"),
+            payment_method=PurchasePayment.PaymentMethod.CASH,
+            created_by=self.user1,
+        )
+
+        # Filter by vendor
+        res_v = self.client.get(f"/api/companies/{self.comp1.id}/purchases/payments/?vendor={self.vendor1.id}")
+        self.assertEqual(res_v.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_v.data), 1)
+        self.assertEqual(res_v.data[0]["payment_number"], p1.payment_number)
+
+        # Filter by payment method
+        res_m = self.client.get(f"/api/companies/{self.comp1.id}/purchases/payments/?payment_method=CASH")
+        self.assertEqual(res_m.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_m.data), 1)
+        self.assertEqual(res_m.data[0]["payment_number"], p2.payment_number)
+
+    # ------------------------------------------------------------
+    # 25. Vendor Purchase History Includes Invoices and Payments
+    # ------------------------------------------------------------
+    def test_25_vendor_purchase_history_includes_all_modules(self):
+        order = self._create_order(vendor=self.vendor1)
+        inv = self._create_invoice(order=order, vendor=self.vendor1, total=Decimal("2000.00"))
+        PurchasePayment.objects.create(
+            company=self.comp1,
+            invoice=inv,
+            vendor=self.vendor1,
+            payment_number=generate_purchase_payment_number(),
+            payment_date=timezone.localdate(),
+            amount=Decimal("1000.00"),
+            payment_method=PurchasePayment.PaymentMethod.BANK_TRANSFER,
+            created_by=self.user1,
+        )
+
+        url = f"/api/companies/{self.comp1.id}/purchases/vendors/{self.vendor1.id}/history/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn("invoices", resp.data)
+        self.assertIn("payments", resp.data)
+        self.assertEqual(len(resp.data["invoices"]), 1)
+        self.assertEqual(len(resp.data["payments"]), 1)
+        metrics = resp.data["metrics"]
+        self.assertEqual(Decimal(str(metrics["total_invoiced_amount"])), Decimal("2000.00"))
+        self.assertEqual(Decimal(str(metrics["total_paid_amount"])), Decimal("1000.00"))
+
+    # ------------------------------------------------------------
+    # 26. Tenant Isolation: Invoices
+    # ------------------------------------------------------------
+    def test_26_tenant_isolation_invoices(self):
+        inv1 = self._create_invoice()
+        # User 2 cannot access Comp 1 invoice
+        self.client.force_authenticate(user=self.user2)
+
+        # 403 trying to access comp1 endpoint
+        resp_comp1 = self.client.get(f"/api/companies/{self.comp1.id}/purchases/invoices/{inv1.id}/")
+        self.assertEqual(resp_comp1.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 404 trying to access comp1 invoice under comp2 endpoint
+        resp_comp2 = self.client.get(f"/api/companies/{self.comp2.id}/purchases/invoices/{inv1.id}/")
+        self.assertEqual(resp_comp2.status_code, status.HTTP_404_NOT_FOUND)
+
+    # ------------------------------------------------------------
+    # 27. Tenant Isolation: Payments
+    # ------------------------------------------------------------
+    def test_27_tenant_isolation_payments(self):
+        inv1 = self._create_invoice()
+        self.client.force_authenticate(user=self.user2)
+
+        # Attempt to pay Comp 1 invoice from Comp 2 endpoint -> 404
+        pay_url = f"/api/companies/{self.comp2.id}/purchases/invoices/{inv1.id}/payments/"
+        resp = self.client.post(pay_url, {"amount": "100.00", "payment_method": "CASH"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    # ------------------------------------------------------------
+    # 28. Tenant Isolation: Analytics and Reports
+    # ------------------------------------------------------------
+    def test_28_tenant_isolation_analytics_and_reports(self):
+        self._create_order()
+        self._create_invoice()
+
+        # Comp 2 user accessing Comp 2 analytics sees 0 orders and 0 spend
+        self.client.force_authenticate(user=self.user2)
+        an_resp = self.client.get(f"/api/companies/{self.comp2.id}/purchases/analytics/")
+        self.assertEqual(an_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(an_resp.data["top_vendors"]), 0)
+
+        rep_resp = self.client.get(f"/api/companies/{self.comp2.id}/purchases/reports/summary/")
+        self.assertEqual(rep_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(rep_resp.data["summary"]["total_orders"], 0)
+
+    # ------------------------------------------------------------
+    # 29. End-to-End Complete Procurement Lifecycle
+    # ------------------------------------------------------------
+    def test_29_e2e_complete_procurement_lifecycle(self):
+        # 1. Create Purchase Quotation
+        q_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/quotations/", {
+            "vendor": self.vendor1.id,
+            "quotation_date": "2026-09-18",
+            "items": [
+                {
+                    "product": self.prod1.id,
+                    "description": "E2E Procurement",
+                    "quantity": "10.00",
+                    "unit_price": "200.00",
+                    "discount": "0.00",
+                    "tax": "0.00",
+                }
+            ],
+        }, format="json")
+        self.assertEqual(q_resp.status_code, status.HTTP_201_CREATED)
+        quote_id = q_resp.data["id"]
+
+        # 2. Accept and Convert to Purchase Order
+        self.client.patch(f"/api/companies/{self.comp1.id}/purchases/quotations/{quote_id}/", {
+            "status": "ACCEPTED"
+        }, format="json")
+
+        conv_resp = self.client.post(
+            f"/api/companies/{self.comp1.id}/purchases/quotations/{quote_id}/convert-to-order/",
+            {"warehouse": self.wh1.id},
+            format="json",
+        )
+        self.assertEqual(conv_resp.status_code, status.HTTP_201_CREATED)
+        order_id = conv_resp.data["id"]
+        po_item_id = conv_resp.data["items"][0]["id"]
+
+        # 3. Confirm Purchase Order
+        self.client.patch(f"/api/companies/{self.comp1.id}/purchases/orders/{order_id}/", {
+            "status": "CONFIRMED"
+        }, format="json")
+
+        # 4. Partial Goods Receiving (6 units) -> Stock IN
+        rcv1_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/orders/{order_id}/receive/", {
+            "items": [{"purchase_order_item": po_item_id, "received_quantity": "6.00"}]
+        }, format="json")
+        self.assertEqual(rcv1_resp.status_code, status.HTTP_201_CREATED)
+
+        # Verify stock incremented by 6
+        stock1 = Stock.objects.get(product=self.prod1, warehouse=self.wh1)
+        self.assertEqual(stock1.quantity, Decimal("6.00"))
+
+        # 5. Remaining Goods Receiving (4 units) -> Order completed -> Stock IN
+        rcv2_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/orders/{order_id}/receive/", {
+            "items": [{"purchase_order_item": po_item_id, "received_quantity": "4.00"}]
+        }, format="json")
+        self.assertEqual(rcv2_resp.status_code, status.HTTP_201_CREATED)
+
+        stock1.refresh_from_db()
+        self.assertEqual(stock1.quantity, Decimal("10.00"))
+
+        po = PurchaseOrder.objects.get(id=order_id)
+        self.assertEqual(po.status, PurchaseOrder.PurchaseOrderStatus.COMPLETED)
+
+        # 6. Generate Purchase Invoice from PO ($2000)
+        inv_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/orders/{order_id}/invoice/", {
+            "invoice_date": "2026-09-18",
+            "vendor_invoice_number": "E2E-INV-001",
+        }, format="json")
+        self.assertEqual(inv_resp.status_code, status.HTTP_201_CREATED)
+        inv_id = inv_resp.data["id"]
+        self.assertEqual(Decimal(str(inv_resp.data["balance_due"])), Decimal("2000.00"))
+
+        # 7. Record Partial Payment ($1200)
+        p1_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/invoices/{inv_id}/payments/", {
+            "amount": "1200.00",
+            "payment_method": "BANK_TRANSFER",
+        }, format="json")
+        self.assertEqual(p1_resp.status_code, status.HTTP_201_CREATED)
+
+        inv = PurchaseInvoice.objects.get(id=inv_id)
+        self.assertEqual(inv.status, PurchaseInvoice.InvoiceStatus.PARTIALLY_PAID)
+        self.assertEqual(inv.balance_due, Decimal("800.00"))
+        po.refresh_from_db()
+        self.assertEqual(po.payment_status, "PARTIALLY_PAID")
+
+        # 8. Record Final Payment ($800) -> Invoice Settled
+        p2_resp = self.client.post(f"/api/companies/{self.comp1.id}/purchases/invoices/{inv_id}/payments/", {
+            "amount": "800.00",
+            "payment_method": "BANK_TRANSFER",
+        }, format="json")
+        self.assertEqual(p2_resp.status_code, status.HTTP_201_CREATED)
+
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, PurchaseInvoice.InvoiceStatus.PAID)
+        self.assertEqual(inv.balance_due, Decimal("0.00"))
+        po.refresh_from_db()
+        self.assertEqual(po.payment_status, "PAID")
+
 

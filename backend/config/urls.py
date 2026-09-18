@@ -86,8 +86,20 @@ from purchase.views import (
     PurchaseOrderReceiptListView,
     PurchaseReceiptListCreateView,
     PurchaseReceiptDetailView,
+    PurchaseInvoiceListCreateView,
+    PurchaseInvoiceDetailView,
+    PurchaseOrderInvoiceCreateView,
+    PurchaseInvoicePaymentListCreateView,
+    PurchasePaymentListView,
     PurchaseDashboardView,
     VendorPurchaseHistoryView,
+    PurchaseAnalyticsView,
+    PurchaseReportsView,
+    PurchaseReportSummaryView,
+    PurchaseReportOrdersView,
+    PurchaseReportVendorsView,
+    PurchaseReportReceivingView,
+    PurchaseReportFinancialView,
 )
 
 
@@ -230,5 +242,23 @@ urlpatterns = [
 
     # Purchase - Vendor History
     path("api/companies/<int:company_id>/purchases/vendors/<int:vendor_id>/history/", VendorPurchaseHistoryView.as_view(), name="vendor_purchase_history"),
+
+    # Purchase - Invoices (Phase 5C/5D)
+    path("api/companies/<int:company_id>/purchases/invoices/", PurchaseInvoiceListCreateView.as_view(), name="purchase_invoice_list_create"),
+    path("api/companies/<int:company_id>/purchases/invoices/<int:pk>/", PurchaseInvoiceDetailView.as_view(), name="purchase_invoice_detail"),
+    path("api/companies/<int:company_id>/purchases/orders/<int:order_id>/invoice/", PurchaseOrderInvoiceCreateView.as_view(), name="purchase_order_invoice_create"),
+    path("api/companies/<int:company_id>/purchases/invoices/<int:invoice_id>/payments/", PurchaseInvoicePaymentListCreateView.as_view(), name="purchase_invoice_payment_list_create"),
+    path("api/companies/<int:company_id>/purchases/payments/", PurchasePaymentListView.as_view(), name="purchase_payment_list"),
+
+    # Purchase - Analytics (Phase 5D)
+    path("api/companies/<int:company_id>/purchases/analytics/", PurchaseAnalyticsView.as_view(), name="purchase_analytics"),
+
+    # Purchase - Reports (Phase 5D)
+    path("api/companies/<int:company_id>/purchases/reports/", PurchaseReportsView.as_view(), name="purchase_reports"),
+    path("api/companies/<int:company_id>/purchases/reports/summary/", PurchaseReportSummaryView.as_view(), name="purchase_report_summary"),
+    path("api/companies/<int:company_id>/purchases/reports/orders/", PurchaseReportOrdersView.as_view(), name="purchase_report_orders"),
+    path("api/companies/<int:company_id>/purchases/reports/vendors/", PurchaseReportVendorsView.as_view(), name="purchase_report_vendors"),
+    path("api/companies/<int:company_id>/purchases/reports/receiving/", PurchaseReportReceivingView.as_view(), name="purchase_report_receiving"),
+    path("api/companies/<int:company_id>/purchases/reports/financial/", PurchaseReportFinancialView.as_view(), name="purchase_report_financial"),
 ]
 
