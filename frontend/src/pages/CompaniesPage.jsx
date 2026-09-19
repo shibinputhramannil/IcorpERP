@@ -371,7 +371,7 @@ export default function CompaniesPage() {
             title="Active Companies"
             value={activeCount}
             subtitle="Operational organizations"
-            icon={CheckCircleOutlineIcon}
+            icon={CheckCircleOutlinedIcon}
             color="#10b981"
           />
         </Grid>

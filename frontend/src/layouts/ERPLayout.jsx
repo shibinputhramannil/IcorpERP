@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar, { DRAWER_WIDTH } from './Sidebar';
 import { useAuth } from '../hooks/useAuth';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 
 export default function ERPLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,7 +46,9 @@ export default function ERPLayout() {
 
         {/* Page Content Rendered Here */}
         <Box sx={{ flexGrow: 1 }}>
-          <Outlet context={{ user }} />
+          <ErrorBoundary>
+            <Outlet context={{ user }} />
+          </ErrorBoundary>
         </Box>
       </Box>
     </Box>

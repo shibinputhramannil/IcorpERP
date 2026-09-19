@@ -356,7 +356,7 @@ export default function EmployeesPage() {
               title="Active Employees"
               value={activeCount}
               subtitle="Operational headcount"
-              icon={CheckCircleOutlineIcon}
+              icon={CheckCircleOutlinedIcon}
               color="#10b981"
             />
           </Grid>

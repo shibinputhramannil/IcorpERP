@@ -221,12 +221,12 @@ export default function CRMPage() {
         if (leadStatusFilter !== 'ALL') params.status = leadStatusFilter;
         if (searchQuery.trim()) params.search = searchQuery.trim();
         const data = await crmService.getLeads(activeCompany.id, params);
-        setLeads(data);
+        setLeads(Array.isArray(data) ? data : (data?.results || []));
       } else if (currentTab === 1) {
         const params = { all: 'true' };
         if (searchQuery.trim()) params.search = searchQuery.trim();
         const data = await crmService.getCustomers(activeCompany.id, params);
-        setCustomers(data);
+        setCustomers(Array.isArray(data) ? data : (data?.results || []));
       } else if (currentTab === 2) {
         const params = { all: 'true' };
         if (searchQuery.trim()) params.search = searchQuery.trim();
@@ -234,8 +234,8 @@ export default function CRMPage() {
           crmService.getContacts(activeCompany.id, params),
           crmService.getCustomers(activeCompany.id, { all: 'true' }),
         ]);
-        setContacts(contactsData);
-        setCustomers(customersData);
+        setContacts(Array.isArray(contactsData) ? contactsData : (contactsData?.results || []));
+        setCustomers(Array.isArray(customersData) ? customersData : (customersData?.results || []));
       } else if (currentTab === 3) {
         const params = { all: 'true' };
         if (dealStageFilter !== 'ALL') params.stage = dealStageFilter;
@@ -245,10 +245,10 @@ export default function CRMPage() {
           crmService.getCustomers(activeCompany.id, { all: 'true' }),
           crmService.getContacts(activeCompany.id, { all: 'true' }),
         ]);
-        setDeals(dealsResp.deals || []);
-        setDealMetrics(dealsResp.metrics || { total_deals: 0, total_pipeline_value: 0, won_value: 0 });
-        setCustomers(customersData);
-        setContacts(contactsData);
+        setDeals(Array.isArray(dealsResp?.deals) ? dealsResp.deals : (Array.isArray(dealsResp) ? dealsResp : []));
+        setDealMetrics(dealsResp?.metrics || { total_deals: 0, total_pipeline_value: 0, won_value: 0 });
+        setCustomers(Array.isArray(customersData) ? customersData : (customersData?.results || []));
+        setContacts(Array.isArray(contactsData) ? contactsData : (contactsData?.results || []));
       } else if (currentTab === 4) {
         const params = {};
         if (activityTypeFilter !== 'ALL') params.type = activityTypeFilter;
@@ -259,10 +259,10 @@ export default function CRMPage() {
           crmService.getDeals(activeCompany.id, { all: 'true' }),
           crmService.getGmailStatus(activeCompany.id).catch(() => null),
         ]);
-        setActivities(activitiesData);
-        setCustomers(customersData);
-        setLeads(leadsData);
-        setDeals(dealsResp.deals || []);
+        setActivities(Array.isArray(activitiesData) ? activitiesData : (activitiesData?.results || []));
+        setCustomers(Array.isArray(customersData) ? customersData : (customersData?.results || []));
+        setLeads(Array.isArray(leadsData) ? leadsData : (leadsData?.results || []));
+        setDeals(Array.isArray(dealsResp?.deals) ? dealsResp.deals : (Array.isArray(dealsResp) ? dealsResp : []));
         if (gmailResp) setGmailStatus(gmailResp);
       }
     } catch (err) {
