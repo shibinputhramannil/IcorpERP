@@ -20,7 +20,7 @@ export default function ERPLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', maxWidth: '100vw', backgroundColor: '#f8fafc' }}>
       <CssBaseline />
 
       {/* Top Navigation Header */}
@@ -36,6 +36,7 @@ export default function ERPLayout() {
           flexGrow: 1,
           p: { xs: 2, sm: 3, md: 3.5 },
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          minWidth: 0,
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
@@ -46,7 +47,7 @@ export default function ERPLayout() {
         <Toolbar sx={{ minHeight: '64px !important' }} />
 
         {/* Page Content Rendered Here */}
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, width: '100%' }}>
           <ErrorBoundary key={location.pathname}>
             <Outlet context={{ user }} />
           </ErrorBoundary>

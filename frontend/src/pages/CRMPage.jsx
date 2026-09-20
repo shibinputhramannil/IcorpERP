@@ -695,7 +695,7 @@ export default function CRMPage() {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       <PageHeader
         title="CRM Pipeline & Accounts"
         subtitle={`Managing relationships, leads, accounts, and deals for ${activeCompany.name}.`}

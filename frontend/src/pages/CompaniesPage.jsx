@@ -323,7 +323,7 @@ export default function CompaniesPage() {
   const inactiveCount = totalCount - activeCount;
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       <PageHeader
         title="Companies"
         subtitle="Manage multi-tenant company entities, organizational hierarchies, and memberships."

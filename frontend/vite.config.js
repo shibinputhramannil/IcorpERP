@@ -1,9 +1,32 @@
+import { fileURLToPath } from 'url'
+import path from 'path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const compatGridPath = path.resolve(__dirname, 'src/components/common/CompatGrid.jsx')
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    {
+      name: 'compat-grid',
+      enforce: 'pre',
+      resolveId(id, importer) {
+        if (id.endsWith('CompatGrid.jsx')) return null
+        if (id === './Grid/index.mjs' || id === './Grid' || id === './Grid/index') {
+          if (importer && importer.includes('@mui')) {
+            return compatGridPath
+          }
+        }
+        if (id === '@mui/material/Grid') {
+          return compatGridPath
+        }
+        return null
+      },
+    },
+    react(),
+  ],
   server: {
     port: 3000,
     proxy: {

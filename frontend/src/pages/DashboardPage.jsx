@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {/* Page Header */}
       <PageHeader
         title="Enterprise Overview"

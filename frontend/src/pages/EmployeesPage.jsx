@@ -282,7 +282,7 @@ export default function EmployeesPage() {
   const departments = [...new Set(employees.map((e) => e.department).filter(Boolean))];
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       <PageHeader
         title="Employees"
         subtitle="Manage company staff, roles, designations, and departmental memberships."
