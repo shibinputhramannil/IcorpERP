@@ -67,10 +67,11 @@ export default function LoginPage() {
     try {
       await login(username.trim(), password);
       setSuccessOpen(true);
-      // Brief delay so the user sees the success notification
+      // Ensure the user clearly sees the success notification before redirecting
       setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 700);
+        const destination = (!from || from === '/login') ? '/dashboard' : from;
+        navigate(destination, { replace: true });
+      }, 1000);
     } catch (err) {
       setIsSubmitting(false);
       if (err.response?.data) {
@@ -244,11 +245,11 @@ export default function LoginPage() {
       {/* Success Notification */}
       <Snackbar
         open={successOpen}
-        autoHideDuration={2000}
+        autoHideDuration={3000}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity="success" variant="filled" sx={{ width: '100%', fontWeight: 600 }}>
-          Authentication successful. Redirecting to workspace...
+        <Alert severity="success" variant="filled" sx={{ width: '100%', fontWeight: 700, fontSize: '0.95rem' }}>
+          Login successful! Redirecting to dashboard...
         </Alert>
       </Snackbar>
     </Box>

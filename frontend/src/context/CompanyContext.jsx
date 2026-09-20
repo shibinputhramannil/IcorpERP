@@ -23,13 +23,17 @@ export function CompanyProvider({ children }) {
       setCompanies(data);
 
       // Determine active company:
-      // 1. Stored in localStorage
-      // 2. Or first available company
+      // 1. Stored in localStorage (only if it exists and is active)
+      // 2. Or first active company
       const storedId = localStorage.getItem('active_company_id');
-      const matched = data.find((c) => String(c.id) === String(storedId));
+      const matched = data.find((c) => String(c.id) === String(storedId) && c.is_active !== false);
+      const firstActive = data.find((c) => c.is_active !== false);
 
       if (matched) {
         setActiveCompanyState(matched);
+      } else if (firstActive) {
+        setActiveCompanyState(firstActive);
+        localStorage.setItem('active_company_id', firstActive.id);
       } else if (data.length > 0) {
         setActiveCompanyState(data[0]);
         localStorage.setItem('active_company_id', data[0].id);
@@ -61,7 +65,7 @@ export function CompanyProvider({ children }) {
       selected = companies.find((c) => String(c.id) === String(companyOrId));
     }
 
-    if (selected) {
+    if (selected && selected.is_active !== false) {
       setActiveCompanyState(selected);
       localStorage.setItem('active_company_id', selected.id);
     }

@@ -129,7 +129,7 @@ export default function Header({ onMobileToggle, user }) {
               }}
             >
               {companies.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
+                <MenuItem key={c.id} value={c.id} disabled={c.is_active === false}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{c.name}</Typography>
                     {c.is_active === false && (

@@ -592,7 +592,7 @@ export default function EmployeesPage() {
           </MenuItem>
         ) : (
           <MenuItem onClick={() => handleReactivate(menuEmployee)} sx={{ color: 'success.main' }}>
-            <ListItemIcon><CheckCircleOutlineIcon fontSize="small" color="success" /></ListItemIcon>
+            <ListItemIcon><CheckCircleOutlinedIcon fontSize="small" color="success" /></ListItemIcon>
             <ListItemText primary="Reactivate" />
           </MenuItem>
         )}
