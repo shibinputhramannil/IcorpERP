@@ -1,3 +1,7 @@
 
 # Local scratch/test files
 backend/scratch/
+.vscode/
+backend/.vscode/
+.env
+

@@ -69,6 +69,7 @@ import StatCard from '../components/common/StatCard';
 import purchaseService from '../services/purchaseService';
 import inventoryService from '../services/inventoryService';
 import { useCompany } from '../context/CompanyContext';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 const QUOTATION_STATUS_COLORS = {
   DRAFT: 'default',
@@ -201,6 +202,29 @@ export default function PurchasePage() {
     items: [
       { product: '', description: '', quantity: '1.00', unit_price: '0.00', discount: '0.00', tax: '0.00' },
     ],
+  });
+
+  // Form State for Direct Vendor Bill (Invoice)
+  const [openDirectBillModal, setOpenDirectBillModal] = useState(false);
+  const [directBillForm, setDirectBillForm] = useState({
+    vendor: '',
+    vendor_invoice_number: '',
+    invoice_date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    notes: '',
+    items: [
+      { product: '', description: '', quantity: '1.00', unit_price: '0.00', discount: '0.00', tax: '0.00' },
+    ],
+  });
+
+  // Modal State for Adding Vendor directly in Purchase module
+  const [vendorModalOpen, setVendorModalOpen] = useState(false);
+  const [vendorForm, setVendorForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    tax_id: '',
   });
 
   const showSnackbar = (message, severity = 'success') => {
@@ -380,8 +404,10 @@ export default function PurchasePage() {
       updated[index] = { ...updated[index], [field]: value };
       if (field === 'product') {
         const prod = products.find((p) => p.id === parseInt(value) || p.id === value);
-        if (prod && prod.cost_price) {
-          updated[index].unit_price = String(prod.cost_price);
+        if (prod) {
+          if (prod.cost_price) updated[index].unit_price = String(prod.cost_price);
+          if (prod.tax) updated[index].tax = String(prod.tax);
+          if (!updated[index].description && prod.name) updated[index].description = prod.name;
         }
       }
       return { ...prev, items: updated };
@@ -439,8 +465,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error creating quotation:', err);
-      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create quotation.';
-      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create quotation.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -453,7 +478,7 @@ export default function PurchasePage() {
       showSnackbar(`Quotation ${quote.quotation_number} deleted.`, 'success');
       fetchData();
     } catch (err) {
-      showSnackbar('Failed to delete quotation.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to delete quotation.'), 'error');
     }
   };
 
@@ -481,8 +506,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error converting quotation:', err);
-      const detail = err.response?.data?.detail || 'Failed to convert quotation to order.';
-      showSnackbar(detail, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to convert quotation to order.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -543,8 +567,10 @@ export default function PurchasePage() {
       updated[index] = { ...updated[index], [field]: value };
       if (field === 'product') {
         const prod = products.find((p) => p.id === parseInt(value) || p.id === value);
-        if (prod && prod.cost_price) {
-          updated[index].unit_price = String(prod.cost_price);
+        if (prod) {
+          if (prod.cost_price) updated[index].unit_price = String(prod.cost_price);
+          if (prod.tax) updated[index].tax = String(prod.tax);
+          if (!updated[index].description && prod.name) updated[index].description = prod.name;
         }
       }
       return { ...prev, items: updated };
@@ -603,8 +629,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error creating order:', err);
-      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create order.';
-      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create order.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -617,8 +642,7 @@ export default function PurchasePage() {
       showSnackbar(`Order ${order.order_number} deleted.`, 'success');
       fetchData();
     } catch (err) {
-      const detail = err.response?.data?.detail || 'Failed to delete order.';
-      showSnackbar(detail, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to delete order.'), 'error');
     }
   };
 
@@ -628,7 +652,7 @@ export default function PurchasePage() {
       showSnackbar(`Order status updated to ${newStatus}.`, 'success');
       fetchData();
     } catch (err) {
-      showSnackbar('Failed to update status.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to update status.'), 'error');
     }
   };
 
@@ -747,8 +771,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error receiving goods:', err);
-      const detail = err.response?.data?.detail || 'Failed to receive goods.';
-      showSnackbar(detail, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to receive goods.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -785,8 +808,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error creating invoice:', err);
-      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to create invoice.';
-      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create invoice.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -833,8 +855,7 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error recording payment:', err);
-      const detail = err.response?.data?.detail || Object.values(err.response?.data || {})[0] || 'Failed to record payment.';
-      showSnackbar(Array.isArray(detail) ? detail[0] : String(detail), 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to record payment.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -848,8 +869,166 @@ export default function PurchasePage() {
       fetchData();
     } catch (err) {
       console.error('Error cancelling invoice:', err);
-      const detail = err.response?.data?.detail || 'Failed to cancel invoice.';
-      showSnackbar(detail, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to cancel invoice.'), 'error');
+    }
+  };
+
+  // ============================================================
+  // DIRECT VENDOR BILL / INVOICE HANDLERS
+  // ============================================================
+  const handleOpenDirectBillModal = () => {
+    setDirectBillForm({
+      vendor: vendors.length > 0 ? vendors[0].id : '',
+      vendor_invoice_number: '',
+      invoice_date: new Date().toISOString().split('T')[0],
+      due_date: '',
+      notes: '',
+      items: [
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: products.length > 0 ? products[0].name : '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: products.length > 0 ? String(products[0].tax || '0.00') : '0.00',
+        },
+      ],
+    });
+    setOpenDirectBillModal(true);
+  };
+
+  const handleAddDirectBillItem = () => {
+    setDirectBillForm((prev) => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          product: products.length > 0 ? products[0].id : '',
+          description: products.length > 0 ? products[0].name : '',
+          quantity: '1.00',
+          unit_price: products.length > 0 ? String(products[0].cost_price || '0.00') : '0.00',
+          discount: '0.00',
+          tax: products.length > 0 ? String(products[0].tax || '0.00') : '0.00',
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveDirectBillItem = (index) => {
+    if (directBillForm.items.length <= 1) return;
+    setDirectBillForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleDirectBillItemChange = (index, field, value) => {
+    setDirectBillForm((prev) => {
+      const updated = [...prev.items];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === 'product') {
+        const prod = products.find((p) => p.id === parseInt(value) || p.id === value);
+        if (prod) {
+          if (prod.cost_price) updated[index].unit_price = String(prod.cost_price);
+          if (prod.tax) updated[index].tax = String(prod.tax);
+          if (!updated[index].description && prod.name) updated[index].description = prod.name;
+        }
+      }
+      return { ...prev, items: updated };
+    });
+  };
+
+  const calculateDirectBillTotal = () => {
+    let subtotal = 0;
+    let discount = 0;
+    let tax = 0;
+    directBillForm.items.forEach((itm) => {
+      const q = parseFloat(itm.quantity) || 0;
+      const p = parseFloat(itm.unit_price) || 0;
+      const d = parseFloat(itm.discount) || 0;
+      const t = parseFloat(itm.tax) || 0;
+      subtotal += q * p;
+      discount += d;
+      tax += t;
+    });
+    const total = Math.max(0, subtotal - discount + tax);
+    return { subtotal, discount, tax, total };
+  };
+
+  const handleSubmitDirectBill = async (e) => {
+    e.preventDefault();
+    if (!activeCompany?.id) return;
+    if (!directBillForm.vendor) {
+      showSnackbar('Please select a vendor.', 'warning');
+      return;
+    }
+    if (directBillForm.items.some((itm) => !itm.product || parseFloat(itm.quantity) <= 0)) {
+      showSnackbar('Please select valid products and positive quantities for all items.', 'warning');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        vendor: directBillForm.vendor,
+        vendor_invoice_number: directBillForm.vendor_invoice_number || undefined,
+        invoice_date: directBillForm.invoice_date,
+        due_date: directBillForm.due_date || undefined,
+        notes: directBillForm.notes,
+        items: directBillForm.items.map((itm) => ({
+          product: itm.product,
+          description: itm.description,
+          quantity: itm.quantity,
+          unit_price: itm.unit_price,
+          discount: itm.discount,
+          tax: itm.tax,
+        })),
+      };
+      const created = await purchaseService.createInvoice(activeCompany.id, payload);
+      showSnackbar(`Vendor bill ${created.invoice_number || ''} created successfully!`, 'success');
+      setOpenDirectBillModal(false);
+      fetchData();
+    } catch (err) {
+      console.error('Error creating vendor bill:', err);
+      showSnackbar(extractErrorMessage(err, 'Failed to create vendor bill.'), 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ============================================================
+  // QUICK VENDOR CREATION HANDLERS
+  // ============================================================
+  const handleOpenVendorModal = () => {
+    setVendorForm({
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      tax_id: '',
+    });
+    setVendorModalOpen(true);
+  };
+
+  const handleCreateVendor = async (e) => {
+    e.preventDefault();
+    if (!activeCompany?.id) return;
+    if (!vendorForm.name.trim()) {
+      showSnackbar('Vendor name is required.', 'warning');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await inventoryService.createVendor(activeCompany.id, vendorForm);
+      showSnackbar(`Vendor "${vendorForm.name}" created successfully!`, 'success');
+      setVendorModalOpen(false);
+      const vList = await inventoryService.getVendors(activeCompany.id);
+      setVendors(vList || []);
+    } catch (err) {
+      console.error('Error creating vendor:', err);
+      showSnackbar(extractErrorMessage(err, 'Failed to create vendor.'), 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -905,6 +1084,24 @@ export default function PurchasePage() {
                 onClick={handleOpenOrderModal}
               >
                 New Purchase Order
+              </Button>
+            )}
+            {currentTab === 4 && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenDirectBillModal}
+              >
+                New Vendor Bill
+              </Button>
+            )}
+            {currentTab === 6 && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenVendorModal}
+              >
+                Add Vendor
               </Button>
             )}
           </Stack>
@@ -1776,9 +1973,14 @@ export default function PurchasePage() {
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={2}>
-                <Button fullWidth variant="outlined" startIcon={<RefreshIcon />} onClick={fetchData}>
-                  Filter
-                </Button>
+                <Stack direction="row" spacing={1}>
+                  <Button fullWidth variant="outlined" startIcon={<RefreshIcon />} onClick={fetchData}>
+                    Filter
+                  </Button>
+                  <Button variant="contained" onClick={handleOpenDirectBillModal} sx={{ whiteSpace: 'nowrap' }}>
+                    + Bill
+                  </Button>
+                </Stack>
               </Grid>
             </Grid>
           </Paper>
@@ -1790,6 +1992,8 @@ export default function PurchasePage() {
             <EmptyState
               title="No purchase invoices found"
               description="Create a purchase invoice directly or generate one from a confirmed Purchase Order."
+              actionLabel="New Vendor Bill"
+              onAction={handleOpenDirectBillModal}
             />
           ) : (
             <TableContainer component={Paper} variant="outlined">
@@ -2421,10 +2625,24 @@ export default function PurchasePage() {
       {/* ============================================================ */}
       {currentTab === 6 && (
         <Stack spacing={2.5}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenVendorModal}
+            >
+              Add Vendor
+            </Button>
+          </Box>
           {loading ? (
             <LoadingState message="Loading vendors..." />
           ) : vendors.length === 0 ? (
-            <EmptyState title="No vendors found" description="Configure vendors in the Inventory module." />
+            <EmptyState
+              title="No vendors found"
+              description="Add vendors to manage supplier relationships and procurement orders."
+              actionLabel="Add Vendor"
+              onAction={handleOpenVendorModal}
+            />
           ) : (
             <TableContainer component={Paper} variant="outlined">
               <Table>
@@ -2562,12 +2780,14 @@ export default function PurchasePage() {
                         <TableCell>
                           <FormControl fullWidth size="small" required>
                             <Select
-                              value={item.product}
+                              value={item.product || ''}
+                              displayEmpty
                               onChange={(e) => handleQuoteItemChange(idx, 'product', e.target.value)}
                             >
+                              <MenuItem value=""><em>Select Product...</em></MenuItem>
                               {products.map((prod) => (
                                 <MenuItem key={prod.id} value={prod.id}>
-                                  {prod.name} [{prod.sku}]
+                                  {prod.name} [{prod.sku}] - ${parseFloat(prod.cost_price || 0).toFixed(2)}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -2773,12 +2993,14 @@ export default function PurchasePage() {
                         <TableCell>
                           <FormControl fullWidth size="small" required>
                             <Select
-                              value={item.product}
+                              value={item.product || ''}
+                              displayEmpty
                               onChange={(e) => handleOrderItemChange(idx, 'product', e.target.value)}
                             >
+                              <MenuItem value=""><em>Select Product...</em></MenuItem>
                               {products.map((prod) => (
                                 <MenuItem key={prod.id} value={prod.id}>
-                                  {prod.name} [{prod.sku}]
+                                  {prod.name} [{prod.sku}] - ${parseFloat(prod.cost_price || 0).toFixed(2)}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -3815,6 +4037,327 @@ export default function PurchasePage() {
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setVendorHistoryModal((prev) => ({ ...prev, open: false }))}>Close</Button>
         </DialogActions>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* DIRECT PURCHASE INVOICE / VENDOR BILL MODAL */}
+      {/* ============================================================ */}
+      <Dialog
+        open={openDirectBillModal}
+        onClose={() => setOpenDirectBillModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <form onSubmit={handleSubmitDirectBill}>
+          <DialogTitle sx={{ pb: 1 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  New Vendor Bill / Purchase Invoice
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Create a direct supplier invoice with custom line items and tax calculations
+                </Typography>
+              </Box>
+              <IconButton onClick={() => setOpenDirectBillModal(false)} size="small">
+                <CancelOutlinedIcon />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 3 }}>
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small" required>
+                  <InputLabel>Vendor / Supplier</InputLabel>
+                  <Select
+                    value={directBillForm.vendor}
+                    label="Vendor / Supplier"
+                    onChange={(e) => setDirectBillForm((prev) => ({ ...prev, vendor: e.target.value }))}
+                  >
+                    {vendors.map((v) => (
+                      <MenuItem key={v.id} value={v.id}>
+                        {v.name} {v.tax_id ? `(${v.tax_id})` : ''}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Vendor Bill / Ref #"
+                  placeholder="e.g. INV-2026-001"
+                  value={directBillForm.vendor_invoice_number}
+                  onChange={(e) => setDirectBillForm((prev) => ({ ...prev, vendor_invoice_number: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Bill Date"
+                  type="date"
+                  value={directBillForm.invoice_date}
+                  onChange={(e) => setDirectBillForm((prev) => ({ ...prev, invoice_date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Due Date (Optional)"
+                  type="date"
+                  value={directBillForm.due_date}
+                  onChange={(e) => setDirectBillForm((prev) => ({ ...prev, due_date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Notes / Terms"
+                  multiline
+                  rows={2}
+                  value={directBillForm.notes}
+                  onChange={(e) => setDirectBillForm((prev) => ({ ...prev, notes: e.target.value }))}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Line Items */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+              <Typography variant="subtitle2" fontWeight={700}>Bill Line Items</Typography>
+              <Button size="small" startIcon={<AddIcon />} onClick={handleAddDirectBillItem}>
+                Add Item
+              </Button>
+            </Stack>
+
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
+                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Unit Cost ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
+                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
+                    <TableCell align="center" sx={{ width: 50 }}></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {directBillForm.items.map((item, idx) => {
+                    const q = parseFloat(item.quantity) || 0;
+                    const p = parseFloat(item.unit_price) || 0;
+                    const d = parseFloat(item.discount) || 0;
+                    const t = parseFloat(item.tax) || 0;
+                    const lineTotal = Math.max(0, q * p - d + t);
+                    return (
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <FormControl fullWidth size="small" required>
+                            <Select
+                              value={item.product || ''}
+                              displayEmpty
+                              onChange={(e) => handleDirectBillItemChange(idx, 'product', e.target.value)}
+                            >
+                              <MenuItem value=""><em>Select Product...</em></MenuItem>
+                              {products.map((prod) => (
+                                <MenuItem key={prod.id} value={prod.id}>
+                                  {prod.name} [{prod.sku}] - ${parseFloat(prod.cost_price || 0).toFixed(2)}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            type="number"
+                            inputProps={{ min: 0.01, step: 'any' }}
+                            value={item.quantity}
+                            onChange={(e) => handleDirectBillItemChange(idx, 'quantity', e.target.value)}
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            type="number"
+                            inputProps={{ min: 0, step: 'any' }}
+                            value={item.unit_price}
+                            onChange={(e) => handleDirectBillItemChange(idx, 'unit_price', e.target.value)}
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            type="number"
+                            inputProps={{ min: 0, step: 'any' }}
+                            value={item.discount}
+                            onChange={(e) => handleDirectBillItemChange(idx, 'discount', e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            type="number"
+                            inputProps={{ min: 0, step: 'any' }}
+                            value={item.tax}
+                            onChange={(e) => handleDirectBillItemChange(idx, 'tax', e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>
+                          ${lineTotal.toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            disabled={directBillForm.items.length <= 1}
+                            onClick={() => handleRemoveDirectBillItem(idx)}
+                          >
+                            <DeleteOutlineOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Totals Summary */}
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Paper variant="outlined" sx={{ p: 2, minWidth: 260 }}>
+                {(() => {
+                  const { subtotal, discount, tax, total } = calculateDirectBillTotal();
+                  return (
+                    <Stack spacing={0.5}>
+                      <Stack direction="row" justifyContent="space-between">
+                        <Typography variant="body2" color="text.secondary">Subtotal:</Typography>
+                        <Typography variant="body2" fontWeight={600}>${subtotal.toFixed(2)}</Typography>
+                      </Stack>
+                      <Stack direction="row" justifyContent="space-between">
+                        <Typography variant="body2" color="text.secondary">Discount:</Typography>
+                        <Typography variant="body2" color="error.main">-${discount.toFixed(2)}</Typography>
+                      </Stack>
+                      <Stack direction="row" justifyContent="space-between">
+                        <Typography variant="body2" color="text.secondary">Tax:</Typography>
+                        <Typography variant="body2">+${tax.toFixed(2)}</Typography>
+                      </Stack>
+                      <Divider sx={{ my: 0.5 }} />
+                      <Stack direction="row" justifyContent="space-between">
+                        <Typography variant="subtitle2" fontWeight={700}>Total Bill:</Typography>
+                        <Typography variant="subtitle1" fontWeight={700} color="primary.main">
+                          ${total.toFixed(2)}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  );
+                })()}
+              </Paper>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={() => setOpenDirectBillModal(false)}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={20} /> : 'Save & Post Bill'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* QUICK ADD VENDOR MODAL */}
+      {/* ============================================================ */}
+      <Dialog
+        open={vendorModalOpen}
+        onClose={() => setVendorModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <form onSubmit={handleCreateVendor}>
+          <DialogTitle sx={{ pb: 1 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Add Supplier / Vendor
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Register a new supplier for procurement and purchasing
+                </Typography>
+              </Box>
+              <IconButton onClick={() => setVendorModalOpen(false)} size="small">
+                <CancelOutlinedIcon />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 3 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="Vendor / Supplier Name"
+                  value={vendorForm.name}
+                  onChange={(e) => setVendorForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="email"
+                  label="Email Address"
+                  value={vendorForm.email}
+                  onChange={(e) => setVendorForm((prev) => ({ ...prev, email: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Phone Number"
+                  value={vendorForm.phone}
+                  onChange={(e) => setVendorForm((prev) => ({ ...prev, phone: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Tax / VAT ID"
+                  value={vendorForm.tax_id}
+                  onChange={(e) => setVendorForm((prev) => ({ ...prev, tax_id: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Business Address"
+                  multiline
+                  rows={2}
+                  value={vendorForm.address}
+                  onChange={(e) => setVendorForm((prev) => ({ ...prev, address: e.target.value }))}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={() => setVendorModalOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={20} /> : 'Create Vendor'}
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
 
       {/* Global Snackbar Notifications */}

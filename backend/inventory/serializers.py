@@ -186,6 +186,20 @@ class StockMovementCreateSerializer(serializers.Serializer):
     reference = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "transaction_type" in data and isinstance(data["transaction_type"], str):
+            tt = data["transaction_type"].strip().upper()
+            if tt in ("IN", "STOCK_IN"):
+                data["transaction_type"] = StockTransaction.TransactionType.STOCK_IN
+            elif tt in ("OUT", "STOCK_OUT"):
+                data["transaction_type"] = StockTransaction.TransactionType.STOCK_OUT
+            elif tt == "TRANSFER":
+                data["transaction_type"] = StockTransaction.TransactionType.TRANSFER
+            elif tt in ("ADJUSTMENT", "ADJUST"):
+                data["transaction_type"] = StockTransaction.TransactionType.ADJUSTMENT
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         trans_type = attrs.get("transaction_type")
         wh = attrs.get("warehouse")

@@ -471,30 +471,34 @@ class PurchaseOrderReceiveView(PurchaseBaseView):
 
         for idx, entry in enumerate(items_payload):
             item_id = entry.get("purchase_order_item") or entry.get("item_id") or entry.get("id")
-            if not item_id:
+            po_item = None
+            if item_id:
+                try:
+                    item_id = int(item_id)
+                    po_item = po_items.get(item_id)
+                except (ValueError, TypeError):
+                    pass
+
+            if not po_item and (entry.get("product") or entry.get("product_id")):
+                try:
+                    p_id = int(entry.get("product") or entry.get("product_id"))
+                    po_item = next((item for item in order.items.all() if item.product_id == p_id), None)
+                except (ValueError, TypeError):
+                    pass
+
+            if not po_item:
                 return Response(
-                    {"detail": f"Item at index {idx} is missing purchase_order_item ID."},
+                    {"detail": f"Item at index {idx} does not belong to or match any line item in purchase order {order.order_number}."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-            try:
-                item_id = int(item_id)
-            except (ValueError, TypeError):
-                return Response(
-                    {"detail": f"Invalid item ID '{item_id}' at index {idx}."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            if item_id not in po_items:
-                return Response(
-                    {"detail": f"Item {item_id} does not belong to purchase order {order.order_number}."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            po_item = po_items[item_id]
 
             # Validate quantity
             qty_raw = entry.get("received_quantity")
+            if qty_raw is None:
+                qty_raw = entry.get("quantity_received")
+            if qty_raw is None:
+                qty_raw = entry.get("quantity")
+
             if qty_raw is None:
                 return Response(
                     {"detail": f"Received quantity is required for item {po_item.product.name}."},
@@ -801,6 +805,11 @@ class PurchaseInvoiceListCreateView(PurchaseBaseView):
         )
         if serializer.is_valid():
             invoice = serializer.save()
+            try:
+                from finance.services import sync_purchase_invoice_to_journal
+                sync_purchase_invoice_to_journal(invoice, user=request.user)
+            except Exception:
+                pass
             return Response(PurchaseInvoiceSerializer(invoice).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -899,7 +908,29 @@ class PurchaseOrderInvoiceCreateView(PurchaseBaseView):
             )
 
         due_date = request.data.get("due_date")
-        invoice_date = request.data.get("invoice_date") or timezone.localdate()
+        if due_date and isinstance(due_date, str) and due_date.strip():
+            from datetime import date
+            try:
+                due_date = date.fromisoformat(due_date.strip())
+            except (ValueError, TypeError):
+                due_date = None
+        else:
+            due_date = None
+
+        if not due_date:
+            base_date = order.order_date or timezone.localdate()
+            due_date = base_date + timezone.timedelta(days=30)
+
+        invoice_date = request.data.get("invoice_date")
+        if invoice_date and isinstance(invoice_date, str) and invoice_date.strip():
+            from datetime import date
+            try:
+                invoice_date = date.fromisoformat(invoice_date.strip())
+            except (ValueError, TypeError):
+                invoice_date = timezone.localdate()
+        else:
+            invoice_date = timezone.localdate()
+
         vendor_invoice_number = request.data.get("vendor_invoice_number") or ""
         notes = request.data.get("notes") or order.notes
 
@@ -933,6 +964,12 @@ class PurchaseOrderInvoiceCreateView(PurchaseBaseView):
 
             invoice.recalculate_totals()
             invoice.save()
+
+            try:
+                from finance.services import sync_purchase_invoice_to_journal
+                sync_purchase_invoice_to_journal(invoice, user=request.user)
+            except Exception:
+                pass
 
         return Response(PurchaseInvoiceSerializer(invoice).data, status=status.HTTP_201_CREATED)
 
@@ -971,6 +1008,11 @@ class PurchaseInvoicePaymentListCreateView(PurchaseBaseView):
         )
         if serializer.is_valid():
             payment = serializer.save()
+            try:
+                from finance.services import sync_purchase_payment_to_journal
+                sync_purchase_payment_to_journal(payment, user=request.user)
+            except Exception:
+                pass
             return Response(PurchasePaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
         errors = dict(serializer.errors)
         detail_val = errors.get("detail") or errors.get("amount") or errors.get("non_field_errors")

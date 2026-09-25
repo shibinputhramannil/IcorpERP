@@ -50,6 +50,15 @@ class EmployeeSerializer(serializers.ModelSerializer):
         data["email"] = instance.user.email if (instance.user and instance.user.email) else ""
         return data
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "date_of_joining" in data and not data.get("joining_date"):
+            data["joining_date"] = data.get("date_of_joining")
+        if not data.get("employee_id"):
+            import uuid
+            data["employee_id"] = f"EMP-{uuid.uuid4().hex[:6].upper()}"
+        return super().to_internal_value(data)
+
     def validate_user(self, value):
         queryset = Employee.objects.filter(user=value)
         if self.instance:

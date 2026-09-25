@@ -74,6 +74,7 @@ import salesService from '../services/salesService';
 import crmService from '../services/crmService';
 import inventoryService from '../services/inventoryService';
 import { useCompany } from '../context/CompanyContext';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 const QUOTATION_STATUS_COLORS = {
   DRAFT: 'default',
@@ -144,7 +145,7 @@ export default function SalesPage() {
   const [openOrderModal, setOpenOrderModal] = useState(false);
   const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
   const [viewDetailModal, setViewDetailModal] = useState({ open: false, type: '', data: null });
-  const [convertDialog, setConvertDialog] = useState({ open: false, quotation: null });
+  const [convertDialog, setConvertDialog] = useState({ open: false, quotation: null, warehouse: '' });
   const [reserveDialog, setReserveDialog] = useState({ open: false, order: null, warehouse: '' });
   const [releaseDialog, setReleaseDialog] = useState({ open: false, order: null });
   const [fulfillDialog, setFulfillDialog] = useState({ open: false, order: null });
@@ -364,13 +365,12 @@ export default function SalesPage() {
         })),
       };
       await salesService.createOrderReturn(activeCompany.id, returnModal.order.id, payload);
-      showSnackbar('Sales return processed successfully! Inventory restored.', 'success');
+      showSnackbar(`Sales return processed successfully for Order ${returnModal.order.order_number}! Inventory restored.`, 'success');
       setReturnModal({ open: false, order: null, reason: '', items: [] });
       fetchData();
     } catch (err) {
       console.error('Error processing sales return:', err);
-      const msg = err.response?.data?.detail || 'Failed to process sales return.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to process sales return.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -425,10 +425,11 @@ export default function SalesPage() {
     updated[index][field] = value;
 
     if (field === 'product') {
-      const selectedProd = products.find((p) => p.id === value);
+      const selectedProd = products.find((p) => p.id === value || p.id === parseInt(value));
       if (selectedProd) {
         updated[index].unit_price = selectedProd.selling_price || '0.00';
         updated[index].description = selectedProd.name;
+        if (selectedProd.tax) updated[index].tax = String(selectedProd.tax);
       }
     }
     setQuoteForm({ ...quoteForm, items: updated });
@@ -475,8 +476,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data ? JSON.stringify(err.response.data) : 'Failed to create quotation';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create quotation.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -487,14 +487,14 @@ export default function SalesPage() {
     if (!convertDialog.quotation) return;
     setSubmitting(true);
     try {
-      const newOrder = await salesService.convertQuotation(activeCompany.id, convertDialog.quotation.id);
+      const payload = convertDialog.warehouse ? { warehouse: convertDialog.warehouse } : {};
+      const newOrder = await salesService.convertQuotation(activeCompany.id, convertDialog.quotation.id, payload);
       showSnackbar(`Quotation successfully converted to Order ${newOrder.order_number}!`);
-      setConvertDialog({ open: false, quotation: null });
+      setConvertDialog({ open: false, quotation: null, warehouse: '' });
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to convert quotation.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to convert quotation.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -508,8 +508,7 @@ export default function SalesPage() {
       showSnackbar('Quotation deleted.');
       fetchData();
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Failed to delete quotation.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to delete quotation.'), 'error');
     }
   };
 
@@ -519,10 +518,11 @@ export default function SalesPage() {
     updated[index][field] = value;
 
     if (field === 'product') {
-      const selectedProd = products.find((p) => p.id === value);
+      const selectedProd = products.find((p) => p.id === value || p.id === parseInt(value));
       if (selectedProd) {
         updated[index].unit_price = selectedProd.selling_price || '0.00';
         updated[index].description = selectedProd.name;
+        if (selectedProd.tax) updated[index].tax = String(selectedProd.tax);
       }
     }
     setOrderForm({ ...orderForm, items: updated });
@@ -557,8 +557,8 @@ export default function SalesPage() {
 
     setSubmitting(true);
     try {
-      await salesService.createOrder(activeCompany.id, orderForm);
-      showSnackbar('Sales Order created successfully!');
+      const newOrder = await salesService.createOrder(activeCompany.id, orderForm);
+      showSnackbar(`Sales Order ${newOrder.order_number || ''} created successfully!`);
       setOpenOrderModal(false);
       setOrderForm({
         customer: '',
@@ -570,8 +570,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data ? JSON.stringify(err.response.data) : 'Failed to create sales order';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create sales order.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -601,8 +600,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || err.response?.data?.warehouse?.[0] || 'Failed to reserve stock.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to reserve stock.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -623,8 +621,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to release reservation.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to release reservation.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -645,8 +642,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to fulfill order.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to fulfill order.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -659,7 +655,7 @@ export default function SalesPage() {
       showSnackbar(`Order status updated to ${newStatus}`);
       fetchData();
     } catch (err) {
-      showSnackbar('Failed to update status.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to update status.'), 'error');
     }
   };
 
@@ -673,7 +669,7 @@ export default function SalesPage() {
       showSnackbar(`Order ${order.order_number} cancelled and reservations released.`);
       fetchData();
     } catch (err) {
-      showSnackbar('Failed to cancel order.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to cancel order.'), 'error');
     }
   };
 
@@ -685,7 +681,7 @@ export default function SalesPage() {
       showSnackbar('Sales order deleted.');
       fetchData();
     } catch (err) {
-      showSnackbar('Failed to delete sales order.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to delete sales order.'), 'error');
     }
   };
 
@@ -695,10 +691,11 @@ export default function SalesPage() {
     updated[index][field] = value;
 
     if (field === 'product') {
-      const selectedProd = products.find((p) => p.id === value);
+      const selectedProd = products.find((p) => p.id === value || p.id === parseInt(value));
       if (selectedProd) {
         updated[index].unit_price = selectedProd.selling_price || '0.00';
         updated[index].description = selectedProd.name;
+        if (selectedProd.tax) updated[index].tax = String(selectedProd.tax);
       }
     }
     setInvoiceForm({ ...invoiceForm, items: updated });
@@ -745,8 +742,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data ? JSON.stringify(err.response.data) : 'Failed to create invoice';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to create invoice.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -782,8 +778,7 @@ export default function SalesPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || 'Failed to generate invoice from order.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to generate invoice from order.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -802,7 +797,10 @@ export default function SalesPage() {
   };
 
   const handleConfirmPayment = async () => {
-    if (!paymentDialog.invoice) return;
+    if (!paymentDialog.invoice) {
+      showSnackbar('Please select an unpaid customer invoice.', 'error');
+      return;
+    }
     const payAmt = parseFloat(paymentDialog.amount);
     if (!payAmt || payAmt <= 0) {
       showSnackbar('Payment amount must be greater than zero.', 'error');
@@ -834,8 +832,7 @@ export default function SalesPage() {
       }
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || err.response?.data?.amount?.[0] || 'Failed to record payment.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to record payment.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -849,8 +846,7 @@ export default function SalesPage() {
       showSnackbar(`Invoice ${invoice.invoice_number} has been cancelled.`);
       fetchData();
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Failed to cancel invoice.';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to cancel invoice.'), 'error');
     }
   };
 
@@ -914,6 +910,24 @@ export default function SalesPage() {
                 onClick={() => setOpenInvoiceModal(true)}
               >
                 New Invoice
+              </Button>
+            )}
+            {currentTab === 4 && (
+              <Button
+                variant="contained"
+                startIcon={<PaymentIcon />}
+                onClick={() =>
+                  setPaymentDialog({
+                    open: true,
+                    invoice: null,
+                    amount: '',
+                    payment_method: 'BANK_TRANSFER',
+                    reference: '',
+                    notes: '',
+                  })
+                }
+              >
+                Record Payment
               </Button>
             )}
           </Stack>
@@ -2479,9 +2493,11 @@ export default function SalesPage() {
                           <TableCell>
                             <FormControl fullWidth size="small">
                               <Select
-                                value={item.product}
+                                value={item.product || ''}
+                                displayEmpty
                                 onChange={(e) => handleQuoteItemChange(index, 'product', e.target.value)}
                               >
+                                <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
                                     {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
@@ -2695,9 +2711,11 @@ export default function SalesPage() {
                           <TableCell>
                             <FormControl fullWidth size="small">
                               <Select
-                                value={item.product}
+                                value={item.product || ''}
+                                displayEmpty
                                 onChange={(e) => handleOrderItemChange(index, 'product', e.target.value)}
                               >
+                                <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
                                     {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
@@ -3147,6 +3165,23 @@ export default function SalesPage() {
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
             This will create a new Sales Order with status <strong>CONFIRMED</strong>, copy all line items, and mark this quotation as <strong>CONVERTED</strong>.
           </Typography>
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Fulfillment Warehouse (Optional)</InputLabel>
+              <Select
+                value={convertDialog.warehouse || ''}
+                label="Fulfillment Warehouse (Optional)"
+                onChange={(e) => setConvertDialog({ ...convertDialog, warehouse: e.target.value })}
+              >
+                <MenuItem value=""><em>Assign Later</em></MenuItem>
+                {warehouses.map((w) => (
+                  <MenuItem key={w.id} value={w.id}>
+                    {w.name} ({w.code})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setConvertDialog({ open: false, quotation: null })} disabled={submitting}>
@@ -3372,9 +3407,11 @@ export default function SalesPage() {
                           <TableCell>
                             <FormControl fullWidth size="small">
                               <Select
-                                value={item.product}
+                                value={item.product || ''}
+                                displayEmpty
                                 onChange={(e) => handleInvoiceItemChange(index, 'product', e.target.value)}
                               >
+                                <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
                                     {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
@@ -3559,28 +3596,67 @@ export default function SalesPage() {
       >
         <DialogTitle sx={{ fontWeight: 700 }}>Record Payment</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" gutterBottom>
-            Record payment against Invoice <strong>{paymentDialog.invoice?.invoice_number}</strong> ({paymentDialog.invoice?.customer_name}).
-          </Typography>
-          <Paper variant="outlined" sx={{ p: 1.5, my: 2, bgcolor: 'background.default' }}>
-            <Stack spacing={0.5}>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">Total Invoiced:</Typography>
-                <Typography variant="body2">${parseFloat(paymentDialog.invoice?.total || 0).toFixed(2)}</Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">Already Paid:</Typography>
-                <Typography variant="body2" color="success.main">${parseFloat(paymentDialog.invoice?.amount_paid || 0).toFixed(2)}</Typography>
-              </Stack>
-              <Divider sx={{ my: 0.5 }} />
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="subtitle2" fontWeight={700}>Remaining Balance Due:</Typography>
-                <Typography variant="subtitle2" fontWeight={700} color="warning.dark">
-                  ${parseFloat(paymentDialog.invoice?.balance_due || 0).toFixed(2)}
+          {!paymentDialog.invoice ? (
+            <Box sx={{ mt: 1, mb: 2 }}>
+              <FormControl fullWidth size="small" required>
+                <InputLabel>Select Customer Invoice</InputLabel>
+                <Select
+                  value=""
+                  label="Select Customer Invoice"
+                  displayEmpty
+                  onChange={(e) => {
+                    const inv = invoices.find((i) => i.id === e.target.value);
+                    if (inv) {
+                      setPaymentDialog({
+                        ...paymentDialog,
+                        invoice: inv,
+                        amount: inv.balance_due || inv.total,
+                      });
+                    }
+                  }}
+                >
+                  <MenuItem value=""><em>Choose an unpaid invoice...</em></MenuItem>
+                  {invoices
+                    .filter((i) => i.status !== 'PAID' && i.status !== 'CANCELLED' && parseFloat(i.balance_due || 0) > 0)
+                    .map((i) => (
+                      <MenuItem key={i.id} value={i.id}>
+                        {i.invoice_number} ({i.customer_name}) - Balance: ${parseFloat(i.balance_due).toFixed(2)}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+          ) : (
+            <>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="body2" gutterBottom>
+                  Record payment against Invoice <strong>{paymentDialog.invoice?.invoice_number}</strong> ({paymentDialog.invoice?.customer_name}).
                 </Typography>
+                <Button size="small" onClick={() => setPaymentDialog({ ...paymentDialog, invoice: null, amount: '' })}>
+                  Change
+                </Button>
               </Stack>
-            </Stack>
-          </Paper>
+              <Paper variant="outlined" sx={{ p: 1.5, my: 1.5, bgcolor: 'background.default' }}>
+                <Stack spacing={0.5}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Total Invoiced:</Typography>
+                    <Typography variant="body2">${parseFloat(paymentDialog.invoice?.total || 0).toFixed(2)}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Already Paid:</Typography>
+                    <Typography variant="body2" color="success.main">${parseFloat(paymentDialog.invoice?.amount_paid || 0).toFixed(2)}</Typography>
+                  </Stack>
+                  <Divider sx={{ my: 0.5 }} />
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="subtitle2" fontWeight={700}>Remaining Balance Due:</Typography>
+                    <Typography variant="subtitle2" fontWeight={700} color="warning.dark">
+                      ${parseFloat(paymentDialog.invoice?.balance_due || 0).toFixed(2)}
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </Paper>
+            </>
+          )}
 
           <Stack spacing={2}>
             <TextField

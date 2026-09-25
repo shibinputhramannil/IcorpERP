@@ -223,11 +223,18 @@ class QuotationConvertView(SalesBaseView):
             # Generate new Order Number
             order_number = generate_order_number(company)
 
+            # Optional warehouse assignment
+            warehouse_id = request.data.get("warehouse")
+            warehouse = None
+            if warehouse_id:
+                warehouse = Warehouse.objects.filter(company=company, id=warehouse_id).first()
+
             # Create confirmed Sales Order
             order = SalesOrder.objects.create(
                 company=company,
                 customer=quotation.customer,
                 quotation=quotation,
+                warehouse=warehouse,
                 order_number=order_number,
                 order_date=timezone.localdate(),
                 status=SalesOrder.SalesOrderStatus.CONFIRMED,
@@ -931,6 +938,11 @@ class InvoiceListCreateView(SalesBaseView):
         serializer = InvoiceSerializer(data=request.data, context={"company": company, "request": request})
         if serializer.is_valid():
             invoice = serializer.save(company=company, created_by=request.user)
+            try:
+                from finance.services import sync_sales_invoice_to_journal
+                sync_sales_invoice_to_journal(invoice, user=request.user)
+            except Exception:
+                pass
             return Response(InvoiceSerializer(invoice).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1080,6 +1092,12 @@ class SalesOrderInvoiceCreateView(SalesBaseView):
             invoice.save(update_fields=["subtotal", "discount", "tax", "total", "balance_due"])
             invoice.refresh_from_db()
 
+            try:
+                from finance.services import sync_sales_invoice_to_journal
+                sync_sales_invoice_to_journal(invoice, user=request.user)
+            except Exception:
+                pass
+
             return Response(InvoiceSerializer(invoice).data, status=status.HTTP_201_CREATED)
 
 
@@ -1182,6 +1200,12 @@ class InvoicePaymentListCreateView(SalesBaseView):
                 notes=request.data.get("receipt_notes") or f"Payment receipt for invoice {invoice.invoice_number}",
                 created_by=request.user,
             )
+
+            try:
+                from finance.services import sync_sales_payment_to_journal
+                sync_sales_payment_to_journal(payment, user=request.user)
+            except Exception:
+                pass
 
             return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 

@@ -1,6 +1,11 @@
+import os
+import json
+from pathlib import Path
+from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from company.models import Company
 
@@ -10,6 +15,26 @@ from .serializers import (
     CompanyMembershipCreateSerializer,
     CompanyMembershipRoleUpdateSerializer,
 )
+
+
+def get_user_avatar_url(user_id):
+    avatar_dir = Path(settings.MEDIA_ROOT) / "avatars"
+    if not avatar_dir.exists():
+        return None
+    for ext in [".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"]:
+        avatar_path = avatar_dir / f"avatar_{user_id}{ext}"
+        if avatar_path.exists():
+            mtime = int(os.path.getmtime(avatar_path))
+            return f"{settings.MEDIA_URL}avatars/avatar_{user_id}{ext}?t={mtime}"
+    meta_path = avatar_dir / f"avatar_{user_id}.json"
+    if meta_path.exists():
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("avatar_url")
+        except Exception:
+            pass
+    return None
 
 
 # ============================================================
@@ -54,10 +79,110 @@ class MeView(APIView):
             "email": request.user.email,
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
+            "avatar": get_user_avatar_url(request.user.id),
             "is_staff": request.user.is_staff,
             "is_superuser": request.user.is_superuser,
             "companies": companies,
         })
+
+
+# ============================================================
+# AVATAR / PROFILE PICTURE API
+# ============================================================
+
+class AvatarUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        avatar_dir = Path(settings.MEDIA_ROOT) / "avatars"
+        os.makedirs(avatar_dir, exist_ok=True)
+
+        # 1. Handle direct file upload
+        file_obj = request.FILES.get("file") or request.FILES.get("avatar")
+        if file_obj:
+            name = file_obj.name
+            _, ext = os.path.splitext(name)
+            ext = ext.lower()
+            allowed = [".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"]
+            if ext not in allowed:
+                return Response(
+                    {"error": f"Invalid file format '{ext}'. Allowed formats: {', '.join(allowed)}"},
+                    status=400,
+                )
+
+            # Limit size to 5MB
+            if file_obj.size > 5 * 1024 * 1024:
+                return Response({"error": "File size exceeds 5MB limit."}, status=400)
+
+            # Clean up old user avatars
+            for old_ext in allowed:
+                old_file = avatar_dir / f"avatar_{request.user.id}{old_ext}"
+                if old_file.exists():
+                    try:
+                        old_file.unlink()
+                    except Exception:
+                        pass
+            meta_path = avatar_dir / f"avatar_{request.user.id}.json"
+            if meta_path.exists():
+                try:
+                    meta_path.unlink()
+                except Exception:
+                    pass
+
+            target_path = avatar_dir / f"avatar_{request.user.id}{ext}"
+            with open(target_path, "wb+") as f:
+                for chunk in file_obj.chunks():
+                    f.write(chunk)
+
+            mtime = int(os.path.getmtime(target_path))
+            avatar_url = f"{settings.MEDIA_URL}avatars/avatar_{request.user.id}{ext}?t={mtime}"
+            return Response(
+                {"message": "Profile picture updated successfully.", "avatar_url": avatar_url, "avatar": avatar_url},
+                status=200,
+            )
+
+        # 2. Handle preset or URL string
+        avatar_url = request.data.get("avatar_url") or request.data.get("avatar")
+        if avatar_url:
+            allowed = [".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"]
+            for old_ext in allowed:
+                old_file = avatar_dir / f"avatar_{request.user.id}{old_ext}"
+                if old_file.exists():
+                    try:
+                        old_file.unlink()
+                    except Exception:
+                        pass
+
+            meta_path = avatar_dir / f"avatar_{request.user.id}.json"
+            with open(meta_path, "w", encoding="utf-8") as f:
+                json.dump({"avatar_url": avatar_url}, f)
+
+            return Response(
+                {"message": "Profile avatar updated successfully.", "avatar_url": avatar_url, "avatar": avatar_url},
+                status=200,
+            )
+
+        return Response({"error": "No avatar file or URL provided."}, status=400)
+
+    def delete(self, request):
+        avatar_dir = Path(settings.MEDIA_ROOT) / "avatars"
+        allowed = [".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"]
+        for old_ext in allowed:
+            old_file = avatar_dir / f"avatar_{request.user.id}{old_ext}"
+            if old_file.exists():
+                try:
+                    old_file.unlink()
+                except Exception:
+                    pass
+        meta_path = avatar_dir / f"avatar_{request.user.id}.json"
+        if meta_path.exists():
+            try:
+                meta_path.unlink()
+            except Exception:
+                pass
+
+        return Response({"message": "Profile picture removed successfully.", "avatar": None}, status=200)
 
 
 # ============================================================

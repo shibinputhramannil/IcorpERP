@@ -114,6 +114,12 @@ class PurchaseQuotationSerializer(serializers.ModelSerializer):
     def get_items_count(self, obj):
         return obj.items.count()
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "valid_until" in data and data["valid_until"] == "":
+            data["valid_until"] = None
+        return super().to_internal_value(data)
+
     def validate_vendor(self, value):
         company = self.context.get("company")
         if company and value.company_id != company.id:
@@ -401,6 +407,14 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
             for inv in active_invoices
         ]
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "warehouse" in data and data["warehouse"] == "":
+            data["warehouse"] = None
+        if "expected_date" in data and data["expected_date"] == "":
+            data["expected_date"] = None
+        return super().to_internal_value(data)
+
     def validate_vendor(self, value):
         company = self.context.get("company")
         if company and value.company_id != company.id:
@@ -680,6 +694,12 @@ class PurchaseInvoiceSerializer(serializers.ModelSerializer):
 
     def get_payments_count(self, obj):
         return obj.payments.count()
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "due_date" in data and data["due_date"] == "":
+            data["due_date"] = None
+        return super().to_internal_value(data)
 
     def validate_vendor(self, value):
         company = self.context.get("company")

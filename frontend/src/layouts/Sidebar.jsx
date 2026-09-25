@@ -47,7 +47,7 @@ const NAV_GROUPS = [
       { text: 'Inventory', path: '/inventory', icon: Inventory2OutlinedIcon, status: 'live' },
       { text: 'Sales', path: '/sales', icon: PointOfSaleOutlinedIcon, status: 'live' },
       { text: 'Purchase', path: '/purchase', icon: ShoppingCartOutlinedIcon, status: 'live' },
-      { text: 'Finance', path: '/finance', icon: AccountBalanceWalletOutlinedIcon, status: 'upcoming' },
+      { text: 'Finance', path: '/finance', icon: AccountBalanceWalletOutlinedIcon, status: 'live' },
     ],
   },
   {

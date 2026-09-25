@@ -117,6 +117,12 @@ class QuotationSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "valid_until" in data and data["valid_until"] == "":
+            data["valid_until"] = None
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         company = self.context.get("company")
         if not company and self.instance:
@@ -350,6 +356,14 @@ class SalesOrderSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "warehouse" in data and data["warehouse"] == "":
+            data["warehouse"] = None
+        if "quotation" in data and data["quotation"] == "":
+            data["quotation"] = None
+        return super().to_internal_value(data)
 
     def validate(self, attrs):
         company = self.context.get("company")
@@ -643,6 +657,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if not data.get("due_date"):
+            from django.utils import timezone
+            data["due_date"] = (timezone.localdate() + timezone.timedelta(days=30)).isoformat()
+        if "sales_order" in data and data["sales_order"] == "":
+            data["sales_order"] = None
+        return super().to_internal_value(data)
 
     def validate(self, attrs):
         company = attrs.get("company") or (self.instance.company if self.instance else None)

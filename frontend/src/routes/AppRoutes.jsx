@@ -16,6 +16,7 @@ import CRMPage from '../pages/CRMPage';
 import InventoryPage from '../pages/InventoryPage';
 import SalesPage from '../pages/SalesPage';
 import PurchasePage from '../pages/PurchasePage';
+import FinancePage from '../pages/FinancePage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -46,24 +47,7 @@ export default function AppRoutes() {
 
         <Route path="/purchase" element={<PurchasePage />} />
 
-        <Route
-          path="/finance"
-          element={
-            <ModulePlaceholderPage
-              title="Finance & Accounting"
-              subtitle="General ledger, Chart of Accounts, cash flow, and tax reporting."
-              category="Operations & Workflows"
-              phaseNumber={8}
-              features={[
-                'Chart of Accounts (CoA)',
-                'General ledger & journal entries',
-                'Accounts Receivable (AR) & Accounts Payable (AP)',
-                'Customer & Vendor payments',
-                'Tax calculation & financial statements (P&L, Balance Sheet)',
-              ]}
-            />
-          }
-        />
+        <Route path="/finance" element={<FinancePage />} />
 
         {/* Workspace & Collaboration Modules */}
         <Route

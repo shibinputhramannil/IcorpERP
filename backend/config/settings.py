@@ -19,11 +19,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+import os
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y(_aszp6%!o!n00coio==@f%-b!l_8hbvca3e8o6_+=#)^0yef'
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-y(_aszp6%!o!n00coio==@f%-b!l_8hbvca3e8o6_+=#)^0yef"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
 
@@ -46,6 +51,7 @@ INSTALLED_APPS = [
     "inventory",
     "sales",
     "purchase",
+    "finance",
 ]
 
 MIDDLEWARE = [
@@ -85,11 +91,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "icorp_erp",
-        "USER": "postgres",
-        "PASSWORD": "8590675644",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": os.environ.get("DB_NAME", "icorp_erp"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "8590675644"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -129,6 +135,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email

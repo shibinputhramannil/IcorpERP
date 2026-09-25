@@ -63,6 +63,7 @@ import LoadingState from '../components/common/LoadingState';
 import StatCard from '../components/common/StatCard';
 import inventoryService from '../services/inventoryService';
 import { useCompany } from '../context/CompanyContext';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 const TX_TYPE_COLORS = {
   STOCK_IN: 'success',
@@ -112,6 +113,8 @@ export default function InventoryPage() {
     tax: '0.00',
     reorder_level: 10,
     description: '',
+    initial_stock: '',
+    initial_warehouse: '',
   });
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -235,8 +238,12 @@ export default function InventoryPage() {
   // ============================================================
   const handleOpenCreateProduct = async () => {
     try {
-      const cats = await inventoryService.getCategories(activeCompany.id, { all: 'true' });
+      const [cats, whs] = await Promise.all([
+        inventoryService.getCategories(activeCompany.id, { all: 'true' }),
+        inventoryService.getWarehouses(activeCompany.id, { all: 'true' }),
+      ]);
       setCategories(cats);
+      setWarehouses(whs);
     } catch (e) {
       console.error(e);
     }
@@ -252,6 +259,8 @@ export default function InventoryPage() {
       tax: '0.00',
       reorder_level: 10,
       description: '',
+      initial_stock: '',
+      initial_warehouse: '',
     });
     setProductDialogOpen(true);
   };
@@ -270,6 +279,8 @@ export default function InventoryPage() {
       tax: prod.tax || '0.00',
       reorder_level: prod.reorder_level || 10,
       description: prod.description || '',
+      initial_stock: '',
+      initial_warehouse: '',
     });
     setProductDialogOpen(true);
   };
@@ -282,8 +293,11 @@ export default function InventoryPage() {
     try {
       setSubmitting(true);
       const payload = {
-        ...productFormData,
+        name: productFormData.name,
+        sku: productFormData.sku,
         category: productFormData.category || null,
+        unit: productFormData.unit,
+        description: productFormData.description,
         cost_price: productFormData.cost_price ? parseFloat(productFormData.cost_price) : 0,
         selling_price: productFormData.selling_price ? parseFloat(productFormData.selling_price) : 0,
         tax: productFormData.tax ? parseFloat(productFormData.tax) : 0,
@@ -292,17 +306,37 @@ export default function InventoryPage() {
 
       if (isEditingProduct) {
         await inventoryService.updateProduct(activeCompany.id, productFormData.id, payload);
-        showSnackbar('Product updated successfully');
+        showSnackbar(`Product "${productFormData.name}" updated successfully!`);
       } else {
-        await inventoryService.createProduct(activeCompany.id, payload);
-        showSnackbar('Product created successfully');
+        const newProduct = await inventoryService.createProduct(activeCompany.id, payload);
+        if (
+          productFormData.initial_stock &&
+          parseFloat(productFormData.initial_stock) > 0 &&
+          productFormData.initial_warehouse
+        ) {
+          try {
+            await inventoryService.createTransaction(activeCompany.id, {
+              product: newProduct.id,
+              warehouse: productFormData.initial_warehouse,
+              transaction_type: 'STOCK_IN',
+              quantity: parseFloat(productFormData.initial_stock),
+              reference: 'INIT-STOCK',
+              notes: 'Initial opening stock recorded on product creation',
+            });
+            showSnackbar(`Product "${productFormData.name}" created with initial stock of ${productFormData.initial_stock}!`);
+          } catch (txErr) {
+            console.error('Initial stock transaction error:', txErr);
+            showSnackbar(`Product created, but initial stock record failed: ${extractErrorMessage(txErr)}`, 'warning');
+          }
+        } else {
+          showSnackbar(`Product "${productFormData.name}" created successfully!`);
+        }
       }
       setProductDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.sku?.[0] || 'Failed to save product';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save product'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -313,12 +347,14 @@ export default function InventoryPage() {
   // ============================================================
   const handleOpenMovementModal = async (preselectedProduct = null, preselectedWarehouse = null, type = 'STOCK_IN') => {
     try {
-      const [prods, whs] = await Promise.all([
+      const [prods, whs, stocks] = await Promise.all([
         inventoryService.getProducts(activeCompany.id, { all: 'true' }),
         inventoryService.getWarehouses(activeCompany.id, { all: 'true' }),
+        inventoryService.getStock(activeCompany.id),
       ]);
       setProducts(prods);
       setWarehouses(whs);
+      setStockList(stocks);
 
       setMovementFormData({
         product: preselectedProduct ? preselectedProduct.id : prods.length > 0 ? prods[0].id : '',
@@ -343,8 +379,13 @@ export default function InventoryPage() {
     if (!movementFormData.quantity || parseFloat(movementFormData.quantity) <= 0) {
       return showSnackbar('Quantity must be greater than zero', 'error');
     }
-    if (movementFormData.transaction_type === 'TRANSFER' && !movementFormData.destination_warehouse) {
-      return showSnackbar('Destination warehouse is required for transfer', 'error');
+    if (movementFormData.transaction_type === 'TRANSFER') {
+      if (!movementFormData.destination_warehouse) {
+        return showSnackbar('Destination warehouse is required for transfer', 'error');
+      }
+      if (movementFormData.warehouse === movementFormData.destination_warehouse) {
+        return showSnackbar('Source and destination warehouses cannot be the same', 'error');
+      }
     }
 
     try {
@@ -360,8 +401,7 @@ export default function InventoryPage() {
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.quantity?.[0] || err.response?.data?.detail || 'Stock movement failed';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Stock movement failed'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -392,17 +432,16 @@ export default function InventoryPage() {
       setSubmitting(true);
       if (isEditingWarehouse) {
         await inventoryService.updateWarehouse(activeCompany.id, warehouseFormData.id, warehouseFormData);
-        showSnackbar('Warehouse updated successfully');
+        showSnackbar(`Warehouse "${warehouseFormData.name}" updated successfully!`);
       } else {
         await inventoryService.createWarehouse(activeCompany.id, warehouseFormData);
-        showSnackbar('Warehouse created successfully');
+        showSnackbar(`Warehouse "${warehouseFormData.name}" created successfully!`);
       }
       setWarehouseDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.code?.[0] || 'Failed to save warehouse';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save warehouse'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -432,17 +471,16 @@ export default function InventoryPage() {
       setSubmitting(true);
       if (isEditingCategory) {
         await inventoryService.updateCategory(activeCompany.id, categoryFormData.id, categoryFormData);
-        showSnackbar('Category updated successfully');
+        showSnackbar(`Category "${categoryFormData.name}" updated successfully!`);
       } else {
         await inventoryService.createCategory(activeCompany.id, categoryFormData);
-        showSnackbar('Category created successfully');
+        showSnackbar(`Category "${categoryFormData.name}" created successfully!`);
       }
       setCategoryDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.name?.[0] || 'Failed to save category';
-      showSnackbar(msg, 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save category'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -479,16 +517,16 @@ export default function InventoryPage() {
       setSubmitting(true);
       if (isEditingVendor) {
         await inventoryService.updateVendor(activeCompany.id, vendorFormData.id, vendorFormData);
-        showSnackbar('Vendor updated successfully');
+        showSnackbar(`Vendor "${vendorFormData.name}" updated successfully!`);
       } else {
         await inventoryService.createVendor(activeCompany.id, vendorFormData);
-        showSnackbar('Vendor created successfully');
+        showSnackbar(`Vendor "${vendorFormData.name}" created successfully!`);
       }
       setVendorDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to save vendor', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save vendor'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -501,19 +539,38 @@ export default function InventoryPage() {
     if (!deletingItem) return;
     try {
       setSubmitting(true);
-      const { type, id } = deletingItem;
+      const { type, id, label } = deletingItem;
       if (type === 'product') await inventoryService.deleteProduct(activeCompany.id, id);
       else if (type === 'warehouse') await inventoryService.deleteWarehouse(activeCompany.id, id);
       else if (type === 'category') await inventoryService.deleteCategory(activeCompany.id, id);
       else if (type === 'vendor') await inventoryService.deleteVendor(activeCompany.id, id);
 
-      showSnackbar('Item deactivated successfully');
+      showSnackbar(`"${label || 'Item'}" deactivated successfully!`);
       setDeleteConfirmOpen(false);
       setDeletingItem(null);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to deactivate item', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to deactivate item'), 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReactivate = async (type, id, label) => {
+    handleCloseMenu();
+    try {
+      setSubmitting(true);
+      if (type === 'product') await inventoryService.updateProduct(activeCompany.id, id, { is_active: true });
+      else if (type === 'warehouse') await inventoryService.updateWarehouse(activeCompany.id, id, { is_active: true });
+      else if (type === 'category') await inventoryService.updateCategory(activeCompany.id, id, { is_active: true });
+      else if (type === 'vendor') await inventoryService.updateVendor(activeCompany.id, id, { is_active: true });
+
+      showSnackbar(`"${label || 'Item'}" reactivated successfully!`);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      showSnackbar(extractErrorMessage(err, 'Failed to reactivate item'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -1237,16 +1294,37 @@ export default function InventoryPage() {
             <ListItemText>Edit Product</ListItemText>
           </MenuItem>,
           <MenuItem
-            key="del"
+            key="movement"
             onClick={() => {
+              const item = activeItem;
               handleCloseMenu();
-              setDeletingItem({ type: 'product', id: activeItem.id, label: activeItem.name });
-              setDeleteConfirmOpen(true);
+              handleOpenMovementModal(item, null, 'STOCK_IN');
             }}
           >
-            <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
-            <ListItemText sx={{ color: 'error.main' }}>Deactivate Product</ListItemText>
+            <ListItemIcon><SwapHorizOutlinedIcon fontSize="small" color="primary" /></ListItemIcon>
+            <ListItemText>Record Movement</ListItemText>
           </MenuItem>,
+          activeItem.is_active === false ? (
+            <MenuItem
+              key="reactivate"
+              onClick={() => handleReactivate('product', activeItem.id, activeItem.name)}
+            >
+              <ListItemIcon><CheckCircleOutlinedIcon fontSize="small" color="success" /></ListItemIcon>
+              <ListItemText sx={{ color: 'success.main' }}>Reactivate Product</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem
+              key="del"
+              onClick={() => {
+                handleCloseMenu();
+                setDeletingItem({ type: 'product', id: activeItem.id, label: activeItem.name });
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
+              <ListItemText sx={{ color: 'error.main' }}>Deactivate Product</ListItemText>
+            </MenuItem>
+          ),
         ]}
 
         {activeItem?.entityType === 'warehouse' && [
@@ -1254,17 +1332,27 @@ export default function InventoryPage() {
             <ListItemIcon><EditOutlinedIcon fontSize="small" /></ListItemIcon>
             <ListItemText>Edit Warehouse</ListItemText>
           </MenuItem>,
-          <MenuItem
-            key="del"
-            onClick={() => {
-              handleCloseMenu();
-              setDeletingItem({ type: 'warehouse', id: activeItem.id, label: activeItem.name });
-              setDeleteConfirmOpen(true);
-            }}
-          >
-            <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
-            <ListItemText sx={{ color: 'error.main' }}>Deactivate Warehouse</ListItemText>
-          </MenuItem>,
+          activeItem.is_active === false ? (
+            <MenuItem
+              key="reactivate"
+              onClick={() => handleReactivate('warehouse', activeItem.id, activeItem.name)}
+            >
+              <ListItemIcon><CheckCircleOutlinedIcon fontSize="small" color="success" /></ListItemIcon>
+              <ListItemText sx={{ color: 'success.main' }}>Reactivate Warehouse</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem
+              key="del"
+              onClick={() => {
+                handleCloseMenu();
+                setDeletingItem({ type: 'warehouse', id: activeItem.id, label: activeItem.name });
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
+              <ListItemText sx={{ color: 'error.main' }}>Deactivate Warehouse</ListItemText>
+            </MenuItem>
+          ),
         ]}
 
         {activeItem?.entityType === 'category' && [
@@ -1272,17 +1360,27 @@ export default function InventoryPage() {
             <ListItemIcon><EditOutlinedIcon fontSize="small" /></ListItemIcon>
             <ListItemText>Edit Category</ListItemText>
           </MenuItem>,
-          <MenuItem
-            key="del"
-            onClick={() => {
-              handleCloseMenu();
-              setDeletingItem({ type: 'category', id: activeItem.id, label: activeItem.name });
-              setDeleteConfirmOpen(true);
-            }}
-          >
-            <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
-            <ListItemText sx={{ color: 'error.main' }}>Deactivate Category</ListItemText>
-          </MenuItem>,
+          activeItem.is_active === false ? (
+            <MenuItem
+              key="reactivate"
+              onClick={() => handleReactivate('category', activeItem.id, activeItem.name)}
+            >
+              <ListItemIcon><CheckCircleOutlinedIcon fontSize="small" color="success" /></ListItemIcon>
+              <ListItemText sx={{ color: 'success.main' }}>Reactivate Category</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem
+              key="del"
+              onClick={() => {
+                handleCloseMenu();
+                setDeletingItem({ type: 'category', id: activeItem.id, label: activeItem.name });
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
+              <ListItemText sx={{ color: 'error.main' }}>Deactivate Category</ListItemText>
+            </MenuItem>
+          ),
         ]}
 
         {activeItem?.entityType === 'vendor' && [
@@ -1290,17 +1388,27 @@ export default function InventoryPage() {
             <ListItemIcon><EditOutlinedIcon fontSize="small" /></ListItemIcon>
             <ListItemText>Edit Vendor</ListItemText>
           </MenuItem>,
-          <MenuItem
-            key="del"
-            onClick={() => {
-              handleCloseMenu();
-              setDeletingItem({ type: 'vendor', id: activeItem.id, label: activeItem.name });
-              setDeleteConfirmOpen(true);
-            }}
-          >
-            <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
-            <ListItemText sx={{ color: 'error.main' }}>Deactivate Vendor</ListItemText>
-          </MenuItem>,
+          activeItem.is_active === false ? (
+            <MenuItem
+              key="reactivate"
+              onClick={() => handleReactivate('vendor', activeItem.id, activeItem.name)}
+            >
+              <ListItemIcon><CheckCircleOutlinedIcon fontSize="small" color="success" /></ListItemIcon>
+              <ListItemText sx={{ color: 'success.main' }}>Reactivate Vendor</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem
+              key="del"
+              onClick={() => {
+                handleCloseMenu();
+                setDeletingItem({ type: 'vendor', id: activeItem.id, label: activeItem.name });
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <ListItemIcon><DeleteOutlineOutlinedIcon fontSize="small" color="error" /></ListItemIcon>
+              <ListItemText sx={{ color: 'error.main' }}>Deactivate Vendor</ListItemText>
+            </MenuItem>
+          ),
         ]}
       </Menu>
 
@@ -1328,8 +1436,56 @@ export default function InventoryPage() {
                   label="SKU Code"
                   value={productFormData.sku}
                   onChange={(e) => setProductFormData({ ...productFormData, sku: e.target.value })}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            const prefix = productFormData.name
+                              ? productFormData.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase()
+                              : 'PRD';
+                            const rand = Math.floor(1000 + Math.random() * 9000);
+                            setProductFormData((prev) => ({ ...prev, sku: `${prefix || 'PRD'}-${rand}` }));
+                          }}
+                          sx={{ minWidth: 'auto', px: 1, textTransform: 'none', fontSize: '0.75rem' }}
+                        >
+                          Generate
+                        </Button>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
+              {!isEditingProduct && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Initial Stock Qty (Optional)"
+                      value={productFormData.initial_stock || ''}
+                      onChange={(e) => setProductFormData({ ...productFormData, initial_stock: e.target.value })}
+                      helperText="Recorded as opening stock"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth required={Boolean(productFormData.initial_stock && parseFloat(productFormData.initial_stock) > 0)}>
+                      <InputLabel>Initial Warehouse</InputLabel>
+                      <Select
+                        value={productFormData.initial_warehouse || ''}
+                        label="Initial Warehouse"
+                        onChange={(e) => setProductFormData({ ...productFormData, initial_warehouse: e.target.value })}
+                      >
+                        <MenuItem value=""><em>Select Warehouse...</em></MenuItem>
+                        {warehouses.map((w) => (
+                          <MenuItem key={w.id} value={w.id}>{w.name} ({w.code})</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </>
+              )}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Category</InputLabel>
@@ -1479,6 +1635,47 @@ export default function InventoryPage() {
                         ))}
                     </Select>
                   </FormControl>
+                </Grid>
+              )}
+              {movementFormData.product && movementFormData.warehouse && (
+                <Grid item xs={12}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Current On-Hand Warehouse Stock:
+                    </Typography>
+                    <Chip
+                      size="small"
+                      color={
+                        (stockList.find(
+                          (s) => s.product === movementFormData.product && s.warehouse === movementFormData.warehouse
+                        )?.quantity || 0) > 0
+                          ? 'primary'
+                          : 'default'
+                      }
+                      label={`${
+                        stockList.find(
+                          (s) => s.product === movementFormData.product && s.warehouse === movementFormData.warehouse
+                        )?.quantity || 0
+                      } units`}
+                    />
+                  </Stack>
+                  {(movementFormData.transaction_type === 'STOCK_OUT' || movementFormData.transaction_type === 'TRANSFER') &&
+                    parseFloat(movementFormData.quantity || 0) >
+                      parseFloat(
+                        stockList.find(
+                          (s) => s.product === movementFormData.product && s.warehouse === movementFormData.warehouse
+                        )?.quantity || 0
+                      ) && (
+                      <Alert severity="warning" sx={{ mt: 1, py: 0.5 }}>
+                        Warning: Requested quantity ({movementFormData.quantity}) exceeds on-hand stock (
+                        {
+                          stockList.find(
+                            (s) => s.product === movementFormData.product && s.warehouse === movementFormData.warehouse
+                          )?.quantity || 0
+                        }
+                        ).
+                      </Alert>
+                    )}
                 </Grid>
               )}
               <Grid item xs={12} sm={6}>

@@ -1,0 +1,378 @@
+{
+  "info": {
+    "name": "ICORP ERP - Phase 6: Finance & Accounting Collection",
+    "description": "Comprehensive Postman collection for Phase 6 Finance module covering Double-Entry Accounting, General Ledger, Chart of Accounts, Financial Statements, AR/AP, Cash & Bank, and Tenant Isolation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance Dashboard",
+      "item": [
+        {
+          "name": "Get Executive Finance Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/dashboard/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "dashboard", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chart of Accounts",
+      "item": [
+        {
+          "name": "Seed Default Chart of Accounts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/default-accounts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "default-accounts", ""]
+            }
+          }
+        },
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/accounts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "accounts", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_code\": \"6500\",\n  \"account_name\": \"Cloud Hosting & SaaS\",\n  \"category\": \"EXPENSE\",\n  \"description\": \"AWS, Azure, and Google Cloud infrastructure expenditures\",\n  \"opening_balance\": \"0.00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/accounts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "accounts", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Journal Entries",
+      "item": [
+        {
+          "name": "List Journal Entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/journal-entries/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "journal-entries", ""]
+            }
+          }
+        },
+        {
+          "name": "Post Double-Entry Journal Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entry_date\": \"2026-09-25\",\n  \"description\": \"Owner capital injection for expansion\",\n  \"reference_type\": \"MANUAL\",\n  \"reference_id\": \"CAP-2026-001\",\n  \"lines\": [\n    {\n      \"account\": 2,\n      \"debit\": \"10000.00\",\n      \"credit\": \"0.00\",\n      \"description\": \"Deposit in bank\"\n    },\n    {\n      \"account\": 7,\n      \"debit\": \"0.00\",\n      \"credit\": \"10000.00\",\n      \"description\": \"Issuance of share capital\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/journal-entries/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "journal-entries", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "General Ledger",
+      "item": [
+        {
+          "name": "Get General Ledger",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/general-ledger/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "general-ledger", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trial Balance",
+      "item": [
+        {
+          "name": "Get Trial Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/trial-balance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "trial-balance", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profit & Loss",
+      "item": [
+        {
+          "name": "Get Income Statement (P&L)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/profit-loss/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "profit-loss", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balance Sheet",
+      "item": [
+        {
+          "name": "Get Balance Sheet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/balance-sheet/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "balance-sheet", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts Receivable",
+      "item": [
+        {
+          "name": "Get Accounts Receivable Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/accounts-receivable/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "accounts-receivable", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts Payable",
+      "item": [
+        {
+          "name": "Get Accounts Payable Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/accounts-payable/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "accounts-payable", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cash & Bank",
+      "item": [
+        {
+          "name": "List Bank Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/bank/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "bank", ""]
+            }
+          }
+        },
+        {
+          "name": "List Cash Registers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/{{company_id}}/finance/cash/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "{{company_id}}", "finance", "cash", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant Isolation",
+      "item": [
+        {
+          "name": "Cross-Company Access Forbidden Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/9999/finance/dashboard/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "9999", "finance", "dashboard", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -66,6 +66,7 @@ import LoadingState from '../components/common/LoadingState';
 import StatCard from '../components/common/StatCard';
 import crmService from '../services/crmService';
 import { useCompany } from '../context/CompanyContext';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 const LEAD_STATUS_COLORS = {
   New: 'info',
@@ -343,18 +344,19 @@ export default function CRMPage() {
         ...leadFormData,
         estimated_value: leadFormData.estimated_value ? parseFloat(leadFormData.estimated_value) : 0,
       };
+      const fullName = `${leadFormData.first_name} ${leadFormData.last_name}`.trim();
       if (isEditingLead) {
         await crmService.updateLead(activeCompany.id, leadFormData.id, payload);
-        showSnackbar('Lead updated successfully');
+        showSnackbar(`Lead "${fullName}" updated successfully!`);
       } else {
         await crmService.createLead(activeCompany.id, payload);
-        showSnackbar('Lead created successfully');
+        showSnackbar(`Lead "${fullName}" created successfully!`);
       }
       setLeadDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to save lead', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save lead'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -383,13 +385,13 @@ export default function CRMPage() {
         deal_value: convertFormData.deal_value ? parseFloat(convertFormData.deal_value) : 0,
       };
       await crmService.convertLead(activeCompany.id, convertingLead.id, payload);
-      showSnackbar(`Lead converted to Customer and Contact successfully!`);
+      showSnackbar(`Lead converted to Customer "${convertFormData.customer_name}" successfully!`);
       setConvertDialogOpen(false);
       setConvertingLead(null);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to convert lead', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to convert lead'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -439,16 +441,16 @@ export default function CRMPage() {
       setSubmitting(true);
       if (isEditingCustomer) {
         await crmService.updateCustomer(activeCompany.id, customerFormData.id, customerFormData);
-        showSnackbar('Customer updated successfully');
+        showSnackbar(`Customer "${customerFormData.name}" updated successfully!`);
       } else {
         await crmService.createCustomer(activeCompany.id, customerFormData);
-        showSnackbar('Customer created successfully');
+        showSnackbar(`Customer "${customerFormData.name}" created successfully!`);
       }
       setCustomerDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to save customer', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save customer'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -501,18 +503,19 @@ export default function CRMPage() {
         customer: contactFormData.customer || null,
         designation: contactFormData.designation || '',
       };
+      const fullName = `${contactFormData.first_name} ${contactFormData.last_name}`.trim();
       if (isEditingContact) {
         await crmService.updateContact(activeCompany.id, contactFormData.id, payload);
-        showSnackbar('Contact updated successfully');
+        showSnackbar(`Contact "${fullName}" updated successfully!`);
       } else {
         await crmService.createContact(activeCompany.id, payload);
-        showSnackbar('Contact created successfully');
+        showSnackbar(`Contact "${fullName}" created successfully!`);
       }
       setContactDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to save contact', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save contact'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -574,16 +577,16 @@ export default function CRMPage() {
       };
       if (isEditingDeal) {
         await crmService.updateDeal(activeCompany.id, dealFormData.id, payload);
-        showSnackbar('Deal updated successfully');
+        showSnackbar(`Deal "${dealFormData.title}" updated successfully!`);
       } else {
         await crmService.createDeal(activeCompany.id, payload);
-        showSnackbar('Deal created successfully');
+        showSnackbar(`Deal "${dealFormData.title}" created successfully!`);
       }
       setDealDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to save deal', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to save deal'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -602,11 +605,11 @@ export default function CRMPage() {
         stage: newStage,
         probability: newProb,
       });
-      showSnackbar(`Deal moved to ${newStage}`);
+      showSnackbar(`Deal "${deal.title}" moved to ${newStage}`);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to update deal stage', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to update deal stage'), 'error');
     }
   };
 
@@ -645,12 +648,12 @@ export default function CRMPage() {
         due_date: activityFormData.due_date || null,
       };
       await crmService.createActivity(activeCompany.id, payload);
-      showSnackbar(`${activityFormData.activity_type} logged successfully`);
+      showSnackbar(`${activityFormData.activity_type} "${activityFormData.title}" logged successfully!`);
       setActivityDialogOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to log activity', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to log activity'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -663,20 +666,20 @@ export default function CRMPage() {
     if (!deletingItem) return;
     try {
       setSubmitting(true);
-      const { type, id } = deletingItem;
+      const { type, id, label } = deletingItem;
       if (type === 'lead') await crmService.deleteLead(activeCompany.id, id);
       else if (type === 'customer') await crmService.deleteCustomer(activeCompany.id, id);
       else if (type === 'contact') await crmService.deleteContact(activeCompany.id, id);
       else if (type === 'deal') await crmService.deleteDeal(activeCompany.id, id);
       else if (type === 'activity') await crmService.deleteActivity(activeCompany.id, id);
 
-      showSnackbar(`Item removed / deactivated successfully`);
+      showSnackbar(`"${label || 'Item'}" removed / deactivated successfully!`);
       setDeleteConfirmOpen(false);
       setDeletingItem(null);
       fetchData();
     } catch (err) {
       console.error(err);
-      showSnackbar('Failed to remove item', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to remove item'), 'error');
     } finally {
       setSubmitting(false);
     }

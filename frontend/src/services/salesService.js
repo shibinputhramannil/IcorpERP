@@ -37,8 +37,8 @@ export const salesService = {
     return response.data;
   },
 
-  convertQuotation: async (companyId, quoteId) => {
-    const response = await api.post(`/companies/${companyId}/sales/quotations/${quoteId}/convert/`);
+  convertQuotation: async (companyId, quoteId, data = {}) => {
+    const response = await api.post(`/companies/${companyId}/sales/quotations/${quoteId}/convert/`, data);
     return response.data;
   },
 

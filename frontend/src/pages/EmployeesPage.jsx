@@ -55,6 +55,7 @@ import StatCard from '../components/common/StatCard';
 import employeeService from '../services/employeeService';
 import { useCompany } from '../context/CompanyContext';
 import { useNavigate } from 'react-router-dom';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 const DEFAULT_DEPARTMENTS = [
   'Engineering',
@@ -165,17 +166,17 @@ export default function EmployeesPage() {
     try {
       setSubmitting(true);
       await employeeService.createEmployee(activeCompany.id, formData);
-      showSnackbar('Employee added successfully!');
+      const fullName = `${formData.first_name} ${formData.last_name}`.trim();
+      showSnackbar(`Employee "${fullName}" added successfully!`);
       setAddDialogOpen(false);
       setFormData(initialFormState);
       fetchEmployees();
     } catch (err) {
       console.error('Error adding employee:', err);
-      const resData = err.response?.data;
-      if (resData && typeof resData === 'object') {
-        setFormErrors(resData);
-      } else {
-        showSnackbar('Failed to add employee.', 'error');
+      const errMsg = extractErrorMessage(err, 'Failed to add employee.');
+      showSnackbar(errMsg, 'error');
+      if (err.response?.data && typeof err.response.data === 'object') {
+        setFormErrors(err.response.data);
       }
     } finally {
       setSubmitting(false);
@@ -208,15 +209,16 @@ export default function EmployeesPage() {
     try {
       setSubmitting(true);
       await employeeService.updateEmployee(activeCompany.id, selectedEmployee.id, formData);
-      showSnackbar('Employee updated successfully!');
+      const fullName = `${formData.first_name} ${formData.last_name}`.trim();
+      showSnackbar(`Employee "${fullName}" updated successfully!`);
       setEditDialogOpen(false);
       fetchEmployees();
     } catch (err) {
       console.error('Error updating employee:', err);
+      const errMsg = extractErrorMessage(err, 'Failed to update employee.');
+      showSnackbar(errMsg, 'error');
       if (err.response?.data && typeof err.response.data === 'object') {
         setFormErrors(err.response.data);
-      } else {
-        showSnackbar('Failed to update employee.', 'error');
       }
     } finally {
       setSubmitting(false);
@@ -235,12 +237,12 @@ export default function EmployeesPage() {
     try {
       setSubmitting(true);
       await employeeService.deleteEmployee(activeCompany.id, selectedEmployee.id);
-      showSnackbar(`Employee "${selectedEmployee.first_name}" deactivated successfully.`);
+      showSnackbar(`Employee "${selectedEmployee.first_name} ${selectedEmployee.last_name}".trim() deactivated successfully.`);
       setDeleteDialogOpen(false);
       fetchEmployees();
     } catch (err) {
       console.error('Error deactivating employee:', err);
-      showSnackbar('Failed to deactivate employee.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to deactivate employee.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -251,11 +253,11 @@ export default function EmployeesPage() {
     handleMenuClose();
     try {
       await employeeService.updateEmployee(activeCompany.id, emp.id, { is_active: true });
-      showSnackbar(`Employee "${emp.first_name}" reactivated successfully.`);
+      showSnackbar(`Employee "${emp.first_name} ${emp.last_name}".trim() reactivated successfully.`);
       fetchEmployees();
     } catch (err) {
       console.error('Error reactivating employee:', err);
-      showSnackbar('Failed to reactivate employee.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to reactivate employee.'), 'error');
     }
   };
 

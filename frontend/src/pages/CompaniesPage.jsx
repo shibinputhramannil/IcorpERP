@@ -51,6 +51,7 @@ import LoadingState from '../components/common/LoadingState';
 import StatCard from '../components/common/StatCard';
 import companyService from '../services/companyService';
 import { useCompany } from '../context/CompanyContext';
+import { extractErrorMessage } from '../utils/errorUtils';
 
 export default function CompaniesPage() {
   const { reloadCompanies } = useCompany();
@@ -140,22 +141,17 @@ export default function CompaniesPage() {
     try {
       setSubmitting(true);
       await companyService.createCompany(formData);
-      showSnackbar('Company created successfully!');
+      showSnackbar(`Company "${formData.name}" created successfully!`);
       setCreateDialogOpen(false);
       setFormData({ name: '', email: '', phone: '', address: '' });
       fetchCompanies();
       reloadCompanies();
     } catch (err) {
       console.error('Error creating company:', err);
-      const resData = err.response?.data;
-      if (resData) {
-        if (typeof resData === 'object') {
-          setFormErrors(resData);
-        } else {
-          showSnackbar(String(resData), 'error');
-        }
-      } else {
-        showSnackbar('Failed to create company.', 'error');
+      const errMsg = extractErrorMessage(err, 'Failed to create company.');
+      showSnackbar(errMsg, 'error');
+      if (err.response?.data && typeof err.response.data === 'object') {
+        setFormErrors(err.response.data);
       }
     } finally {
       setSubmitting(false);
@@ -184,16 +180,16 @@ export default function CompaniesPage() {
     try {
       setSubmitting(true);
       await companyService.updateCompany(selectedCompany.id, formData);
-      showSnackbar('Company updated successfully!');
+      showSnackbar(`Company "${formData.name}" updated successfully!`);
       setEditDialogOpen(false);
       fetchCompanies();
       reloadCompanies();
     } catch (err) {
       console.error('Error updating company:', err);
+      const errMsg = extractErrorMessage(err, 'Failed to update company.');
+      showSnackbar(errMsg, 'error');
       if (err.response?.data && typeof err.response.data === 'object') {
         setFormErrors(err.response.data);
-      } else {
-        showSnackbar('Failed to update company.', 'error');
       }
     } finally {
       setSubmitting(false);
@@ -218,7 +214,7 @@ export default function CompaniesPage() {
       reloadCompanies();
     } catch (err) {
       console.error('Error deactivating company:', err);
-      showSnackbar('Failed to deactivate company.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to deactivate company.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -234,7 +230,7 @@ export default function CompaniesPage() {
       reloadCompanies();
     } catch (err) {
       console.error('Error reactivating company:', err);
-      showSnackbar('Failed to reactivate company.', 'error');
+      showSnackbar(extractErrorMessage(err, 'Failed to reactivate company.'), 'error');
     }
   };
 
@@ -270,24 +266,16 @@ export default function CompaniesPage() {
       setSubmittingMember(true);
       setMemberError('');
       await companyService.addCompanyMember(selectedCompany.id, addMemberData);
-      showSnackbar('Member added successfully!');
+      showSnackbar(`Member "${addMemberData.username}" added successfully!`);
       setAddMemberData({ username: '', role: 'Employee' });
       const updated = await companyService.getCompanyMembers(selectedCompany.id);
       setCompanyMembers(updated);
       fetchCompanies();
     } catch (err) {
       console.error('Error adding member:', err);
-      const res = err.response?.data;
-      if (res?.detail) {
-        setMemberError(res.detail);
-      } else if (res?.non_field_errors) {
-        setMemberError(res.non_field_errors.join(' '));
-      } else if (typeof res === 'object') {
-        const msg = Object.entries(res).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ');
-        setMemberError(msg);
-      } else {
-        setMemberError('Failed to add member.');
-      }
+      const errMsg = extractErrorMessage(err, 'Failed to add member.');
+      setMemberError(errMsg);
+      showSnackbar(errMsg, 'error');
     } finally {
       setSubmittingMember(false);
     }

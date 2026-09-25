@@ -14,12 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from accounts.auth_serializers import EmailOrUsernameTokenObtainPairView
-from accounts.views import MeView,CompanyMemberListView,CompanyMemberCreateView,CompanyMemberUpdateView
+from accounts.views import (
+    MeView,
+    AvatarUploadView,
+    CompanyMemberListView,
+    CompanyMemberCreateView,
+    CompanyMemberUpdateView,
+)
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
 from crm.views import (
@@ -111,6 +119,7 @@ urlpatterns = [
     path("api/auth/login/", EmailOrUsernameTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/me/", MeView.as_view(), name="auth_me"),
+    path("api/auth/profile/avatar/", AvatarUploadView.as_view(), name="user_avatar_upload"),
 
     # Company
     path("api/companies/", CompanyListView.as_view(), name="company_list"),
@@ -260,5 +269,12 @@ urlpatterns = [
     path("api/companies/<int:company_id>/purchases/reports/vendors/", PurchaseReportVendorsView.as_view(), name="purchase_report_vendors"),
     path("api/companies/<int:company_id>/purchases/reports/receiving/", PurchaseReportReceivingView.as_view(), name="purchase_report_receiving"),
     path("api/companies/<int:company_id>/purchases/reports/financial/", PurchaseReportFinancialView.as_view(), name="purchase_report_financial"),
+
+    # ============================================================
+    # Finance & Accounting - Phase 6
+    # ============================================================
+    path("api/companies/<int:company_id>/finance/", include("finance.urls")),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

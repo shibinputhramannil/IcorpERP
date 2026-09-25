@@ -125,6 +125,19 @@ class LeadSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "company_name" in data and "lead_company" not in data:
+            data["lead_company"] = data.get("company_name")
+        if "company" in data and "lead_company" not in data and not isinstance(data.get("company"), int):
+            data["lead_company"] = data.get("company")
+        if "status" in data and isinstance(data["status"], str):
+            status_map = {c[0].lower(): c[0] for c in Lead.STATUS_CHOICES}
+            normalized = status_map.get(data["status"].strip().lower())
+            if normalized:
+                data["status"] = normalized
+        return super().to_internal_value(data)
+
 
 class LeadConvertSerializer(serializers.Serializer):
     create_customer = serializers.BooleanField(default=True)
@@ -174,6 +187,15 @@ class DealSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "stage" in data and isinstance(data["stage"], str):
+            stage_map = {c[0].lower(): c[0] for c in Deal.STAGE_CHOICES}
+            normalized = stage_map.get(data["stage"].strip().lower())
+            if normalized:
+                data["stage"] = normalized
+        return super().to_internal_value(data)
 
     def get_contact_name(self, obj):
         if obj.contact:
@@ -225,6 +247,24 @@ class ActivitySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "activity_type" in data and isinstance(data["activity_type"], str):
+            type_map = {c[0].lower(): c[0] for c in Activity.ACTIVITY_TYPE_CHOICES}
+            normalized = type_map.get(data["activity_type"].strip().lower())
+            if normalized:
+                data["activity_type"] = normalized
+        if "status" in data and isinstance(data["status"], str):
+            val = data["status"].strip().lower()
+            if val == "scheduled":
+                data["status"] = "Pending"
+            else:
+                status_map = {c[0].lower(): c[0] for c in Activity.STATUS_CHOICES}
+                normalized = status_map.get(val)
+                if normalized:
+                    data["status"] = normalized
+        return super().to_internal_value(data)
 
     def get_contact_name(self, obj):
         if obj.contact:

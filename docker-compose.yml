@@ -1,0 +1,80 @@
+services:
+  # ============================================================
+  # 1. POSTGRESQL DATABASE SERVICE
+  # ============================================================
+  db:
+    image: postgres:16-alpine
+    container_name: icorp_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-icorp_erp}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Mapped to 5433 on host to avoid colliding with local Postgres instances on 5432
+      - "${HOST_DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-icorp_erp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    networks:
+      - icorp_network
+
+  # ============================================================
+  # 2. DJANGO REST FRAMEWORK BACKEND SERVICE
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: icorp_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-icorp_erp}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres_secure_password}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-phase6-production-docker-secret-key-99}
+      DEBUG: ${DEBUG:-True}
+    volumes:
+      - media_data:/app/media
+    ports:
+      - "8000:8000"
+    networks:
+      - icorp_network
+
+  # ============================================================
+  # 3. REACT / VITE FRONTEND SERVICE
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: icorp_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_BACKEND_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    networks:
+      - icorp_network
+
+volumes:
+  postgres_data:
+    name: icorp_postgres_data
+  media_data:
+    name: icorp_media_data
+
+networks:
+  icorp_network:
+    name: icorp_erp_network
+    driver: bridge
