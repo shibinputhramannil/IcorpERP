@@ -33,6 +33,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import AccessTimeOutlined from '@mui/icons-material/AccessTimeOutlined';
 
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
@@ -213,7 +214,7 @@ export default function NotesPage() {
           <StatCard
             title="Recent Notes"
             value={notes.length}
-            icon={AccessTimeOutlinedIcon}
+            icon={AccessTimeOutlined}
             color="warning"
           />
         </Grid>
