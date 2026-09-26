@@ -1677,7 +1677,7 @@ export default function FinancePage() {
                 <Paper
                   sx={{
                     p: 2.5,
-                    bgcolor: Number(pnlData.net_profit) >= 0 ? '#ecfdf5' : '#fef2f2',
+                    bgcolor: Number(pnlData.net_profit) >= 0 ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.1)' : '#ecfdf5') : (theme => theme.palette.mode === 'dark' ? 'rgba(239,68,68,0.1)' : '#fef2f2'),
                     border: '1px solid',
                     borderColor: Number(pnlData.net_profit) >= 0 ? '#10b981' : '#ef4444',
                     display: 'flex',

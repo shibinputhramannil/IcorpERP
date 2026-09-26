@@ -294,7 +294,7 @@ export default function NotificationsPage() {
                   boxShadow: 'none',
                   transition: 'background-color 0.2s',
                   '&:hover': {
-                    bgcolor: isUnread ? '#eff6ff' : 'background.subtle',
+                    bgcolor: isUnread ? (theme => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.15)' : '#eff6ff') : 'background.subtle',
                   },
                 }}
               >

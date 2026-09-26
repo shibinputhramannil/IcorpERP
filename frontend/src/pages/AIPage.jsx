@@ -815,8 +815,8 @@ export default function AIPage() {
                             sx={{
                               p: 2,
                               borderRadius: 2,
-                              bgcolor: isUp ? '#f0fdf4' : isDown ? '#fef2f2' : 'background.subtle',
-                              borderColor: isUp ? '#bbf7d0' : isDown ? '#fecaca' : '#e2e8f0',
+                              bgcolor: isUp ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : '#f0fdf4') : isDown ? (theme => theme.palette.mode === 'dark' ? 'rgba(239,68,68,0.15)' : '#fef2f2') : 'background.subtle',
+                              borderColor: isUp ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.4)' : '#bbf7d0') : isDown ? (theme => theme.palette.mode === 'dark' ? 'rgba(239,68,68,0.4)' : '#fecaca') : 'divider',
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
@@ -987,7 +987,7 @@ export default function AIPage() {
                       sx={{
                         fontSize: '0.75rem',
                         fontWeight: 500,
-                        '&:hover': { bgcolor: '#eff6ff', borderColor: 'primary.main' },
+                        '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
                       }}
                     />
                   ))}

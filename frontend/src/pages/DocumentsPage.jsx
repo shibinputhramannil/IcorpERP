@@ -469,7 +469,7 @@ export default function DocumentsPage() {
                   p: 3,
                   textAlign: 'center',
                   cursor: 'pointer',
-                  bgcolor: selectedFile ? '#f0fdf4' : 'background.subtle',
+                  bgcolor: selectedFile ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : '#f0fdf4') : 'background.subtle',
                   borderColor: selectedFile ? '#22c55e' : '#cbd5e1',
                   '&:hover': { bgcolor: '#f1f5f9' },
                 }}

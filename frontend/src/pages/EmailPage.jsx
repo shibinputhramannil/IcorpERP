@@ -401,7 +401,7 @@ export default function EmailPage() {
                         sx={{
                           borderBottom: '1px solid #f1f5f9',
                           bgcolor: isSelected
-                            ? '#f0fdf4'
+                            ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : '#f0fdf4')
                             : !email.is_read
                             ? 'background.subtle'
                             : '#ffffff',

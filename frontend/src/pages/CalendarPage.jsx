@@ -23,6 +23,7 @@ import {
   Tooltip,
   Paper,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // Icons
 import AddIcon from '@mui/icons-material/Add';
@@ -412,18 +413,19 @@ export default function CalendarPage() {
                 <Box
                   key={`day-${dayNum}`}
                   onClick={() => openCreateModal(dateObj)}
-                  sx={{
+                  sx={(theme) => ({
                     minHeight: 110,
                     p: 1,
-                    borderRight: '1px solid #e2e8f0',
-                    borderBottom: '1px solid #e2e8f0',
-                    bgcolor: isToday ? '#f0fdf4' : '#ffffff',
+                    borderRight: 1,
+                    borderColor: 'divider',
+                    borderBottom: 1,
+                    bgcolor: isToday ? (theme.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4') : 'background.paper',
                     cursor: 'pointer',
                     transition: 'background-color 0.15s',
                     '&:hover': {
-                      bgcolor: isToday ? '#dcfce7' : '#f1f5f9',
+                      bgcolor: isToday ? (theme.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : '#dcfce7') : 'action.hover',
                     },
-                  }}
+                  })}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
                     <Typography
@@ -463,11 +465,12 @@ export default function CalendarPage() {
                             setSelectedEvent(ev);
                             setEventDetailOpen(true);
                           }}
-                          sx={{
+                          sx={(theme) => ({
                             p: 0.5,
                             borderRadius: 1,
-                            bgcolor: cfg.bg,
-                            border: `1px solid ${cfg.border}`,
+                            bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette[cfg.color !== 'default' ? cfg.color : 'secondary'].main, 0.15) : cfg.bg,
+                            border: 1,
+                            borderColor: theme.palette.mode === 'dark' ? alpha(theme.palette[cfg.color !== 'default' ? cfg.color : 'secondary'].main, 0.4) : cfg.border,
                             fontSize: '0.72rem',
                             fontWeight: 600,
                             color: 'text.primary',
@@ -478,7 +481,7 @@ export default function CalendarPage() {
                             alignItems: 'center',
                             gap: 0.5,
                             '&:hover': { opacity: 0.8 },
-                          }}
+                          })}
                         >
                           <Box
                             sx={{
@@ -545,16 +548,16 @@ export default function CalendarPage() {
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Box
-                        sx={{
+                        sx={(theme) => ({
                           width: 44,
                           height: 44,
                           borderRadius: 2,
-                          bgcolor: cfg.bg,
-                          color: `${cfg.color}.main`,
+                          bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette[cfg.color !== 'default' ? cfg.color : 'secondary'].main, 0.15) : cfg.bg,
+                          color: cfg.color !== 'default' ? `${cfg.color}.main` : 'text.primary',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                        }}
+                        })}
                       >
                         <IconComp />
                       </Box>

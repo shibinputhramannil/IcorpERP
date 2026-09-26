@@ -40,6 +40,9 @@ export default function StatCard({
                 else if (color === 'success.main') resolvedColor = theme.palette.success.main;
                 else if (color === 'warning.main') resolvedColor = theme.palette.warning.main;
                 else if (color === 'error.main') resolvedColor = theme.palette.error.main;
+                else if (color === 'info.main') resolvedColor = theme.palette.info.main;
+                else if (color === 'text.primary') resolvedColor = theme.palette.text.primary;
+                else if (color === 'text.secondary') resolvedColor = theme.palette.text.secondary;
 
                 return {
                   width: 44,
@@ -48,7 +51,10 @@ export default function StatCard({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: alpha(resolvedColor, 0.08),
+                  backgroundColor: (() => {
+                    try { return alpha(resolvedColor, 0.08); } 
+                    catch(e) { return 'transparent'; }
+                  })(),
                   color: resolvedColor,
                 };
               }}

@@ -491,7 +491,7 @@ export default function EmployeesPage() {
                         <Chip
                           label={emp.employee_id}
                           size="small"
-                          sx={{ fontWeight: 700, backgroundColor: '#eff6ff', color: '#1d4ed8' }}
+                          sx={{ fontWeight: 700, backgroundColor: theme => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : '#eff6ff', color: '#1d4ed8' }}
                         />
                       </TableCell>
 

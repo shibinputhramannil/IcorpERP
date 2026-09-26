@@ -524,7 +524,7 @@ export default function WorkspacePage() {
                                 sx={{
                                   fontWeight: 600,
                                   fontSize: '0.75rem',
-                                  bgcolor: roleName === 'Company Admin' ? '#eff6ff' : '#f1f5f9',
+                                  bgcolor: roleName === 'Company Admin' ? (theme => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.15)' : '#eff6ff') : 'background.subtle',
                                   color: roleName === 'Company Admin' ? '#1d4ed8' : '#475569',
                                   border: '1px solid',
                                   borderColor: roleName === 'Company Admin' ? '#bfdbfe' : '#cbd5e1',

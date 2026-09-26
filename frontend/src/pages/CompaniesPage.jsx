@@ -468,7 +468,7 @@ export default function CompaniesPage() {
                               width: 36,
                               height: 36,
                               borderRadius: 1.5,
-                              backgroundColor: comp.is_active ? '#eff6ff' : '#f1f5f9',
+                              backgroundColor: comp.is_active ? (theme => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : '#eff6ff') : 'background.subtle',
                               color: comp.is_active ? '#2563eb' : '#94a3b8',
                               display: 'flex',
                               alignItems: 'center',
