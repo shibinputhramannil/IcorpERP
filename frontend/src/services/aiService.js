@@ -3,25 +3,43 @@ import api from './api';
 export const aiService = {
   /**
    * Phase 9: Fetch complete business intelligence dashboard across all ERP modules.
+   * If companyId is null/omitted, fetches global multi-workspace dashboard.
    */
-  getDashboard: async (companyId) => {
-    const response = await api.get(`/companies/${companyId}/ai/dashboard/`);
+  getDashboard: async (companyId = null) => {
+    if (companyId) {
+      const response = await api.get(`/companies/${companyId}/ai/dashboard/`);
+      return response.data;
+    }
+    const response = await api.get('/ai/dashboard/');
     return response.data;
   },
 
   /**
    * Phase 9: Fetch executive business summary, key metrics, strengths, risks, recommendations.
+   * If companyId is null/omitted, fetches global multi-workspace summary.
    */
-  getSummary: async (companyId) => {
-    const response = await api.get(`/companies/${companyId}/ai/summary/`);
+  getSummary: async (companyId = null) => {
+    if (companyId) {
+      const response = await api.get(`/companies/${companyId}/ai/summary/`);
+      return response.data;
+    }
+    const response = await api.get('/ai/summary/');
     return response.data;
   },
 
   /**
    * Phase 9: Ask business question with safe grounded ERP fallback.
+   * If companyId is null/omitted, queries globally across all authorized companies.
    */
-  ask: async (companyId, question, conversationHistory = []) => {
-    const response = await api.post(`/companies/${companyId}/ai/ask/`, {
+  ask: async (companyId = null, question, conversationHistory = []) => {
+    if (companyId) {
+      const response = await api.post(`/companies/${companyId}/ai/ask/`, {
+        question,
+        conversation_history: conversationHistory,
+      });
+      return response.data;
+    }
+    const response = await api.post('/ai/ask/', {
       question,
       conversation_history: conversationHistory,
     });
@@ -29,13 +47,39 @@ export const aiService = {
   },
 
   /**
-   * Preserved Phase 7: Send a natural language prompt to the AI ERP Assistant.
+   * Preserved Phase 7 & Phase 9: Send a natural language prompt to the AI ERP Assistant.
+   * If companyId is null/omitted, queries globally across all authorized companies.
    */
-  chat: async (companyId, query, conversationHistory = []) => {
-    const response = await api.post(`/companies/${companyId}/ai/chat/`, {
+  chat: async (companyId = null, query, conversationHistory = []) => {
+    if (companyId) {
+      const response = await api.post(`/companies/${companyId}/ai/chat/`, {
+        query,
+        conversation_history: conversationHistory,
+      });
+      return response.data;
+    }
+    const response = await api.post('/ai/chat/', {
       query,
       conversation_history: conversationHistory,
     });
+    return response.data;
+  },
+
+  /**
+   * Explicit global multi-company AI dashboard.
+   */
+  getGlobalDashboard: async (companyId = null) => {
+    const params = companyId ? { company_id: companyId } : {};
+    const response = await api.get('/ai/dashboard/', { params });
+    return response.data;
+  },
+
+  /**
+   * Explicit global multi-company executive summary.
+   */
+  getGlobalSummary: async (companyId = null) => {
+    const params = companyId ? { company_id: companyId } : {};
+    const response = await api.get('/ai/summary/', { params });
     return response.data;
   },
 

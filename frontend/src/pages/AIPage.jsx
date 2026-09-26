@@ -67,8 +67,20 @@ const QUICK_PROMPTS = [
 ];
 
 export default function AIPage() {
-  const { currentCompany } = useCompany();
-  const companyId = currentCompany?.id;
+  const { currentCompany, companies } = useCompany();
+  // Selected company filter: 'global' or company ID string
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState(
+    currentCompany?.id ? String(currentCompany.id) : 'global'
+  );
+
+  useEffect(() => {
+    if (currentCompany?.id && selectedCompanyFilter !== 'global') {
+      setSelectedCompanyFilter(String(currentCompany.id));
+    }
+  }, [currentCompany?.id]);
+
+  const activeTargetCompanyId =
+    selectedCompanyFilter === 'global' ? null : Number(selectedCompanyFilter);
 
   // View tabs
   const [activeTab, setActiveTab] = useState(0);
@@ -83,7 +95,7 @@ export default function AIPage() {
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: "👋 Hello! I am your **ICORP ERP AI Assistant**. I provide real-time insights, multi-module business telemetry, and answered queries grounded directly in your company's live ERP data.\n\nAsk me anything or select a prompt below!",
+      text: "👋 Hello! I am your **ICORP Global ERP Assistant**. I provide real-time business telemetry, cross-ledger synthesis, and operational answers grounded directly in your authorized ERP database across all workspaces.\n\nAsk me anything or select a prompt below!",
       timestamp: new Date(),
     },
   ]);
@@ -95,13 +107,12 @@ export default function AIPage() {
 
   // Fetch Dashboard & Summary
   const fetchTelemetry = useCallback(async () => {
-    if (!companyId) return;
     setLoadingDashboard(true);
     setDashboardError('');
     try {
       const [dash, summary] = await Promise.all([
-        aiService.getDashboard(companyId),
-        aiService.getSummary(companyId),
+        aiService.getDashboard(activeTargetCompanyId),
+        aiService.getSummary(activeTargetCompanyId),
       ]);
       setDashboardData(dash);
       setSummaryData(summary);
@@ -110,7 +121,7 @@ export default function AIPage() {
     } finally {
       setLoadingDashboard(false);
     }
-  }, [companyId]);
+  }, [activeTargetCompanyId]);
 
   useEffect(() => {
     fetchTelemetry();
@@ -126,7 +137,7 @@ export default function AIPage() {
   // Handle Ask Submit
   const handleAsk = async (textToSend) => {
     const q = (textToSend || inputQuestion).trim();
-    if (!q || !companyId || isAsking) return;
+    if (!q || isAsking) return;
 
     setInputQuestion('');
     setChatError('');
@@ -137,7 +148,7 @@ export default function AIPage() {
     setIsAsking(true);
 
     try {
-      const res = await aiService.ask(companyId, q);
+      const res = await aiService.ask(activeTargetCompanyId, q);
       const assistantMsg = {
         sender: 'assistant',
         text: res.answer,
@@ -174,17 +185,6 @@ export default function AIPage() {
       },
     ]);
   };
-
-  if (!currentCompany) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <EmptyState
-          title="No Company Selected"
-          description="Please select an active company to access AI Business Assistant & Insights."
-        />
-      </Box>
-    );
-  }
 
   const insights = dashboardData?.insights || {};
   const sales = insights.sales || {};
@@ -223,6 +223,37 @@ export default function AIPage() {
           </Stack>
         }
       />
+
+      {/* Workspace Scope Switcher */}
+      <Card sx={{ mb: 3, p: 1.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            ASSISTANT SCOPE:
+          </Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip
+              icon={<AutoAwesomeIcon fontSize="small" />}
+              label="🌐 Global (All Workspaces)"
+              clickable
+              color={selectedCompanyFilter === 'global' ? 'primary' : 'default'}
+              variant={selectedCompanyFilter === 'global' ? 'filled' : 'outlined'}
+              onClick={() => setSelectedCompanyFilter('global')}
+              sx={{ fontWeight: 700 }}
+            />
+            {(dashboardData?.authorized_companies || companies || []).map((c) => (
+              <Chip
+                key={c.id}
+                label={c.name}
+                clickable
+                color={String(selectedCompanyFilter) === String(c.id) ? 'primary' : 'default'}
+                variant={String(selectedCompanyFilter) === String(c.id) ? 'filled' : 'outlined'}
+                onClick={() => setSelectedCompanyFilter(String(c.id))}
+                sx={{ fontWeight: 600 }}
+              />
+            ))}
+          </Stack>
+        </Stack>
+      </Card>
 
       {dashboardError && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setDashboardError('')}>
@@ -349,6 +380,59 @@ export default function AIPage() {
                   />
                 </Grid>
               </Grid>
+
+              {/* Multi-Entity Workspace Breakdown (Global Mode) */}
+              {dashboardData?.is_global && dashboardData?.company_breakdown?.length > 0 && (
+                <Card sx={{ p: 2.5 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    Consolidated Entity Breakdown
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Real-time operational metrics across all authorized company workspaces.
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700 }}>Company Workspace</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Total Sales</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Procurement Spend</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Net Margin</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Catalog Items</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Employees</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Active Deals</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700 }}>Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {dashboardData.company_breakdown.map((row) => (
+                          <TableRow key={row.id} hover>
+                            <TableCell sx={{ fontWeight: 700 }}>{row.name}</TableCell>
+                            <TableCell>{row.total_sales_formatted}</TableCell>
+                            <TableCell>{row.total_purchases_formatted}</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: row.net_profit_formatted?.startsWith('-') ? 'error.main' : 'success.main' }}>
+                              {row.net_profit_formatted}
+                            </TableCell>
+                            <TableCell>{row.total_products}</TableCell>
+                            <TableCell>{row.total_employees}</TableCell>
+                            <TableCell>{row.active_deals}</TableCell>
+                            <TableCell align="right">
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => setSelectedCompanyFilter(String(row.id))}
+                                sx={{ textTransform: 'none', py: 0.25 }}
+                              >
+                                Focus Company
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Card>
+              )}
 
               {/* Business Insights Cards (6 Core Modules) */}
               <Typography variant="h6" sx={{ fontWeight: 700, mt: 1 }}>

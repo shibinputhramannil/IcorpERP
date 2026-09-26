@@ -23,7 +23,10 @@ import AIAssistantPage from '../pages/AIAssistantPage';
 import WorkspacePage from '../pages/WorkspacePage';
 import NotificationsPage from '../pages/NotificationsPage';
 import SettingsPage from '../pages/SettingsPage';
-import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
+import CalendarPage from '../pages/CalendarPage';
+import NotesPage from '../pages/NotesPage';
+import EmailPage from '../pages/EmailPage';
+import DocumentsPage from '../pages/DocumentsPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 export default function AppRoutes() {
@@ -57,78 +60,10 @@ export default function AppRoutes() {
         <Route path="/reports" element={<ReportsPage />} />
 
         {/* Workspace & Collaboration Modules */}
-        <Route
-          path="/calendar"
-          element={
-            <ModulePlaceholderPage
-              title="Calendar & Scheduling"
-              subtitle="Coordinate internal events, client meetings, and sales follow-ups."
-              category="Workspace & Collaboration"
-              phaseNumber={9}
-              features={[
-                'Internal event scheduling',
-                'Client & customer meetings',
-                'Employee shift & meeting planning',
-                'Sales follow-up reminders',
-                'Optional Google Calendar synchronization bridge',
-              ]}
-            />
-          }
-        />
-
-        <Route
-          path="/notes"
-          element={
-            <ModulePlaceholderPage
-              title="Enterprise Notes"
-              subtitle="Collaborative notes contextualized to companies, deals, and contacts."
-              category="Workspace & Collaboration"
-              phaseNumber={9}
-              features={[
-                'Rich text notes editor',
-                'Entity-linked notes (Companies, Contacts, Leads)',
-                'Private and team-shared notes',
-                'Tags and search filtering',
-              ]}
-            />
-          }
-        />
-
-        <Route
-          path="/email"
-          element={
-            <ModulePlaceholderPage
-              title="Email Hub"
-              subtitle="Unified corporate email client and outbound correspondence tracking."
-              category="Workspace & Collaboration"
-              phaseNumber={9}
-              features={[
-                'Inbox & sent folder viewing',
-                'Email composer with template support',
-                'Correspondence timeline linked to CRM contacts',
-                'Standard IMAP/SMTP integration support',
-              ]}
-            />
-          }
-        />
-
-        <Route
-          path="/documents"
-          element={
-            <ModulePlaceholderPage
-              title="Document Management"
-              subtitle="Central repository for contracts, invoices, employee records, and quotations."
-              category="Workspace & Collaboration"
-              phaseNumber={9}
-              features={[
-                'Contract & NDA repository',
-                'Generated invoice & quotation archives',
-                'Employee compliance documents',
-                'Secure access control & version history',
-              ]}
-            />
-          }
-        />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/notes" element={<NotesPage />} />
+        <Route path="/email" element={<EmailPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
 
         {/* Workspace & Collaboration Modules */}
         <Route path="/workspace" element={<WorkspacePage />} />

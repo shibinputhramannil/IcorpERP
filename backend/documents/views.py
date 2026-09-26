@@ -68,7 +68,11 @@ class DocumentListCreateView(DocumentBaseView):
         # Filters
         search = request.query_params.get("search")
         if search:
-            queryset = queryset.filter(Q(name__icontains=search.strip()))
+            queryset = queryset.filter(Q(name__icontains=search.strip()) | Q(tags__icontains=search.strip()))
+
+        category = request.query_params.get("category")
+        if category and category != "all":
+            queryset = queryset.filter(category=category.strip().lower())
 
         file_type = request.query_params.get("file_type")
         if file_type:
@@ -130,6 +134,9 @@ class DocumentListCreateView(DocumentBaseView):
         custom_name = request.data.get("name")
         doc_name = str(custom_name).strip() if custom_name else original_name
 
+        category = request.data.get("category", "general")
+        tags = request.data.get("tags", "")
+
         related_module = request.data.get("related_module", "workspace")
         related_object_id = request.data.get("related_object_id")
         if related_object_id:
@@ -145,6 +152,8 @@ class DocumentListCreateView(DocumentBaseView):
             file=file_obj,
             file_type=ext.upper(),
             file_size=file_obj.size,
+            category=category.lower() if category else "general",
+            tags=tags.strip(),
             related_module=related_module,
             related_object_id=related_object_id,
         )
@@ -179,6 +188,26 @@ class DocumentDetailView(DocumentBaseView):
             return Response({"detail": "Document not found."}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(DocumentSerializer(document).data, status=status.HTTP_200_OK)
+
+    def patch(self, request, company_id, pk):
+        company, is_admin = self.get_company_and_membership(request, company_id)
+        if not company:
+            return Response({"detail": "Access denied."}, status=status.HTTP_403_FORBIDDEN)
+
+        document = Document.objects.filter(id=pk, company=company).first()
+        if not document:
+            return Response({"detail": "Document not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        can_edit = is_admin or request.user.is_superuser or (document.uploaded_by_id == request.user.id)
+        if not can_edit:
+            return Response({"detail": "You do not have permission to edit this document."}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = DocumentSerializer(document, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_doc = serializer.save()
+        return Response(DocumentSerializer(updated_doc).data, status=status.HTTP_200_OK)
 
     def delete(self, request, company_id, pk):
         company, is_admin = self.get_company_and_membership(request, company_id)

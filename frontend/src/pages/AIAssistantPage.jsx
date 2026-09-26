@@ -313,7 +313,7 @@ export default function AIAssistantPage() {
   // Handle Send Chat Query
   const handleSendMessage = async (textToSend) => {
     const query = (textToSend || inputQuery).trim();
-    if (!query || isSending || !activeCompany?.id) return;
+    if (!query || isSending) return;
 
     const userMessageId = Date.now();
     const newMessages = [
@@ -336,7 +336,7 @@ export default function AIAssistantPage() {
         content: m.text,
       }));
 
-      const res = await aiService.chat(activeCompany.id, query, historyPayload);
+      const res = await aiService.chat(activeCompany?.id || null, query, historyPayload);
 
       setMessages((prev) => [
         ...prev,
@@ -410,15 +410,6 @@ export default function AIAssistantPage() {
     return <LoadingState message="Loading company context..." />;
   }
 
-  if (!activeCompany) {
-    return (
-      <EmptyState
-        title="No Company Selected"
-        description="Please select an active company from the top navigation to activate the AI ERP Assistant."
-      />
-    );
-  }
-
   return (
     <Box sx={{ pb: 6 }}>
       {/* Page Header */}
@@ -437,7 +428,7 @@ export default function AIAssistantPage() {
             />
             <Chip
               icon={<BusinessOutlinedIcon sx={{ fontSize: '1rem !important' }} />}
-              label={activeCompany.name}
+              label={activeCompany ? activeCompany.name : 'Global Workspace'}
               color="primary"
               size="small"
               sx={{ fontWeight: 600 }}

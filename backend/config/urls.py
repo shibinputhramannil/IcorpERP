@@ -48,6 +48,13 @@ from accounts.workspace_collaboration_views import (
     WorkspaceActivitiesView,
     WorkspaceCollaborationOverviewView,
 )
+from accounts.search_views import GlobalSearchView
+from ai.views import (
+    GlobalAIDashboardView,
+    GlobalAISummaryView,
+    GlobalAIAskView,
+    GlobalAIChatView,
+)
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
 from crm.views import (
@@ -329,6 +336,25 @@ urlpatterns = [
     # Notifications - Phase 9B
     # ============================================================
     path("api/companies/<int:company_id>/notifications/", include("notifications.urls")),
+
+    # ============================================================
+    # Calendar & Scheduling - Phase 9 Final
+    # ============================================================
+    path("api/companies/<int:company_id>/calendar/", include("calendar_events.urls")),
+
+    # ============================================================
+    # Email Hub - Phase 9 Final
+    # ============================================================
+    path("api/companies/<int:company_id>/emails/", include("emails.urls")),
+
+    # ============================================================
+    # Global Search & Global AI Assistant - Phase 9 Final
+    # ============================================================
+    path("api/search/", GlobalSearchView.as_view(), name="global_search"),
+    path("api/ai/dashboard/", GlobalAIDashboardView.as_view(), name="global_ai_dashboard"),
+    path("api/ai/summary/", GlobalAISummaryView.as_view(), name="global_ai_summary"),
+    path("api/ai/ask/", GlobalAIAskView.as_view(), name="global_ai_ask"),
+    path("api/ai/chat/", GlobalAIChatView.as_view(), name="global_ai_chat"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

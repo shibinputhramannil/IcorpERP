@@ -882,6 +882,8 @@ class ERPIntent:
     CUSTOMER_LOOKUP = "CUSTOMER_LOOKUP"
     VENDOR_LOOKUP = "VENDOR_LOOKUP"
     EXECUTIVE_SUMMARY = "EXECUTIVE_SUMMARY"
+    RECEIVABLES_PAYABLES = "RECEIVABLES_PAYABLES"
+    NET_PROFIT = "NET_PROFIT"
     GENERAL = "GENERAL"
 
 
@@ -1377,6 +1379,14 @@ def call_openai_api(api_key, system_context, user_query):
 # 5. MAIN AI ASSISTANT DISPATCHER
 # ============================================================
 
+def get_active_ai_key():
+    return (
+        os.environ.get("AI_API_KEY", "").strip()
+        or os.environ.get("GEMINI_API_KEY", "").strip()
+        or os.environ.get("OPENAI_API_KEY", "").strip()
+    )
+
+
 def process_ai_query(company, query, conversation_history=None):
     """
     Main entry point for AI ERP Assistant queries.
@@ -1406,11 +1416,7 @@ def process_ai_query(company, query, conversation_history=None):
     deterministic_result = synthesize_deterministic_response(intent, entity_name, company)
 
     # 2. Check for LLM API keys
-    ai_key = (
-        os.environ.get("AI_API_KEY", "").strip()
-        or os.environ.get("GEMINI_API_KEY", "").strip()
-        or os.environ.get("OPENAI_API_KEY", "").strip()
-    )
+    ai_key = get_active_ai_key()
 
     if ai_key:
         system_context = (
@@ -1462,4 +1468,534 @@ def ask_ai(company, question, conversation_history=None):
         "fallback_used": fallback_used,
         "llm_augmented": llm_augmented,
     }
+
+
+# ============================================================
+# 5. GLOBAL / MULTI-COMPANY ERP ASSISTANT & INTELLIGENCE
+# ============================================================
+
+def get_user_authorized_companies(user):
+    """
+    Returns queryset of active companies the user has authorized access to.
+    Superusers have access to all active companies.
+    """
+    if user.is_superuser:
+        return Company.objects.filter(is_active=True).order_by("name")
+    return Company.objects.filter(
+        memberships__user=user,
+        memberships__is_active=True,
+        is_active=True,
+    ).distinct().order_by("name")
+
+
+def get_global_ai_business_dashboard(user, company_id=None):
+    """
+    Provides multi-company structured intelligence or company-specific dashboard.
+    If company_id is provided, returns company-scoped dashboard.
+    If company_id is None, synthesizes data across ALL authorized companies.
+    """
+    authorized_companies = get_user_authorized_companies(user)
+
+    if company_id:
+        company = authorized_companies.filter(id=company_id).first()
+        if not company:
+            return None
+        dash = get_ai_business_dashboard(company)
+        dash["is_global"] = False
+        dash["authorized_companies"] = [
+            {"id": c.id, "name": c.name} for c in authorized_companies
+        ]
+        return dash
+
+    # Global multi-company synthesis
+    companies_list = list(authorized_companies)
+    if not companies_list:
+        return {
+            "is_global": True,
+            "generated_at": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "authorized_companies": [],
+            "company_count": 0,
+            "business_summary": "No companies are currently registered or assigned to your user account.",
+            "insights": {
+                "sales": {"total_sales": "0.00", "total_sales_formatted": "$0.00", "month_sales": "0.00", "month_sales_formatted": "$0.00", "total_orders_count": 0, "total_invoice_count": 0, "recent_orders": []},
+                "purchases": {"total_purchases": "0.00", "total_purchases_formatted": "$0.00", "month_purchases": "0.00", "month_purchases_formatted": "$0.00", "unpaid_bills_count": 0, "unpaid_bills_total": "0.00", "unpaid_bills_formatted": "$0.00", "recent_pos": []},
+                "inventory": {"total_products": 0, "total_valuation": "0.00", "total_valuation_formatted": "$0.00", "low_stock_count": 0, "out_of_stock_count": 0, "low_stock_items": [], "out_of_stock_items": []},
+                "finance": {"revenue_total": "0.00", "revenue_total_formatted": "$0.00", "expenses_total": "0.00", "expenses_total_formatted": "$0.00", "net_profit": "0.00", "net_profit_formatted": "$0.00", "liquid_funds": "0.00", "liquid_funds_formatted": "$0.00", "receivables_total": "0.00", "receivables_total_formatted": "$0.00", "payables_total": "0.00", "payables_total_formatted": "$0.00"},
+                "crm": {"total_customers": 0, "corporate_customers": 0, "individual_customers": 0, "total_leads": 0, "converted_leads": 0, "conversion_rate_percentage": 0, "total_deals": 0, "pipeline_value": "0.00", "pipeline_value_formatted": "$0.00", "recent_leads": []},
+                "hr": {"total_employees": 0, "active_employees": 0, "inactive_employees": 0, "departments_count": 0, "departments": [], "recent_employees": []},
+            },
+            "receivables_payables": {"total_receivables": "0.00", "total_receivables_formatted": "$0.00", "total_payables": "0.00", "total_payables_formatted": "$0.00", "liquid_funds": "0.00", "liquid_funds_formatted": "$0.00", "net_working_capital": "0.00", "net_working_capital_formatted": "$0.00"},
+            "alerts": [],
+            "key_trends": [],
+            "recommendations": ["Create or join a company workspace to begin capturing ERP telemetry."],
+            "company_breakdown": [],
+        }
+
+    company_breakdown = []
+    tot_sales = Decimal("0.00")
+    tot_month_sales = Decimal("0.00")
+    tot_orders = 0
+    tot_invoices = 0
+    recent_orders_all = []
+
+    tot_purchases = Decimal("0.00")
+    tot_month_purch = Decimal("0.00")
+    tot_unpaid_bills_val = Decimal("0.00")
+    tot_unpaid_bills_cnt = 0
+    recent_pos_all = []
+
+    tot_products = 0
+    tot_valuation = Decimal("0.00")
+    low_stock_all = []
+    out_of_stock_all = []
+
+    tot_rev = Decimal("0.00")
+    tot_exp = Decimal("0.00")
+    tot_profit = Decimal("0.00")
+    tot_liquid = Decimal("0.00")
+    tot_receivables = Decimal("0.00")
+    tot_payables = Decimal("0.00")
+
+    tot_customers = 0
+    tot_leads = 0
+    tot_converted = 0
+    tot_deals = 0
+    tot_pipeline = Decimal("0.00")
+    recent_leads_all = []
+
+    tot_employees = 0
+    tot_active_emp = 0
+
+    all_alerts = []
+    all_trends = []
+
+    for comp in companies_list:
+        s = get_sales_metrics(comp)
+        p = get_purchase_metrics(comp)
+        inv = get_inventory_metrics(comp)
+        fin = get_finance_metrics(comp)
+        crm_m = get_crm_metrics(comp)
+        hr_m = get_hr_metrics(comp)
+
+        c_sales = Decimal(s["total_sales"])
+        c_purch = Decimal(p["total_purchases"])
+        c_profit = Decimal(fin["net_profit"])
+        c_val = Decimal(inv["total_valuation"])
+
+        tot_sales += c_sales
+        tot_month_sales += Decimal(s["month_sales"])
+        tot_orders += s["total_orders_count"]
+        tot_invoices += s["total_invoice_count"]
+        recent_orders_all.extend([{"company": comp.name, **ro} for ro in s.get("recent_orders", [])])
+
+        tot_purchases += c_purch
+        tot_month_purch += Decimal(p["month_purchases"])
+        tot_unpaid_bills_val += Decimal(p["unpaid_bills_total"])
+        tot_unpaid_bills_cnt += p["unpaid_bills_count"]
+        recent_pos_all.extend([{"company": comp.name, **rpo} for rpo in p.get("recent_pos", [])])
+
+        tot_products += inv["total_products"]
+        tot_valuation += c_val
+        for item in inv["low_stock_items"]:
+            low_stock_all.append({"company": comp.name, **item})
+        for item in inv["out_of_stock_items"]:
+            out_of_stock_all.append({"company": comp.name, **item})
+
+        tot_rev += Decimal(fin["revenue_total"])
+        tot_exp += Decimal(fin["expenses_total"])
+        tot_profit += c_profit
+        tot_liquid += Decimal(fin["liquid_funds"])
+        tot_receivables += Decimal(fin["receivables_total"])
+        tot_payables += Decimal(fin["payables_total"])
+
+        tot_customers += crm_m["total_customers"]
+        tot_leads += crm_m["total_leads"]
+        tot_converted += crm_m["converted_leads"]
+        tot_deals += crm_m["total_deals"]
+        tot_pipeline += Decimal(crm_m["pipeline_value"])
+        recent_leads_all.extend([{"company": comp.name, **rl} for rl in crm_m.get("recent_leads", [])])
+
+        tot_employees += hr_m["total_employees"]
+        tot_active_emp += hr_m["active_employees"]
+
+        # Alerts for this company
+        for item in inv["out_of_stock_items"][:2]:
+            all_alerts.append({
+                "severity": "error",
+                "title": f"Stockout at {comp.name}: {item['name']}",
+                "description": f"SKU {item['sku']} has 0 units in stock. Reorder immediately.",
+                "company_id": comp.id,
+                "company_name": comp.name,
+            })
+        if Decimal(p["unpaid_bills_total"]) > Decimal("0.00"):
+            all_alerts.append({
+                "severity": "warning",
+                "title": f"Outstanding Payables at {comp.name}",
+                "description": f"{p['unpaid_bills_count']} unpaid vendor bills totaling {p['unpaid_bills_formatted']}.",
+                "company_id": comp.id,
+                "company_name": comp.name,
+            })
+        if Decimal(fin["receivables_total"]) > Decimal("0.00"):
+            all_alerts.append({
+                "severity": "info",
+                "title": f"Uncollected Receivables at {comp.name}",
+                "description": f"Outstanding customer receivables equal {fin['receivables_total_formatted']}.",
+                "company_id": comp.id,
+                "company_name": comp.name,
+            })
+
+        company_breakdown.append({
+            "id": comp.id,
+            "name": comp.name,
+            "total_sales_formatted": format_currency(c_sales),
+            "total_purchases_formatted": format_currency(c_purch),
+            "net_profit_formatted": format_currency(c_profit),
+            "inventory_valuation_formatted": format_currency(c_val),
+            "total_products": inv["total_products"],
+            "total_employees": hr_m["total_employees"],
+            "active_deals": crm_m["total_deals"],
+        })
+
+    net_working_capital = tot_liquid + tot_receivables - tot_payables
+    conv_rate = round((tot_converted / tot_leads * 100), 1) if tot_leads > 0 else 0.0
+
+    # Cross-company trends
+    if tot_profit > Decimal("0.00"):
+        all_trends.append({
+            "title": "Consolidated Group Profitability",
+            "trend": "up",
+            "description": f"Combined net profit across {len(companies_list)} workspace(s) is {format_currency(tot_profit)} on total revenue of {format_currency(tot_rev)}.",
+        })
+    else:
+        all_trends.append({
+            "title": "Consolidated Group Profitability",
+            "trend": "down" if tot_profit < Decimal("0.00") else "neutral",
+            "description": f"Consolidated net margin stands at {format_currency(tot_profit)} across all managed entities.",
+        })
+
+    all_trends.append({
+        "title": "Consolidated Working Capital",
+        "trend": "up" if net_working_capital > Decimal("0.00") else "down",
+        "description": f"Net liquid & working capital position is {format_currency(net_working_capital)} with liquid cash reserves of {format_currency(tot_liquid)}.",
+    })
+
+    all_trends.append({
+        "title": "Group CRM Pipeline",
+        "trend": "up" if conv_rate >= 20.0 else "neutral",
+        "description": f"{tot_deals} active deal(s) across {tot_customers} customers totaling {format_currency(tot_pipeline)} in pipeline opportunity value.",
+    })
+
+    recommendations = []
+    if low_stock_all or out_of_stock_all:
+        recommendations.append(
+            f"Replenish inventory: {len(out_of_stock_all)} stockout(s) and {len(low_stock_all)} low-stock item(s) require purchasing across your workspaces."
+        )
+    if tot_receivables > Decimal("0.00"):
+        recommendations.append(
+            f"Collect customer receivables: {format_currency(tot_receivables)} is currently outstanding across group entities."
+        )
+    if not recommendations:
+        recommendations.append("All company workspaces are operating smoothly with sound cash reserves and balanced procurement.")
+
+    business_summary = (
+        f"Consolidated group summary across {len(companies_list)} authorized workspace(s): Total group sales revenue "
+        f"stands at {format_currency(tot_sales)} across {tot_invoices} invoice(s), with monthly billing at {format_currency(tot_month_sales)}. "
+        f"Procurement spend equals {format_currency(tot_purchases)}. Combined net profit is recorded at {format_currency(tot_profit)} "
+        f"with {format_currency(tot_liquid)} in liquid funds and total inventory valuation of {format_currency(tot_valuation)} "
+        f"across {tot_products} product catalog items and {tot_employees} registered employee(s)."
+    )
+
+    return {
+        "is_global": True,
+        "company_id": None,
+        "company_name": "All Authorized Workspaces",
+        "generated_at": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "authorized_companies": [{"id": c.id, "name": c.name} for c in companies_list],
+        "company_count": len(companies_list),
+        "business_summary": business_summary,
+        "insights": {
+            "sales": {
+                "month_sales": str(tot_month_sales),
+                "month_sales_formatted": format_currency(tot_month_sales),
+                "month_invoice_count": 0,
+                "total_sales": str(tot_sales),
+                "total_sales_formatted": format_currency(tot_sales),
+                "total_invoice_count": tot_invoices,
+                "total_orders_count": tot_orders,
+                "recent_orders": recent_orders_all[:5],
+            },
+            "purchases": {
+                "total_purchases": str(tot_purchases),
+                "total_purchases_formatted": format_currency(tot_purchases),
+                "month_purchases": str(tot_month_purch),
+                "month_purchases_formatted": format_currency(tot_month_purch),
+                "unpaid_bills_total": str(tot_unpaid_bills_val),
+                "unpaid_bills_formatted": format_currency(tot_unpaid_bills_val),
+                "unpaid_bills_count": tot_unpaid_bills_cnt,
+                "recent_pos": recent_pos_all[:5],
+            },
+            "inventory": {
+                "total_products": tot_products,
+                "total_valuation": str(tot_valuation),
+                "total_valuation_formatted": format_currency(tot_valuation),
+                "low_stock_count": len(low_stock_all),
+                "out_of_stock_count": len(out_of_stock_all),
+                "low_stock_items": low_stock_all[:5],
+                "out_of_stock_items": out_of_stock_all[:5],
+            },
+            "finance": {
+                "revenue_total": str(tot_rev),
+                "revenue_total_formatted": format_currency(tot_rev),
+                "expenses_total": str(tot_exp),
+                "expenses_total_formatted": format_currency(tot_exp),
+                "net_profit": str(tot_profit),
+                "net_profit_formatted": format_currency(tot_profit),
+                "liquid_funds": str(tot_liquid),
+                "liquid_funds_formatted": format_currency(tot_liquid),
+                "receivables_total": str(tot_receivables),
+                "receivables_total_formatted": format_currency(tot_receivables),
+                "payables_total": str(tot_payables),
+                "payables_total_formatted": format_currency(tot_payables),
+            },
+            "crm": {
+                "total_customers": tot_customers,
+                "corporate_customers": 0,
+                "individual_customers": 0,
+                "total_leads": tot_leads,
+                "converted_leads": tot_converted,
+                "conversion_rate_percentage": conv_rate,
+                "total_deals": tot_deals,
+                "pipeline_value": str(tot_pipeline),
+                "pipeline_value_formatted": format_currency(tot_pipeline),
+                "recent_leads": recent_leads_all[:5],
+            },
+            "hr": {
+                "total_employees": tot_employees,
+                "active_employees": tot_active_emp,
+                "inactive_employees": tot_employees - tot_active_emp,
+                "departments_count": 0,
+                "departments": [],
+                "recent_employees": [],
+            },
+        },
+        "receivables_payables": {
+            "total_receivables": str(tot_receivables),
+            "total_receivables_formatted": format_currency(tot_receivables),
+            "total_payables": str(tot_payables),
+            "total_payables_formatted": format_currency(tot_payables),
+            "liquid_funds": str(tot_liquid),
+            "liquid_funds_formatted": format_currency(tot_liquid),
+            "net_working_capital": str(net_working_capital),
+            "net_working_capital_formatted": format_currency(net_working_capital),
+        },
+        "alerts": all_alerts[:8],
+        "key_trends": all_trends,
+        "recommendations": recommendations,
+        "company_breakdown": company_breakdown,
+    }
+
+
+def get_global_ai_business_summary(user, company_id=None):
+    """
+    Returns executive multi-company summary or company-specific summary.
+    """
+    dashboard = get_global_ai_business_dashboard(user, company_id)
+    if not dashboard:
+        return {"summary": "No company data available."}
+
+    return {
+        "summary": dashboard.get("business_summary", ""),
+        "key_trends": dashboard.get("key_trends", []),
+        "alerts": dashboard.get("alerts", []),
+        "recommendations": dashboard.get("recommendations", []),
+        "company_breakdown": dashboard.get("company_breakdown", []),
+    }
+
+
+def process_global_ai_query(user, query, company_id=None, conversation_history=None):
+    """
+    Processes natural-language queries globally across all authorized companies or for a specified company.
+    Grounded in real ERP database queries. Authoritative financial numbers come strictly from accounting logic.
+    """
+    authorized_companies = get_user_authorized_companies(user)
+    if not authorized_companies.exists():
+        return {
+            "intent": ERPIntent.GENERAL,
+            "answer": "You do not currently have access to any companies or workspaces in ICORP ERP.",
+            "data": {},
+            "suggested_questions": ["How do I create a company workspace?"],
+            "llm_augmented": False,
+        }
+
+    # If specific company_id is provided, route directly
+    if company_id:
+        target_company = authorized_companies.filter(id=company_id).first()
+        if target_company:
+            return process_ai_query(target_company, query, conversation_history)
+
+    # If single company authorized, route directly
+    if authorized_companies.count() == 1:
+        return process_ai_query(authorized_companies.first(), query, conversation_history)
+
+    clean_query = (query or "").strip()
+    q_lower = clean_query.lower()
+
+    # Check if user mentioned a specific company name in the query
+    for comp in authorized_companies:
+        if comp.name.lower() in q_lower:
+            return process_ai_query(comp, clean_query, conversation_history)
+
+    intent, entity_name = classify_query(clean_query)
+
+    # Handle multi-company queries deterministically
+    dash = get_global_ai_business_dashboard(user, None)
+    insights = dash["insights"]
+    breakdown = dash.get("company_breakdown", [])
+
+    answer = ""
+    data = {}
+    suggested = [
+        "What are our total sales across all companies?",
+        "Show me low stock items across all warehouses",
+        "What is our consolidated net profit and cash position?",
+        "Summarize all active CRM deals and pipeline",
+    ]
+
+    if intent == ERPIntent.MONTHLY_SALES:
+        sales = insights["sales"]
+        answer = (
+            f"### Consolidated Monthly Sales\n\n"
+            f"Across all **{len(breakdown)}** authorized workspaces, total billed sales for the current month stand at **{sales['month_sales_formatted']}**.\n\n"
+            f"| Company | Total Sales | Net Profit | Active Deals |\n"
+            f"| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['net_profit_formatted']} | {b['active_deals']} |\n"
+        data = {"sales": sales, "breakdown": breakdown}
+
+    elif intent in [ERPIntent.OUTSTANDING_INVOICES, ERPIntent.RECEIVABLES_PAYABLES]:
+        rec_pay = dash["receivables_payables"]
+        fin = insights["finance"]
+        answer = (
+            f"### Consolidated Accounts Receivable & Payables\n\n"
+            f"- **Customer Receivables**: **{rec_pay['total_receivables_formatted']}** across all workspaces\n"
+            f"- **Vendor Payables**: **{rec_pay['total_payables_formatted']}** across all workspaces\n"
+            f"- **Liquid Cash Reserves**: **{rec_pay['liquid_funds_formatted']}**\n"
+            f"- **Net Working Capital Position**: **{rec_pay['net_working_capital_formatted']}**\n\n"
+            f"Financial calculations are retrieved directly from company general ledgers and issued invoices."
+        )
+        data = {"receivables_payables": rec_pay, "finance": fin}
+
+    elif intent == ERPIntent.LOW_STOCK:
+        inv = insights["inventory"]
+        low_stock = inv["low_stock_items"]
+        out_of_stock = inv["out_of_stock_items"]
+        answer = (
+            f"### Group Inventory Alerts\n\n"
+            f"There are **{inv['out_of_stock_count']}** out-of-stock items and **{inv['low_stock_count']}** low-stock items across all companies.\n\n"
+        )
+        if out_of_stock:
+            answer += "#### Out of Stock (Urgent Reorder Required)\n"
+            answer += "| Company | SKU | Product Name | Stock | Cost |\n| :--- | :--- | :--- | :--- | :--- |\n"
+            for it in out_of_stock[:5]:
+                answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | **{it['name']}** | {it['current_stock']} | ${it['cost_price']} |\n"
+            answer += "\n"
+        if low_stock:
+            answer += "#### Low Stock Warnings\n"
+            answer += "| Company | SKU | Product Name | Stock | Reorder Level |\n| :--- | :--- | :--- | :--- | :--- |\n"
+            for it in low_stock[:5]:
+                answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | {it['name']} | {it['current_stock']} | {it['reorder_level']} |\n"
+        data = {"inventory": inv}
+
+    elif intent == ERPIntent.TOTAL_PURCHASES:
+        purch = insights["purchases"]
+        answer = (
+            f"### Consolidated Procurement Spend\n\n"
+            f"Cumulative procurement spend across all workspaces is **{purch['total_purchases_formatted']}** "
+            f"(with **{purch['month_purchases_formatted']}** billed this month).\n\n"
+            f"Unpaid vendor obligations total **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)."
+        )
+        data = {"purchases": purch}
+
+    elif intent == ERPIntent.NET_PROFIT:
+        fin = insights["finance"]
+        answer = (
+            f"### Consolidated Financial Position\n\n"
+            f"- **Net Profit**: **{fin['net_profit_formatted']}**\n"
+            f"- **Operating Revenue**: **{fin['revenue_total_formatted']}**\n"
+            f"- **Operating Expenses**: **{fin['expenses_total_formatted']}**\n"
+            f"- **Liquid Cash Reserves**: **{fin['liquid_funds_formatted']}**\n\n"
+            f"| Company | Sales | Purchases | Net Margin |\n| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['total_purchases_formatted']} | {b['net_profit_formatted']} |\n"
+        data = {"finance": fin, "breakdown": breakdown}
+
+    else:
+        # General / Executive multi-company summary
+        answer = (
+            f"### Executive Multi-Workspace Overview\n\n"
+            f"{dash['business_summary']}\n\n"
+            f"#### Entity Breakdown\n"
+            f"| Company | Sales | Purchases | Net Profit | Products | Employees |\n"
+            f"| :--- | :--- | :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['total_purchases_formatted']} | {b['net_profit_formatted']} | {b['total_products']} | {b['total_employees']} |\n"
+        data = {"dashboard": dash}
+
+    result = {
+        "intent": intent,
+        "answer": answer,
+        "data": data,
+        "suggested_questions": suggested,
+        "llm_augmented": False,
+    }
+
+    # Optional external LLM augmentation
+    ai_key = get_active_ai_key()
+    if ai_key:
+        system_context = (
+            f"You are the ICORP ERP Global Executive Assistant. You assist the authorized user across all their companies.\n"
+            f"STRICT RULES:\n"
+            f"- Ground your answers strictly on the verified ERP context provided below.\n"
+            f"- Do not hallucinate numbers or calculate new accounting numbers yourself.\n"
+            f"- Format response in Markdown with tables, bullets, and bold numbers.\n"
+            f"- You are strictly read-only.\n\n"
+            f"VERIFIED CONSOLIDATED ERP DATA:\n{json.dumps(data, default=str, indent=2)}"
+        )
+        llm_answer = None
+        if ai_key.startswith("sk-") or os.environ.get("OPENAI_API_KEY"):
+            llm_answer = call_openai_api(ai_key, system_context, clean_query)
+        else:
+            llm_answer = call_gemini_api(ai_key, system_context, clean_query)
+
+        if llm_answer and len(llm_answer.strip()) > 20:
+            result["answer"] = llm_answer.strip()
+            result["llm_augmented"] = True
+
+    return result
+
+
+def ask_global_ai(user, question, company_id=None, conversation_history=None):
+    """
+    Endpoint handler for POST /api/ai/ask/ and POST /api/ai/chat/.
+    Allows asking questions without requiring a company to be selected first.
+    """
+    clean_question = (question or "").strip()
+    result = process_global_ai_query(user, clean_question, company_id=company_id, conversation_history=conversation_history)
+
+    llm_augmented = result.get("llm_augmented", False)
+    fallback_used = not llm_augmented
+
+    return {
+        "question": clean_question,
+        "answer": result["answer"],
+        "intent": result.get("intent", ERPIntent.GENERAL),
+        "data": result.get("data", {}),
+        "suggested_questions": result.get("suggested_questions", []),
+        "fallback_used": fallback_used,
+        "llm_augmented": llm_augmented,
+    }
+
 

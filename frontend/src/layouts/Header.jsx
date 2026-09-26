@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -23,12 +23,25 @@ import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
 import NotificationBell from '../components/common/NotificationBell';
+import GlobalSearchDialog from '../components/common/GlobalSearchDialog';
 import { DRAWER_WIDTH } from './Sidebar';
 import { useCompany } from '../context/CompanyContext';
 
 export default function Header({ onMobileToggle, user }) {
   const navigate = useNavigate();
   const { companies, activeCompany, setActiveCompany } = useCompany();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <AppBar
@@ -57,6 +70,7 @@ export default function Header({ onMobileToggle, user }) {
 
         {/* Global Search Input / Trigger */}
         <Box
+          onClick={() => setSearchOpen(true)}
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -66,14 +80,10 @@ export default function Header({ onMobileToggle, user }) {
             py: 0.6,
             width: { xs: '100%', sm: 320, md: 400 },
             border: '1px solid transparent',
+            cursor: 'pointer',
             transition: 'all 0.2s',
             '&:hover': {
               backgroundColor: '#e2e8f0',
-            },
-            '&:focus-within': {
-              backgroundColor: '#ffffff',
-              borderColor: 'primary.main',
-              boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.1)',
             },
           }}
         >
@@ -81,7 +91,9 @@ export default function Header({ onMobileToggle, user }) {
           <InputBase
             placeholder="Search companies, employees, leads..."
             fullWidth
-            inputProps={{ 'aria-label': 'search erp' }}
+            readOnly
+            onClick={() => setSearchOpen(true)}
+            inputProps={{ 'aria-label': 'search erp', style: { cursor: 'pointer' } }}
             sx={{
               fontSize: '0.875rem',
               color: 'text.primary',
@@ -180,6 +192,11 @@ export default function Header({ onMobileToggle, user }) {
           <ProfileMenu user={user} />
         </Box>
       </Toolbar>
+      <GlobalSearchDialog
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        activeCompany={activeCompany}
+      />
     </AppBar>
   );
 }

@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "reports",
     "notifications",
     "documents",
+    "calendar_events",
+    "emails",
 ]
 
 MIDDLEWARE = [

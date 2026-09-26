@@ -59,10 +59,10 @@ const NAV_GROUPS = [
     items: [
       { text: 'Workspace', path: '/workspace', icon: GroupsOutlinedIcon, status: 'live' },
       { text: 'Notifications', path: '/notifications', icon: NotificationsNoneOutlinedIcon, status: 'live' },
-      { text: 'Calendar', path: '/calendar', icon: CalendarMonthOutlinedIcon, status: 'upcoming' },
-      { text: 'Notes', path: '/notes', icon: StickyNote2OutlinedIcon, status: 'upcoming' },
-      { text: 'Email', path: '/email', icon: AlternateEmailOutlinedIcon, status: 'upcoming' },
-      { text: 'Documents', path: '/documents', icon: DescriptionOutlinedIcon, status: 'upcoming' },
+      { text: 'Calendar', path: '/calendar', icon: CalendarMonthOutlinedIcon, status: 'live' },
+      { text: 'Notes', path: '/notes', icon: StickyNote2OutlinedIcon, status: 'live' },
+      { text: 'Email', path: '/email', icon: AlternateEmailOutlinedIcon, status: 'live' },
+      { text: 'Documents', path: '/documents', icon: DescriptionOutlinedIcon, status: 'live' },
     ],
   },
   {

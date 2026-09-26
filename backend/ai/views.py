@@ -25,6 +25,10 @@ from ai.services import (
     get_finance_metrics,
     get_crm_metrics,
     get_hr_metrics,
+    get_global_ai_business_dashboard,
+    get_global_ai_business_summary,
+    process_global_ai_query,
+    ask_global_ai,
 )
 
 logger = logging.getLogger(__name__)
@@ -278,3 +282,135 @@ class AIVendorLookupView(AIBaseView):
             )
 
         return Response({"results": results}, status=status.HTTP_200_OK)
+
+
+# ============================================================
+# GLOBAL AI ERP ASSISTANT ENDPOINTS (MULTI-COMPANY CAPABLE)
+# ============================================================
+
+class GlobalAIDashboardView(APIView):
+    """
+    GET /api/ai/dashboard/?company_id=<optional>
+    Retrieves real-time AI dashboard insights across all authorized companies
+    or filtered to a specific company if company_id is provided.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        company_id = request.query_params.get("company_id")
+        if company_id:
+            try:
+                company_id = int(company_id)
+            except (ValueError, TypeError):
+                company_id = None
+
+        try:
+            data = get_global_ai_business_dashboard(request.user, company_id=company_id)
+            if data is None:
+                return Response(
+                    {"detail": "Specified company was not found or you lack authorized access."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error in Global AI Dashboard: {e}")
+            return Response(
+                {"detail": "An error occurred while generating the global AI dashboard.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class GlobalAISummaryView(APIView):
+    """
+    GET /api/ai/summary/?company_id=<optional>
+    Returns executive summary across all authorized companies or for a specific company.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        company_id = request.query_params.get("company_id")
+        if company_id:
+            try:
+                company_id = int(company_id)
+            except (ValueError, TypeError):
+                company_id = None
+
+        try:
+            data = get_global_ai_business_summary(request.user, company_id=company_id)
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error in Global AI Summary: {e}")
+            return Response(
+                {"detail": "An error occurred while generating the global AI summary.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class GlobalAIAskView(APIView):
+    """
+    POST /api/ai/ask/
+    Answers business questions across all authorized companies or for a specified company.
+    Accepts { "question": "...", "company_id": null, "conversation_history": [...] }
+    Strictly read-only.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = AIAskRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        question = serializer.validated_data["question"]
+        company_id = serializer.validated_data.get("company_id")
+        history = serializer.validated_data.get("conversation_history", [])
+
+        try:
+            result = ask_global_ai(
+                user=request.user,
+                question=question,
+                company_id=company_id,
+                conversation_history=history,
+            )
+            response_serializer = AIAskResponseSerializer(result)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error in Global AI Ask: {e}")
+            return Response(
+                {"detail": "An error occurred while processing your question.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class GlobalAIChatView(APIView):
+    """
+    POST /api/ai/chat/
+    Accepts natural-language queries across all authorized companies.
+    Accepts { "query": "...", "company_id": null, "conversation_history": [...] }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = AIChatRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        query = serializer.validated_data["query"]
+        company_id = serializer.validated_data.get("company_id")
+        history = serializer.validated_data.get("conversation_history", [])
+
+        try:
+            result = process_global_ai_query(
+                user=request.user,
+                query=query,
+                company_id=company_id,
+                conversation_history=history,
+            )
+            response_serializer = AIChatResponseSerializer(result)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error in Global AI Chat: {e}")
+            return Response(
+                {"detail": "An error occurred while processing your question.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+

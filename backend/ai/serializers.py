@@ -8,6 +8,11 @@ class AIChatRequestSerializer(serializers.Serializer):
         max_length=2000,
         help_text="Natural-language question or instruction for the ERP assistant."
     )
+    company_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Optional company filter. If omitted, queries across all authorized companies."
+    )
     conversation_history = serializers.ListField(
         child=serializers.DictField(),
         required=False,
@@ -30,7 +35,7 @@ class AIChatResponseSerializer(serializers.Serializer):
 
 class AIAskRequestSerializer(serializers.Serializer):
     """
-    Serializer for POST /api/companies/<company_id>/ai/ask/
+    Serializer for POST /api/companies/<company_id>/ai/ask/ and POST /api/ai/ask/
     Accepts either 'question' or 'query'.
     """
     question = serializers.CharField(
@@ -44,6 +49,11 @@ class AIAskRequestSerializer(serializers.Serializer):
         allow_blank=False,
         max_length=2000,
         help_text="Alternative parameter name for question."
+    )
+    company_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Optional company filter. If omitted, queries across all authorized companies."
     )
     conversation_history = serializers.ListField(
         child=serializers.DictField(),

@@ -6,6 +6,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.SerializerMethodField()
     download_url = serializers.SerializerMethodField()
     file_size_formatted = serializers.SerializerMethodField()
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
 
     class Meta:
         model = Document
@@ -15,6 +16,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             "file_type",
             "file_size",
             "file_size_formatted",
+            "category",
+            "category_display",
+            "tags",
             "related_module",
             "related_object_id",
             "uploaded_by",
