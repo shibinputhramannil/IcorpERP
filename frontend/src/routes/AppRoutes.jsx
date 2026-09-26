@@ -18,6 +18,7 @@ import SalesPage from '../pages/SalesPage';
 import PurchasePage from '../pages/PurchasePage';
 import FinancePage from '../pages/FinancePage';
 import ReportsPage from '../pages/ReportsPage';
+import AIPage from '../pages/AIPage';
 import AIAssistantPage from '../pages/AIAssistantPage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -145,8 +146,8 @@ export default function AppRoutes() {
         />
 
         {/* System & Intelligence Modules */}
-        <Route path="/ai-assistant" element={<AIAssistantPage />} />
-        <Route path="/ai" element={<Navigate to="/ai-assistant" replace />} />
+        <Route path="/ai" element={<AIPage />} />
+        <Route path="/ai-assistant" element={<AIPage />} />
 
         <Route
           path="/settings"

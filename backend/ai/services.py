@@ -11,7 +11,8 @@ from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 
 from company.models import Company
-from crm.models import Customer
+from crm.models import Customer, Lead, Deal, Contact
+from apps.employee.models import Employee
 from inventory.models import Product, Stock, Warehouse, Vendor
 from sales.models import SalesOrder, Invoice, Payment as SalesPayment
 from purchase.models import PurchaseOrder, PurchaseInvoice, PurchasePayment
@@ -533,6 +534,333 @@ def get_all_executive_insights(company):
         "purchases": purchases,
         "inventory": inventory,
         "finance": finance,
+    }
+
+
+def get_crm_metrics(company):
+    """
+    Returns CRM intelligence: customers, leads, pipeline deals, conversion rate.
+    """
+    customers_count = Customer.objects.filter(company=company).count()
+    corporate_count = Customer.objects.filter(company=company, customer_type="Corporate").count()
+    individual_count = Customer.objects.filter(company=company, customer_type="Individual").count()
+
+    leads_qs = Lead.objects.filter(company=company)
+    total_leads = leads_qs.count()
+    converted_leads = leads_qs.filter(status="Converted").count()
+    conversion_rate = round((converted_leads / total_leads * 100), 1) if total_leads > 0 else 0.0
+
+    deals_qs = Deal.objects.filter(company=company)
+    total_deals = deals_qs.count()
+    pipeline_val = deals_qs.aggregate(s=Sum("value"))["s"] or Decimal("0.00")
+
+    recent_leads = [
+        {
+            "name": f"{l.first_name} {l.last_name}".strip(),
+            "status": l.status,
+            "estimated_value": str(l.estimated_value),
+            "lead_company": l.lead_company,
+        }
+        for l in leads_qs.order_by("-id")[:5]
+    ]
+
+    return {
+        "total_customers": customers_count,
+        "corporate_customers": corporate_count,
+        "individual_customers": individual_count,
+        "total_leads": total_leads,
+        "converted_leads": converted_leads,
+        "conversion_rate_percentage": conversion_rate,
+        "total_deals": total_deals,
+        "pipeline_value": str(pipeline_val),
+        "pipeline_value_formatted": format_currency(pipeline_val),
+        "recent_leads": recent_leads,
+    }
+
+
+def get_hr_metrics(company):
+    """
+    Returns HR intelligence: employee headcount, active status, department distribution.
+    """
+    emp_qs = Employee.objects.filter(company=company)
+    total_employees = emp_qs.count()
+    active_employees = emp_qs.filter(is_active=True).count()
+    inactive_employees = total_employees - active_employees
+
+    dept_counts = (
+        emp_qs.values("department")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+    departments = [
+        {"department": d["department"] or "General", "count": d["count"]}
+        for d in dept_counts
+    ]
+
+    recent_employees = [
+        {
+            "name": f"{e.first_name} {e.last_name}".strip(),
+            "designation": e.designation or "Employee",
+            "department": e.department or "General",
+            "is_active": e.is_active,
+        }
+        for e in emp_qs.order_by("-id")[:5]
+    ]
+
+    return {
+        "total_employees": total_employees,
+        "active_employees": active_employees,
+        "inactive_employees": inactive_employees,
+        "departments_count": len(departments),
+        "departments": departments,
+        "recent_employees": recent_employees,
+    }
+
+
+def get_ai_business_dashboard(company):
+    """
+    Provides structured business insights across Sales, Purchases, Inventory, CRM, Finance, and HR,
+    along with generated business summary, key trends, alerts, low-stock warnings,
+    outstanding receivables/payables, sales/purchase observations, and recommendations.
+    """
+    sales = get_sales_metrics(company)
+    purchases = get_purchase_metrics(company)
+    inventory = get_inventory_metrics(company)
+    crm = get_crm_metrics(company)
+    finance = get_finance_metrics(company)
+    hr = get_hr_metrics(company)
+
+    # Receivables & Payables
+    receivables_val = Decimal(str(finance.get("receivables_total", "0.00")))
+    payables_val = Decimal(str(finance.get("payables_total", "0.00")))
+    liquid_val = Decimal(str(finance.get("liquid_funds", "0.00")))
+    net_working_capital = liquid_val + receivables_val - payables_val
+
+    receivables_payables = {
+        "total_receivables": str(receivables_val),
+        "total_receivables_formatted": format_currency(receivables_val),
+        "total_payables": str(payables_val),
+        "total_payables_formatted": format_currency(payables_val),
+        "liquid_funds": str(liquid_val),
+        "liquid_funds_formatted": format_currency(liquid_val),
+        "net_working_capital": str(net_working_capital),
+        "net_working_capital_formatted": format_currency(net_working_capital),
+    }
+
+    # Low-Stock Warnings
+    low_stock_warnings = inventory.get("low_stock_items", []) + inventory.get("out_of_stock_items", [])
+
+    # Dynamic Alerts
+    alerts = []
+    if inventory.get("out_of_stock_count", 0) > 0:
+        alerts.append({
+            "type": "error",
+            "title": "Critical Stockout Alert",
+            "message": f"{inventory['out_of_stock_count']} product(s) are completely out of stock.",
+        })
+    if inventory.get("low_stock_count", 0) > 0:
+        alerts.append({
+            "type": "warning",
+            "title": "Low Stock Threshold Alert",
+            "message": f"{inventory['low_stock_count']} product(s) are below reorder threshold levels.",
+        })
+    if receivables_val > Decimal("0.00"):
+        alerts.append({
+            "type": "warning" if receivables_val > Decimal("5000.00") else "info",
+            "title": "Outstanding Customer Invoices",
+            "message": f"{format_currency(receivables_val)} in customer receivables is pending collection.",
+        })
+    if payables_val > Decimal("0.00"):
+        alerts.append({
+            "type": "info",
+            "title": "Outstanding Vendor Payables",
+            "message": f"{format_currency(payables_val)} in supplier bills is pending settlement.",
+        })
+    if crm.get("total_leads", 0) > 0 and crm.get("conversion_rate_percentage", 0) < 15.0:
+        alerts.append({
+            "type": "info",
+            "title": "Lead Conversion Optimization",
+            "message": f"Lead conversion rate is currently {crm['conversion_rate_percentage']}%. Follow-up opportunity available.",
+        })
+
+    # Key Trends
+    key_trends = []
+    month_sales_dec = Decimal(str(sales.get("month_sales", "0.00")))
+    net_profit_dec = Decimal(str(finance.get("net_profit", "0.00")))
+
+    # Trend 1: Sales
+    if month_sales_dec > Decimal("0.00"):
+        key_trends.append({
+            "title": "Sales Trajectory",
+            "trend": "up",
+            "description": f"Generated {sales['month_sales_formatted']} in invoices this month across {sales['month_invoice_count']} transaction(s).",
+        })
+    else:
+        key_trends.append({
+            "title": "Sales Trajectory",
+            "trend": "neutral",
+            "description": f"All-time sales stand at {sales['total_sales_formatted']}. No new closed invoices recorded yet for the current period.",
+        })
+
+    # Trend 2: Operational Margin
+    if net_profit_dec > Decimal("0.00"):
+        key_trends.append({
+            "title": "Operational Margin",
+            "trend": "up",
+            "description": f"Net operating profit is positive at {finance['net_profit_formatted']} with gross profit of {finance['gross_profit_formatted']}.",
+        })
+    elif net_profit_dec < Decimal("0.00"):
+        key_trends.append({
+            "title": "Operational Margin",
+            "trend": "down",
+            "description": f"Operating expenses exceed gross profit. Net margin reflects an operational variance of {finance['net_profit_formatted']}.",
+        })
+    else:
+        key_trends.append({
+            "title": "Operational Margin",
+            "trend": "neutral",
+            "description": f"Operating ledger balanced with revenue of {finance['revenue_total_formatted']} and expenses of {finance['expenses_total_formatted']}.",
+        })
+
+    # Trend 3: Working Capital & Liquidity
+    if net_working_capital > Decimal("0.00"):
+        key_trends.append({
+            "title": "Liquidity & Working Capital",
+            "trend": "up",
+            "description": f"Solid working capital buffer of {format_currency(net_working_capital)} with liquid cash/bank reserves of {finance['liquid_funds_formatted']}.",
+        })
+    else:
+        key_trends.append({
+            "title": "Liquidity & Working Capital",
+            "trend": "down" if net_working_capital < Decimal("0.00") else "neutral",
+            "description": f"Working capital positioned at {format_currency(net_working_capital)}. Monitor collections to maintain optimum liquidity.",
+        })
+
+    # Trend 4: Pipeline Conversion
+    key_trends.append({
+        "title": "CRM Pipeline Momentum",
+        "trend": "up" if crm.get("conversion_rate_percentage", 0) >= 20.0 else "neutral",
+        "description": f"{crm.get('total_deals', 0)} active deal(s) valued at {crm.get('pipeline_value_formatted', '$0.00')} across {crm.get('total_customers', 0)} customer account(s).",
+    })
+
+    # Sales & Purchase Observations
+    sales_obs = [
+        f"Cumulative sales reach {sales['total_sales_formatted']} across {sales['total_invoice_count']} invoice(s).",
+        f"Current month billed volume stands at {sales['month_sales_formatted']}.",
+    ]
+    if receivables_val > Decimal("0.00"):
+        sales_obs.append(f"Uncollected customer receivables equal {format_currency(receivables_val)}.")
+    else:
+        sales_obs.append("All issued sales invoices are fully collected or current.")
+
+    purch_obs = [
+        f"Total procurement spend is {purchases['total_purchases_formatted']} across all vendor bills.",
+        f"Current month procurement volume is {purchases['month_purchases_formatted']}.",
+    ]
+    if payables_val > Decimal("0.00"):
+        purch_obs.append(f"Outstanding vendor accounts payable equal {format_currency(payables_val)}.")
+    else:
+        purch_obs.append("All vendor obligations are up to date.")
+
+    # Recommendations
+    recommendations = []
+    if inventory.get("low_stock_count", 0) > 0 or inventory.get("out_of_stock_count", 0) > 0:
+        recommendations.append(
+            f"Review inventory replenishment: {inventory.get('low_stock_count', 0) + inventory.get('out_of_stock_count', 0)} item(s) require purchase orders to avoid stockouts."
+        )
+    if receivables_val > Decimal("0.00"):
+        recommendations.append(
+            f"Accelerate collection outreach for {format_currency(receivables_val)} in outstanding customer invoices to boost cash liquidity."
+        )
+    if crm.get("total_leads", 0) > crm.get("converted_leads", 0):
+        recommendations.append(
+            f"Engage the sales team to advance {crm.get('total_leads', 0) - crm.get('converted_leads', 0)} active unconverted leads toward proposal and negotiation stages."
+        )
+    if not recommendations:
+        recommendations.append("Business operations are performing stably across all measured parameters. Maintain current procurement and sales pacing.")
+
+    # Business Summary
+    business_summary = (
+        f"{company.name} currently manages {inventory['total_products']} cataloged product(s) with an inventory valuation of {inventory['total_valuation_formatted']} "
+        f"and {hr['total_employees']} registered employee(s). All-time sales revenue stands at {sales['total_sales_formatted']} against {purchases['total_purchases_formatted']} "
+        f"in total vendor procurement. Current net profit is recorded at {finance['net_profit_formatted']} with liquid reserves of {finance['liquid_funds_formatted']} "
+        f"and net working capital of {format_currency(net_working_capital)}."
+    )
+
+    return {
+        "company_id": company.id,
+        "company_name": company.name,
+        "generated_at": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "business_summary": business_summary,
+        "insights": {
+            "sales": sales,
+            "purchases": purchases,
+            "inventory": inventory,
+            "crm": crm,
+            "finance": finance,
+            "hr": hr,
+        },
+        "key_trends": key_trends,
+        "alerts": alerts,
+        "low_stock_warnings": low_stock_warnings,
+        "receivables_payables": receivables_payables,
+        "observations": {
+            "sales": sales_obs,
+            "purchases": purch_obs,
+        },
+        "recommendations": recommendations,
+    }
+
+
+def get_ai_business_summary(company):
+    """
+    Returns an executive narrative summary, key highlights, strengths, risks, and recommended actions.
+    """
+    dash = get_ai_business_dashboard(company)
+    insights = dash["insights"]
+    fin = insights["finance"]
+    sales = insights["sales"]
+    purchases = insights["purchases"]
+    inv = insights["inventory"]
+    crm = insights["crm"]
+    hr = insights["hr"]
+
+    strengths = [
+        f"Total sales revenue achieved: {sales['total_sales_formatted']} across {sales['total_orders_count']} order(s).",
+        f"Available liquid capital: {fin['liquid_funds_formatted']} held in verified cash and bank accounts.",
+        f"Workforce stability: {hr['active_employees']} active employee(s) across {hr['departments_count']} functional department(s).",
+    ]
+    if Decimal(str(fin.get("net_profit", "0.00"))) > Decimal("0.00"):
+        strengths.append(f"Profitable operating performance with net profit of {fin['net_profit_formatted']}.")
+
+    risks = []
+    if inv["low_stock_count"] > 0 or inv["out_of_stock_count"] > 0:
+        risks.append(f"Supply chain vulnerability: {inv['low_stock_count']} low-stock and {inv['out_of_stock_count']} out-of-stock items.")
+    if Decimal(str(dash["receivables_payables"]["total_receivables"])) > Decimal("0.00"):
+        risks.append(f"Working capital exposure: {dash['receivables_payables']['total_receivables_formatted']} tied up in unpaid customer receivables.")
+    if Decimal(str(dash["receivables_payables"]["total_payables"])) > Decimal(str(fin.get("liquid_funds", "0.00"))):
+        risks.append("Vendor obligations exceed liquid cash; prioritize pending receivables collection.")
+    if not risks:
+        risks.append("No immediate high-risk operational anomalies detected in current accounting period.")
+
+    return {
+        "company_id": company.id,
+        "company_name": company.name,
+        "generated_at": dash["generated_at"],
+        "executive_summary": dash["business_summary"],
+        "key_metrics": {
+            "total_sales": sales["total_sales_formatted"],
+            "month_sales": sales["month_sales_formatted"],
+            "total_purchases": purchases["total_purchases_formatted"],
+            "net_profit": fin["net_profit_formatted"],
+            "liquid_funds": fin["liquid_funds_formatted"],
+            "inventory_valuation": inv["total_valuation_formatted"],
+            "total_employees": hr["total_employees"],
+            "pipeline_value": crm["pipeline_value_formatted"],
+        },
+        "strengths": strengths,
+        "risks": risks,
+        "recommended_actions": dash["recommendations"],
     }
 
 
@@ -1078,10 +1406,13 @@ def process_ai_query(company, query, conversation_history=None):
     deterministic_result = synthesize_deterministic_response(intent, entity_name, company)
 
     # 2. Check for LLM API keys
-    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    ai_key = (
+        os.environ.get("AI_API_KEY", "").strip()
+        or os.environ.get("GEMINI_API_KEY", "").strip()
+        or os.environ.get("OPENAI_API_KEY", "").strip()
+    )
 
-    if gemini_key or openai_key:
+    if ai_key:
         system_context = (
             f"You are the ICORP ERP AI Assistant for company '{company.name}'.\n"
             f"RULES:\n"
@@ -1092,10 +1423,10 @@ def process_ai_query(company, query, conversation_history=None):
             f"VERIFIED ERP DATA CONTEXT:\n{json.dumps(deterministic_result['data'], default=str, indent=2)}"
         )
         llm_answer = None
-        if gemini_key:
-            llm_answer = call_gemini_api(gemini_key, system_context, clean_query)
-        elif openai_key:
-            llm_answer = call_openai_api(openai_key, system_context, clean_query)
+        if ai_key.startswith("sk-") or os.environ.get("OPENAI_API_KEY"):
+            llm_answer = call_openai_api(ai_key, system_context, clean_query)
+        else:
+            llm_answer = call_gemini_api(ai_key, system_context, clean_query)
 
         if llm_answer and len(llm_answer.strip()) > 20:
             deterministic_result["answer"] = llm_answer.strip()
@@ -1106,3 +1437,29 @@ def process_ai_query(company, query, conversation_history=None):
         deterministic_result["llm_augmented"] = False
 
     return deterministic_result
+
+
+def ask_ai(company, question, conversation_history=None):
+    """
+    Processes questions for /api/companies/<company_id>/ai/ask/.
+    1. Uses environment variable AI_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY if configured.
+    2. If external AI API key exists, queries LLM with grounded ERP context.
+    3. If no key exists or the request fails/times out, safely falls back to deterministic ERP synthesis.
+    4. Strictly read-only, never modifies any database records.
+    """
+    clean_question = (question or "").strip()
+    result = process_ai_query(company, clean_question, conversation_history=conversation_history)
+
+    llm_augmented = result.get("llm_augmented", False)
+    fallback_used = not llm_augmented
+
+    return {
+        "question": clean_question,
+        "answer": result["answer"],
+        "intent": result.get("intent", ERPIntent.GENERAL),
+        "data": result.get("data", {}),
+        "suggested_questions": result.get("suggested_questions", []),
+        "fallback_used": fallback_used,
+        "llm_augmented": llm_augmented,
+    }
+

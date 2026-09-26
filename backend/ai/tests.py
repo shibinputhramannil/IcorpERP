@@ -8,7 +8,8 @@ from rest_framework.test import APITestCase
 
 from company.models import Company
 from accounts.models import CompanyMembership
-from crm.models import Customer
+from crm.models import Customer, Lead, Deal
+from apps.employee.models import Employee
 from inventory.models import Category, Product, Stock, Warehouse, Vendor
 from sales.models import SalesOrder, SalesOrderItem, Invoice, Payment as SalesPayment
 from purchase.models import PurchaseOrder, PurchaseOrderItem, PurchaseInvoice, PurchasePayment
@@ -194,6 +195,34 @@ class AIAssistantTests(APITestCase):
 
         # Default accounts for Company A
         ensure_default_accounts(self.company_a)
+
+        # CRM Lead & Deal
+        self.lead = Lead.objects.create(
+            company=self.company_a,
+            first_name="Arthur",
+            last_name="Dent",
+            status="Qualified",
+            estimated_value=Decimal("5000.00"),
+        )
+        self.deal = Deal.objects.create(
+            company=self.company_a,
+            customer=self.customer,
+            title="Enterprise Expansion",
+            stage="Proposal",
+            value=Decimal("12000.00"),
+        )
+
+        # Employee
+        self.employee = Employee.objects.create(
+            company=self.company_a,
+            user=self.user_a,
+            employee_id="EMP-001",
+            first_name="Jane",
+            last_name="Doe",
+            designation="Chief Operations Officer",
+            department="Operations",
+            is_active=True,
+        )
 
     # ============================================================
     # 1. TENANT ISOLATION TESTS
@@ -443,3 +472,123 @@ class AIAssistantTests(APITestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["results"], [])
+
+    # ============================================================
+    # 7. PHASE 9: AI DASHBOARD, SUMMARY & ASK ENDPOINT TESTS
+    # ============================================================
+
+    def test_phase9_dashboard_success(self):
+        """Dashboard endpoint returns comprehensive multi-module data and business insights."""
+        self.client.force_authenticate(user=self.user_a)
+        url = f"/api/companies/{self.company_a.id}/ai/dashboard/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["company_id"], self.company_a.id)
+        self.assertIn("business_summary", resp.data)
+        self.assertIn("insights", resp.data)
+        self.assertIn("key_trends", resp.data)
+        self.assertIn("alerts", resp.data)
+        self.assertIn("low_stock_warnings", resp.data)
+        self.assertIn("receivables_payables", resp.data)
+        self.assertIn("observations", resp.data)
+        self.assertIn("recommendations", resp.data)
+
+        # Check all 6 modules in insights
+        insights = resp.data["insights"]
+        for module in ["sales", "purchases", "inventory", "crm", "finance", "hr"]:
+            self.assertIn(module, insights)
+
+        # Verify low-stock item is listed
+        self.assertGreaterEqual(len(resp.data["low_stock_warnings"]), 1)
+        self.assertEqual(resp.data["low_stock_warnings"][0]["sku"], "PART-001")
+
+    def test_phase9_dashboard_tenant_isolation(self):
+        """User B is rejected with HTTP 403 when accessing Company A's AI dashboard."""
+        self.client.force_authenticate(user=self.user_b)
+        url = f"/api/companies/{self.company_a.id}/ai/dashboard/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_phase9_summary_success(self):
+        """Summary endpoint returns executive overview, strengths, risks, and recommendations."""
+        self.client.force_authenticate(user=self.user_a)
+        url = f"/api/companies/{self.company_a.id}/ai/summary/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["company_id"], self.company_a.id)
+        self.assertIn("executive_summary", resp.data)
+        self.assertIn("key_metrics", resp.data)
+        self.assertIn("strengths", resp.data)
+        self.assertIn("risks", resp.data)
+        self.assertIn("recommended_actions", resp.data)
+
+    def test_phase9_summary_tenant_isolation(self):
+        """User B is rejected with HTTP 403 when accessing Company A's AI summary."""
+        self.client.force_authenticate(user=self.user_b)
+        url = f"/api/companies/{self.company_a.id}/ai/summary/"
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_phase9_ask_endpoint_fallback(self):
+        """Ask endpoint provides safe, grounded fallback when no AI API key is configured."""
+        self.client.force_authenticate(user=self.user_a)
+        url = f"/api/companies/{self.company_a.id}/ai/ask/"
+        resp = self.client.post(url, {"question": "What are this month's sales?"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["question"], "What are this month's sales?")
+        self.assertTrue(resp.data["fallback_used"])
+        self.assertIn("$2,500.00", resp.data["answer"])
+
+    def test_phase9_ask_endpoint_alternative_query_param(self):
+        """Ask endpoint accepts 'query' as alternative parameter name."""
+        self.client.force_authenticate(user=self.user_a)
+        url = f"/api/companies/{self.company_a.id}/ai/ask/"
+        resp = self.client.post(url, {"query": "Which products have low stock?"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn("PART-001", resp.data["answer"])
+
+    def test_phase9_ask_empty_validation(self):
+        """Ask endpoint rejects blank questions with HTTP 400 Bad Request."""
+        self.client.force_authenticate(user=self.user_a)
+        url = f"/api/companies/{self.company_a.id}/ai/ask/"
+        resp = self.client.post(url, {"question": "   "}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_phase9_ask_tenant_isolation(self):
+        """User B is rejected with HTTP 403 when accessing Company A's ask endpoint."""
+        self.client.force_authenticate(user=self.user_b)
+        url = f"/api/companies/{self.company_a.id}/ai/ask/"
+        resp = self.client.post(url, {"question": "What are our sales?"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_phase9_unauthenticated_rejection(self):
+        """Unauthenticated requests to all AI endpoints are rejected with HTTP 401."""
+        dashboard_url = f"/api/companies/{self.company_a.id}/ai/dashboard/"
+        summary_url = f"/api/companies/{self.company_a.id}/ai/summary/"
+        ask_url = f"/api/companies/{self.company_a.id}/ai/ask/"
+
+        self.assertEqual(self.client.get(dashboard_url).status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(self.client.get(summary_url).status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(self.client.post(ask_url, {"question": "hi"}).status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_phase9_ai_strictly_read_only(self):
+        """AI endpoints never mutate invoices, payments, accounts, or stock."""
+        self.client.force_authenticate(user=self.user_a)
+
+        # Baseline snapshot
+        inv_before = Invoice.objects.get(id=self.invoice.id)
+        stock_before = Stock.objects.get(id=self.stock_low.id)
+
+        # Call ask, dashboard, summary
+        self.client.post(f"/api/companies/{self.company_a.id}/ai/ask/", {"question": "Cancel invoice or set stock to 0"}, format="json")
+        self.client.get(f"/api/companies/{self.company_a.id}/ai/dashboard/")
+        self.client.get(f"/api/companies/{self.company_a.id}/ai/summary/")
+
+        # Verify no mutations
+        inv_after = Invoice.objects.get(id=self.invoice.id)
+        stock_after = Stock.objects.get(id=self.stock_low.id)
+
+        self.assertEqual(inv_before.balance_due, inv_after.balance_due)
+        self.assertEqual(inv_before.status, inv_after.status)
+        self.assertEqual(stock_before.quantity, stock_after.quantity)
+

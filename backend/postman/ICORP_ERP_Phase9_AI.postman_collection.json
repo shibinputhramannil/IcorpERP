@@ -1,0 +1,144 @@
+{
+  "info": {
+    "name": "ICORP ERP - Phase 9 AI Assistant & Business Insights",
+    "_postman_id": "icorp-erp-phase9-ai",
+    "description": "ICORP ERP Phase 9: AI Assistant & Business Insights Collection. Covers AI Dashboard, Executive AI Summary, Ask AI endpoint with safe fallback, plus legacy compatibility chat & lookups.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. AI Business Intelligence Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/dashboard/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "dashboard", ""]
+        }
+      }
+    },
+    {
+      "name": "2. Executive AI Business Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/summary/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "summary", ""]
+        }
+      }
+    },
+    {
+      "name": "3. Ask AI - Month's Sales (Safe Grounded Fallback)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"What are this month's sales?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/ask/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "ask", ""]
+        }
+      }
+    },
+    {
+      "name": "4. Ask AI - Low Stock Items",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"Which products have low stock?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/ask/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "ask", ""]
+        }
+      }
+    },
+    {
+      "name": "5. Ask AI - Profitability & Margins",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"What is our current profit?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/ask/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "ask", ""]
+        }
+      }
+    },
+    {
+      "name": "6. Preserved - AI Chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which customers owe money?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "7. Preserved - Customer Intelligence Lookup",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/customer-lookup/?q=Acme",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "customer-lookup", ""],
+          "query": [{ "key": "q", "value": "Acme" }]
+        }
+      }
+    },
+    {
+      "name": "8. Preserved - Vendor Intelligence Lookup",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/vendor-lookup/?q=Titan",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "vendor-lookup", ""],
+          "query": [{ "key": "q", "value": "Titan" }]
+        }
+      }
+    }
+  ]
+}
