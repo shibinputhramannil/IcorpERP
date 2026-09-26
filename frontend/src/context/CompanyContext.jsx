@@ -74,6 +74,7 @@ export function CompanyProvider({ children }) {
   const value = {
     companies,
     activeCompany,
+    currentCompany: activeCompany,
     activeCompanyId: activeCompany ? activeCompany.id : null,
     loadingCompanies: loading,
     reloadCompanies: fetchCompanies,

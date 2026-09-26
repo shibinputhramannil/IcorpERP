@@ -958,7 +958,7 @@ export default function AIPage() {
                       Ask AI Assistant
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Grounded strictly in {currentCompany.name}'s data
+                      Grounded strictly in {currentCompany?.name || 'All Workspaces'}'s data
                     </Typography>
                   </Box>
                 </Stack>

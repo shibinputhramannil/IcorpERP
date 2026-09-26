@@ -869,6 +869,7 @@ def get_ai_business_summary(company):
 # ============================================================
 
 class ERPIntent:
+    GREETING_HELP = "GREETING_HELP"
     MONTHLY_SALES = "MONTHLY_SALES"
     OUTSTANDING_INVOICES = "OUTSTANDING_INVOICES"
     COLLECTIONS = "COLLECTIONS"
@@ -881,6 +882,8 @@ class ERPIntent:
     RECENT_PURCHASE_ORDERS = "RECENT_PURCHASE_ORDERS"
     CUSTOMER_LOOKUP = "CUSTOMER_LOOKUP"
     VENDOR_LOOKUP = "VENDOR_LOOKUP"
+    EMPLOYEES_HR = "EMPLOYEES_HR"
+    CRM_PIPELINE = "CRM_PIPELINE"
     EXECUTIVE_SUMMARY = "EXECUTIVE_SUMMARY"
     RECEIVABLES_PAYABLES = "RECEIVABLES_PAYABLES"
     NET_PROFIT = "NET_PROFIT"
@@ -890,8 +893,18 @@ class ERPIntent:
 def classify_query(query):
     """
     Determines user intent from question phrasing and extracts any target entity names.
+    Supports comprehensive natural-language business and ERP queries.
     """
-    q = query.lower().strip()
+    q = (query or "").lower().strip()
+
+    # Greetings & Assistant Help
+    if any(k in q for k in [
+        "hi", "hello", "hey", "help", "who are you", "what can you do",
+        "what are you", "features", "capabilities", "what are your capabilities",
+        "introduce yourself", "how do you work", "commands"
+    ]):
+        if not any(k in q for k in ["sale", "profit", "purchase", "stock", "invoice", "customer", "vendor", "employee", "debt", "bill"]):
+            return ERPIntent.GREETING_HELP, None
 
     # Customer Lookup patterns
     match_cust = re.search(r"(?:lookup customer|search customer|customer details for|customer:|who is customer)\s+([a-zA-Z0-9_\-\. ]+)", q)
@@ -903,48 +916,98 @@ def classify_query(query):
     if match_vend:
         return ERPIntent.VENDOR_LOOKUP, match_vend.group(1).strip()
 
-    # Intent 1: Month's sales
-    if any(k in q for k in ["month's sales", "month sales", "monthly sales", "sales this month", "this month sales", "sales so far this month"]):
-        return ERPIntent.MONTHLY_SALES, None
+    # Employees & HR Staffing
+    if any(k in q for k in [
+        "employee", "employees", "staff", "workers", "headcount", "workforce",
+        "who works here", "departments", "department", "hr", "payroll", "team members"
+    ]):
+        return ERPIntent.EMPLOYEES_HR, None
 
-    # Intent 2: Outstanding Invoices
-    if any(k in q for k in ["which invoices are outstanding", "invoices are outstanding", "outstanding invoices", "unpaid invoices", "pending invoices"]):
-        return ERPIntent.OUTSTANDING_INVOICES, None
+    # CRM, Leads & Deals Pipeline
+    if any(k in q for k in [
+        "lead", "leads", "deal", "deals", "pipeline", "crm", "conversion rate",
+        "active deals", "opportunities", "sales pipeline", "lead conversion"
+    ]):
+        return ERPIntent.CRM_PIPELINE, None
 
-    # Intent 3: Collections
-    if any(k in q for k in ["how much did we collect", "how much collected", "total collections", "money collected", "cash collected", "payments collected"]):
+    # Collections
+    if any(k in q for k in [
+        "how much did we collect", "how much collected", "total collections",
+        "money collected", "cash collected", "payments collected", "collections", "payments received"
+    ]):
         return ERPIntent.COLLECTIONS, None
 
-    # Intent 4: Total Purchases
-    if any(k in q for k in ["what are our total purchases", "total purchases", "total purchase", "how much did we purchase", "purchases total"]):
-        return ERPIntent.TOTAL_PURCHASES, None
-
-    # Intent 5: Low Stock
-    if any(k in q for k in ["low stock", "stock is low", "which products have low stock", "out of stock", "reorder level", "inventory alert"]):
-        return ERPIntent.LOW_STOCK, None
-
-    # Intent 6: Customers owe money
-    if any(k in q for k in ["customers owe money", "who owes money", "which customers owe", "customers owe", "outstanding customers", "debtors"]):
+    # Customers owe money (Debtors)
+    if any(k in q for k in [
+        "customers owe money", "who owes money", "which customers owe", "customers owe",
+        "outstanding customers", "debtors", "who owes us", "unpaid by customer"
+    ]):
         return ERPIntent.CUSTOMERS_OWE, None
 
-    # Intent 7: Top vendors by purchase value
-    if any(k in q for k in ["highest purchase value", "top vendors", "top suppliers", "vendor with highest", "vendors have the highest", "highest spend vendor"]):
+    # Outstanding Invoices & Receivables
+    if any(k in q for k in [
+        "invoices are outstanding", "outstanding invoices", "unpaid invoices", "pending invoices",
+        "due invoices", "overdue invoices", "receivables", "accounts receivable",
+        "which invoices", "what invoices"
+    ]):
+        return ERPIntent.OUTSTANDING_INVOICES, None
+
+    # Top vendors by purchase value
+    if any(k in q for k in [
+        "highest purchase value", "top vendors", "top suppliers", "vendor with highest",
+        "vendors have the highest", "highest spend vendor", "biggest suppliers", "most expensive vendor"
+    ]):
         return ERPIntent.TOP_VENDORS, None
 
-    # Intent 8: Current profit / P&L
-    if any(k in q for k in ["current profit", "what is the current profit", "how much profit", "net profit", "gross profit", "p&l", "profit and loss"]):
-        return ERPIntent.CURRENT_PROFIT, None
-
-    # Intent 9: Recent sales orders
-    if any(k in q for k in ["recent sales orders", "show recent sales orders", "latest sales orders", "recent orders", "last sales orders"]):
-        return ERPIntent.RECENT_SALES_ORDERS, None
-
-    # Intent 10: Recent purchase orders
-    if any(k in q for k in ["recent purchase orders", "show recent purchase orders", "latest purchase orders", "recent pos", "last purchase orders"]):
+    # Recent purchase orders
+    if any(k in q for k in [
+        "recent purchase orders", "show recent purchase orders", "latest purchase orders",
+        "recent pos", "last purchase orders", "latest pos"
+    ]):
         return ERPIntent.RECENT_PURCHASE_ORDERS, None
 
-    # General / Overview
-    if any(k in q for k in ["summary", "overview", "executive summary", "status", "dashboard", "how are we doing", "health check"]):
+    # Total Purchases & Vendor liabilities
+    if any(k in q for k in [
+        "total purchases", "total purchase", "how much did we purchase", "purchases total",
+        "procurement", "vendor bills", "unpaid bills", "payables", "accounts payable", "what do we owe"
+    ]):
+        return ERPIntent.TOTAL_PURCHASES, None
+
+    # Recent sales orders
+    if any(k in q for k in [
+        "recent sales orders", "show recent sales orders", "latest sales orders", "recent orders",
+        "last sales orders", "latest orders", "recent sales"
+    ]):
+        return ERPIntent.RECENT_SALES_ORDERS, None
+
+    # Month's sales / Sales & Revenue
+    if any(k in q for k in [
+        "month's sales", "month sales", "monthly sales", "sales this month", "this month sales",
+        "sales so far this month", "total sales", "revenue", "income", "turnover", "how much did we sell",
+        "sales performance", "sales", "invoiced"
+    ]):
+        return ERPIntent.MONTHLY_SALES, None
+
+    # Low Stock / Inventory / Warehouses
+    if any(k in q for k in [
+        "low stock", "stock is low", "products have low stock", "out of stock", "reorder level",
+        "inventory alert", "stock", "inventory", "products", "skus", "warehouse", "catalog", "valuation"
+    ]):
+        return ERPIntent.LOW_STOCK, None
+
+    # Current profit / Financial health / Working capital
+    if any(k in q for k in [
+        "current profit", "what is the current profit", "how much profit", "net profit",
+        "gross profit", "p&l", "profit and loss", "profitability", "profit", "margin", "margins",
+        "liquid funds", "cash balance", "bank balance", "working capital", "capital", "cash position"
+    ]):
+        return ERPIntent.CURRENT_PROFIT, None
+
+    # General / Overview / Summary
+    if any(k in q for k in [
+        "summary", "overview", "executive summary", "status", "dashboard",
+        "how are we doing", "health check", "business health", "report", "state of business"
+    ]):
         return ERPIntent.EXECUTIVE_SUMMARY, None
 
     return ERPIntent.GENERAL, None
@@ -966,7 +1029,33 @@ def synthesize_deterministic_response(intent, entity_name, company):
         "What is the current profit?",
     ]
 
-    if intent == ERPIntent.MONTHLY_SALES:
+    if intent == ERPIntent.GREETING_HELP:
+        answer = (
+            f"### 👋 Welcome to ICORP ERP Assistant — {company.name}\n\n"
+            f"I am your dedicated enterprise AI assistant for **{company.name}**, directly connected to your operational ledgers.\n\n"
+            f"#### 💡 Here is what I can inspect for you:\n"
+            f"- 📊 **Sales & Orders**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
+            f"- 💰 **Financial Performance**: *\"What is the current profit?\"* or *\"Show cash reserves\"*\n"
+            f"- 📋 **Debts & Invoices**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
+            f"- 📦 **Stock & Warehouses**: *\"Which products have low stock?\"*\n"
+            f"- 🛒 **Procurement**: *\"What are our total purchases?\"* or *\"Which vendors have the highest purchase value?\"*\n"
+            f"- 🎯 **CRM Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
+            f"- 👥 **Staff & HR**: *\"How many employees do we have?\"*\n\n"
+            f"Select a question below or ask me anything!"
+        )
+        return {
+            "intent": intent,
+            "answer": answer,
+            "data": {"company": company.name},
+            "suggested_questions": [
+                "What are this month's sales?",
+                "What is the current profit?",
+                "Which invoices are outstanding?",
+                "Which products have low stock?",
+            ],
+        }
+
+    elif intent == ERPIntent.MONTHLY_SALES:
         data = get_sales_metrics(company)
         answer = (
             f"### 📊 Sales Performance\n\n"
@@ -1116,7 +1205,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
             "suggested_questions": ["What are our total purchases?", "Show recent purchase orders.", "Which products have low stock?"],
         }
 
-    elif intent == ERPIntent.CURRENT_PROFIT:
+    elif intent in [ERPIntent.CURRENT_PROFIT, ERPIntent.NET_PROFIT]:
         data = get_finance_metrics(company)
         answer = (
             f"### 📈 Current Financial Performance & Profitability\n\n"
@@ -1133,6 +1222,64 @@ def synthesize_deterministic_response(intent, entity_name, company):
             "answer": answer,
             "data": data,
             "suggested_questions": ["What are this month's sales?", "How much did we collect?", "Which invoices are outstanding?"],
+        }
+
+    elif intent == ERPIntent.RECEIVABLES_PAYABLES:
+        fin = get_finance_metrics(company)
+        answer = (
+            f"### ⚖️ Working Capital & Ledger Balances — {company.name}\n\n"
+            f"- **Accounts Receivable (AR)**: **{fin['receivables_formatted']}**\n"
+            f"- **Accounts Payable (AP)**: **{fin['payables_formatted']}**\n"
+            f"- **Liquid Funds (Cash+Bank)**: **{fin['liquid_funds_formatted']}**\n"
+            f"- **Net Operating Profit**: **{fin['net_profit_formatted']}**\n"
+        )
+        return {
+            "intent": intent,
+            "answer": answer,
+            "data": fin,
+            "suggested_questions": ["Which invoices are outstanding?", "Which customers owe money?", "What are our total purchases?"],
+        }
+
+    elif intent == ERPIntent.EMPLOYEES_HR:
+        data = get_hr_metrics(company)
+        answer = (
+            f"### 👥 Workforce & Headcount — {company.name}\n\n"
+            f"- **Total Registered Employees**: **{data['total_employees']}**\n"
+            f"- **Active Staff**: **{data['active_employees']}** team members on active duty\n"
+            f"- **Inactive / On-Leave**: **{data['inactive_employees']}** team members\n\n"
+        )
+        if data.get("departments"):
+            answer += "#### Department Breakdown:\n"
+            answer += "| Department | Headcount |\n| :--- | :--- |\n"
+            for d in data["departments"]:
+                answer += f"| **{d['department']}** | {d['count']} staff |\n"
+        return {
+            "intent": intent,
+            "answer": answer,
+            "data": data,
+            "suggested_questions": ["Show active CRM deals and pipeline", "What is the current profit?", "What are this month's sales?"],
+        }
+
+    elif intent == ERPIntent.CRM_PIPELINE:
+        data = get_crm_metrics(company)
+        answer = (
+            f"### 🎯 CRM & Deal Pipeline — {company.name}\n\n"
+            f"- **Total Customers**: **{data['total_customers']}** ({data['corporate_customers']} corporate, {data['individual_customers']} individual)\n"
+            f"- **Total Leads**: **{data['total_leads']}** ({data['converted_leads']} converted)\n"
+            f"- **Lead Conversion Rate**: **{data['conversion_rate_percentage']}%**\n"
+            f"- **Active Deals**: **{data['total_deals']}** opportunities\n"
+            f"- **Pipeline Value**: **{data['pipeline_value_formatted']}**\n\n"
+        )
+        if data.get("recent_leads"):
+            answer += "#### Recent Leads:\n"
+            answer += "| Lead Name | Status | Estimated Value | Company |\n| :--- | :--- | :--- | :--- |\n"
+            for l in data["recent_leads"]:
+                answer += f"| **{l['name']}** | `{l['status']}` | {format_currency(l['estimated_value'])} | {l['lead_company'] or 'N/A'} |\n"
+        return {
+            "intent": intent,
+            "answer": answer,
+            "data": data,
+            "suggested_questions": ["Which customers owe money?", "What are this month's sales?", "What is the current profit?"],
         }
 
     elif intent == ERPIntent.RECENT_SALES_ORDERS:
@@ -1380,10 +1527,14 @@ def call_openai_api(api_key, system_context, user_query):
 # ============================================================
 
 def get_active_ai_key():
+    from django.conf import settings
     return (
         os.environ.get("AI_API_KEY", "").strip()
         or os.environ.get("GEMINI_API_KEY", "").strip()
         or os.environ.get("OPENAI_API_KEY", "").strip()
+        or getattr(settings, "GEMINI_API_KEY", "").strip()
+        or getattr(settings, "OPENAI_API_KEY", "").strip()
+        or getattr(settings, "AI_API_KEY", "").strip()
     )
 
 
@@ -1861,80 +2012,310 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
         "Summarize all active CRM deals and pipeline",
     ]
 
-    if intent == ERPIntent.MONTHLY_SALES:
+    if intent == ERPIntent.GREETING_HELP:
+        answer = (
+            f"### 👋 Welcome to ICORP Global ERP Assistant\n\n"
+            f"I am your real-time operational intelligence assistant, currently analyzing data across **{len(breakdown)}** authorized company workspaces.\n\n"
+            f"All metrics are retrieved directly from verified database ledgers with zero mathematical hallucination.\n\n"
+            f"#### 💡 Here is what I can inspect for you:\n"
+            f"- 📊 **Sales & Revenue**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
+            f"- 💰 **Profitability & Liquidity**: *\"What is our current profit?\"* or *\"Show cash reserves\"*\n"
+            f"- 📋 **Receivables & Debtors**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
+            f"- 📦 **Stock & Warehouses**: *\"Which products have low stock?\"* or *\"Show catalog valuation\"*\n"
+            f"- 🛒 **Procurement & Payables**: *\"What are our total purchases?\"* or *\"Show unpaid bills\"*\n"
+            f"- 🎯 **CRM & Deal Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
+            f"- 👥 **Staff & Headcount**: *\"How many employees do we have?\"*\n\n"
+            f"Click any prompt below or ask me a specific business question!"
+        )
+        data = {"company_count": len(breakdown)}
+        suggested = [
+            "What are this month's sales?",
+            "What is our current profit?",
+            "Which invoices are outstanding?",
+            "Which products have low stock?",
+        ]
+
+    elif intent == ERPIntent.MONTHLY_SALES:
         sales = insights["sales"]
         answer = (
-            f"### Consolidated Monthly Sales\n\n"
-            f"Across all **{len(breakdown)}** authorized workspaces, total billed sales for the current month stand at **{sales['month_sales_formatted']}**.\n\n"
+            f"### 📊 Consolidated Monthly Sales\n\n"
+            f"Across all **{len(breakdown)}** authorized workspaces, total billed sales for the current month stand at **{sales['month_sales_formatted']}** "
+            f"(Cumulative all-time revenue: **{sales['total_sales_formatted']}** across {sales['total_invoice_count']} invoices).\n\n"
             f"| Company | Total Sales | Net Profit | Active Deals |\n"
             f"| :--- | :--- | :--- | :--- |\n"
         )
         for b in breakdown:
             answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['net_profit_formatted']} | {b['active_deals']} |\n"
         data = {"sales": sales, "breakdown": breakdown}
+        suggested = [
+            "Which invoices are outstanding?",
+            "What is our current profit?",
+            "Show recent sales orders.",
+        ]
 
     elif intent in [ERPIntent.OUTSTANDING_INVOICES, ERPIntent.RECEIVABLES_PAYABLES]:
         rec_pay = dash["receivables_payables"]
         fin = insights["finance"]
         answer = (
-            f"### Consolidated Accounts Receivable & Payables\n\n"
-            f"- **Customer Receivables**: **{rec_pay['total_receivables_formatted']}** across all workspaces\n"
-            f"- **Vendor Payables**: **{rec_pay['total_payables_formatted']}** across all workspaces\n"
+            f"### 📋 Consolidated Accounts Receivable & Payables\n\n"
+            f"- **Customer Receivables (AR)**: **{rec_pay['total_receivables_formatted']}** across all workspaces\n"
+            f"- **Vendor Payables (AP)**: **{rec_pay['total_payables_formatted']}** across all workspaces\n"
             f"- **Liquid Cash Reserves**: **{rec_pay['liquid_funds_formatted']}**\n"
             f"- **Net Working Capital Position**: **{rec_pay['net_working_capital_formatted']}**\n\n"
-            f"Financial calculations are retrieved directly from company general ledgers and issued invoices."
+            f"| Company | Sales Revenue | Net Profit | Working Capital |\n"
+            f"| :--- | :--- | :--- | :--- |\n"
         )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['net_profit_formatted']} | {b.get('net_working_capital_formatted', 'Balanced')} |\n"
         data = {"receivables_payables": rec_pay, "finance": fin}
+        suggested = [
+            "Which customers owe money?",
+            "How much did we collect?",
+            "What is our current profit?",
+        ]
+
+    elif intent == ERPIntent.CUSTOMERS_OWE:
+        rec_pay = dash["receivables_payables"]
+        fin = insights["finance"]
+        answer = (
+            f"### 💳 Customer Receivables & Debtors\n\n"
+            f"Total customer receivables awaiting collection across group entities stand at **{rec_pay['total_receivables_formatted']}**.\n\n"
+            f"- **Outstanding Customer Invoices**: **{rec_pay['total_receivables_formatted']}**\n"
+            f"- **Liquid Funds (Cash & Bank)**: **{rec_pay['liquid_funds_formatted']}**\n"
+            f"- **Net Working Capital**: **{rec_pay['net_working_capital_formatted']}**\n\n"
+            f"| Company | Total Sales | Net Profit | Active Deals |\n"
+            f"| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['net_profit_formatted']} | {b['active_deals']} |\n"
+        data = {"receivables_payables": rec_pay, "finance": fin}
+        suggested = [
+            "Which invoices are outstanding?",
+            "How much did we collect?",
+            "What are this month's sales?",
+        ]
+
+    elif intent == ERPIntent.COLLECTIONS:
+        fin = insights["finance"]
+        sales = insights["sales"]
+        answer = (
+            f"### 💵 Payment Collections & Cash Position\n\n"
+            f"- **This Month's Billed Sales**: **{sales['month_sales_formatted']}**\n"
+            f"- **Total Sales Revenue**: **{sales['total_sales_formatted']}**\n"
+            f"- **Total Liquid Funds (Cash+Bank)**: **{fin['liquid_funds_formatted']}**\n"
+            f"- **Receivables Awaiting Collection**: **{fin['receivables_formatted']}**\n"
+        )
+        data = {"finance": fin, "sales": sales}
+        suggested = [
+            "Which invoices are outstanding?",
+            "What is our current profit?",
+            "What are this month's sales?",
+        ]
+
+    elif intent in [ERPIntent.CURRENT_PROFIT, ERPIntent.NET_PROFIT]:
+        fin = insights["finance"]
+        answer = (
+            f"### 📈 Consolidated Financial Position & Net Profit\n\n"
+            f"- **Combined Net Operating Profit**: **{fin['net_profit_formatted']}**\n"
+            f"- **Total Operating Revenue**: **{fin['revenue_total_formatted']}**\n"
+            f"- **Total Operating Expenses**: **{fin['expenses_total_formatted']}**\n"
+            f"- **Total Liquid Cash Reserves**: **{fin['liquid_funds_formatted']}**\n"
+            f"- **Customer Receivables (AR)**: **{fin['receivables_formatted']}**\n"
+            f"- **Vendor Payables (AP)**: **{fin['payables_formatted']}**\n\n"
+            f"| Company | Sales | Purchases | Net Margin |\n| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['total_purchases_formatted']} | {b['net_profit_formatted']} |\n"
+        data = {"finance": fin, "breakdown": breakdown}
+        suggested = [
+            "What are this month's sales?",
+            "What are our total purchases?",
+            "Which invoices are outstanding?",
+        ]
+
+    elif intent == ERPIntent.TOTAL_PURCHASES:
+        purch = insights["purchases"]
+        answer = (
+            f"### 🛒 Consolidated Procurement & Purchases\n\n"
+            f"- **Cumulative Procurement Spend**: **{purch['total_purchases_formatted']}**\n"
+            f"- **This Month's Purchases**: **{purch['month_purchases_formatted']}**\n"
+            f"- **Unpaid Vendor Liabilities**: **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)\n\n"
+            f"| Company | Purchases | Unpaid Bills | Catalog Items |\n| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_purchases_formatted']} | {b.get('unpaid_bills_formatted', 'Balanced')} | {b['total_products']} |\n"
+        data = {"purchases": purch}
+        suggested = [
+            "Which vendors have the highest purchase value?",
+            "Show recent purchase orders.",
+            "What is our current profit?",
+        ]
+
+    elif intent == ERPIntent.TOP_VENDORS:
+        purch = insights["purchases"]
+        answer = (
+            f"### 🏢 Vendor Spend & Procurement Intelligence\n\n"
+            f"- **Cumulative Procurement Spend**: **{purch['total_purchases_formatted']}**\n"
+            f"- **Unpaid Vendor Liabilities**: **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)\n\n"
+            f"| Company | Procurement Spend | Catalog Items | Employees |\n| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_purchases_formatted']} | {b['total_products']} | {b['total_employees']} |\n"
+        data = {"purchases": purch}
+        suggested = [
+            "What are our total purchases?",
+            "Show recent purchase orders.",
+            "Which products have low stock?",
+        ]
+
+    elif intent == ERPIntent.RECENT_SALES_ORDERS:
+        sales = insights["sales"]
+        orders = sales.get("recent_orders", [])
+        answer = "### 🛒 Recent Sales Orders\n\n"
+        if orders:
+            answer += "| Company | Order # | Customer | Date | Total | Status |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n"
+            for o in orders:
+                answer += f"| {o.get('company', 'Workspace')} | **{o['order_number']}** | {o['customer']} | {o.get('order_date', '')} | {format_currency(o['total'])} | `{o['status']}` |\n"
+        else:
+            answer += "No recent sales orders recorded across your workspaces.\n"
+        data = {"recent_orders": orders}
+        suggested = [
+            "What are this month's sales?",
+            "Which invoices are outstanding?",
+            "What is our current profit?",
+        ]
+
+    elif intent == ERPIntent.RECENT_PURCHASE_ORDERS:
+        purch = insights["purchases"]
+        pos = purch.get("recent_pos", [])
+        answer = "### 📦 Recent Purchase Orders\n\n"
+        if pos:
+            answer += "| Company | PO # | Vendor | Date | Total | Status |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n"
+            for p in pos:
+                answer += f"| {p.get('company', 'Workspace')} | **{p['order_number']}** | {p['vendor']} | {p.get('order_date', '')} | {format_currency(p['total'])} | `{p['status']}` |\n"
+        else:
+            answer += "No recent purchase orders recorded across your workspaces.\n"
+        data = {"recent_pos": pos}
+        suggested = [
+            "What are our total purchases?",
+            "Which products have low stock?",
+            "Show recent sales orders.",
+        ]
 
     elif intent == ERPIntent.LOW_STOCK:
         inv = insights["inventory"]
         low_stock = inv["low_stock_items"]
         out_of_stock = inv["out_of_stock_items"]
         answer = (
-            f"### Group Inventory Alerts\n\n"
-            f"There are **{inv['out_of_stock_count']}** out-of-stock items and **{inv['low_stock_count']}** low-stock items across all companies.\n\n"
+            f"### 📦 Group Inventory Stock Health\n\n"
+            f"- **Total Catalog SKUs**: **{inv['total_products']}** items\n"
+            f"- **Total Inventory Valuation**: **{inv['total_valuation_formatted']}**\n"
+            f"- **Critical Stockouts**: **{inv['out_of_stock_count']}** items with zero inventory\n"
+            f"- **Low Stock Warnings**: **{inv['low_stock_count']}** items below reorder threshold\n\n"
         )
         if out_of_stock:
-            answer += "#### Out of Stock (Urgent Reorder Required)\n"
+            answer += "#### ⚠️ Out of Stock (Immediate Reorder Required):\n"
             answer += "| Company | SKU | Product Name | Stock | Cost |\n| :--- | :--- | :--- | :--- | :--- |\n"
             for it in out_of_stock[:5]:
                 answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | **{it['name']}** | {it['current_stock']} | ${it['cost_price']} |\n"
             answer += "\n"
         if low_stock:
-            answer += "#### Low Stock Warnings\n"
+            answer += "#### 🔔 Low Stock Alerts:\n"
             answer += "| Company | SKU | Product Name | Stock | Reorder Level |\n| :--- | :--- | :--- | :--- | :--- |\n"
             for it in low_stock[:5]:
                 answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | {it['name']} | {it['current_stock']} | {it['reorder_level']} |\n"
         data = {"inventory": inv}
+        suggested = [
+            "What are our total purchases?",
+            "Show recent purchase orders.",
+            "What is our current profit?",
+        ]
 
-    elif intent == ERPIntent.TOTAL_PURCHASES:
-        purch = insights["purchases"]
+    elif intent == ERPIntent.CRM_PIPELINE:
+        crm = insights["crm"]
         answer = (
-            f"### Consolidated Procurement Spend\n\n"
-            f"Cumulative procurement spend across all workspaces is **{purch['total_purchases_formatted']}** "
-            f"(with **{purch['month_purchases_formatted']}** billed this month).\n\n"
-            f"Unpaid vendor obligations total **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)."
-        )
-        data = {"purchases": purch}
-
-    elif intent == ERPIntent.NET_PROFIT:
-        fin = insights["finance"]
-        answer = (
-            f"### Consolidated Financial Position\n\n"
-            f"- **Net Profit**: **{fin['net_profit_formatted']}**\n"
-            f"- **Operating Revenue**: **{fin['revenue_total_formatted']}**\n"
-            f"- **Operating Expenses**: **{fin['expenses_total_formatted']}**\n"
-            f"- **Liquid Cash Reserves**: **{fin['liquid_funds_formatted']}**\n\n"
-            f"| Company | Sales | Purchases | Net Margin |\n| :--- | :--- | :--- | :--- |\n"
+            f"### 🎯 Consolidated CRM & Sales Pipeline\n\n"
+            f"- **Customer Accounts**: **{crm['total_customers']}** registered customers\n"
+            f"- **Total Leads**: **{crm['total_leads']}** leads logged (**{crm['converted_leads']}** converted)\n"
+            f"- **Lead Conversion Rate**: **{crm['conversion_rate_percentage']}%**\n"
+            f"- **Total Active Deals**: **{crm['total_deals']}** opportunities\n"
+            f"- **Total Pipeline Value**: **{crm['pipeline_value_formatted']}**\n\n"
+            f"| Company | Active Deals | Total Sales | Net Profit |\n"
+            f"| :--- | :--- | :--- | :--- |\n"
         )
         for b in breakdown:
-            answer += f"| **{b['name']}** | {b['total_sales_formatted']} | {b['total_purchases_formatted']} | {b['net_profit_formatted']} |\n"
-        data = {"finance": fin, "breakdown": breakdown}
+            answer += f"| **{b['name']}** | {b['active_deals']} deals | {b['total_sales_formatted']} | {b['net_profit_formatted']} |\n"
+        data = {"crm": crm, "breakdown": breakdown}
+        suggested = [
+            "What are this month's sales?",
+            "Which customers owe money?",
+            "Which invoices are outstanding?",
+        ]
+
+    elif intent == ERPIntent.EMPLOYEES_HR:
+        hr = insights["hr"]
+        answer = (
+            f"### 👥 Group Workforce & Headcount\n\n"
+            f"Across all authorized company workspaces, there are **{hr['total_employees']}** total registered employees:\n\n"
+            f"- **Active Staff**: **{hr['active_employees']}** team members on active status\n"
+            f"- **Inactive / On-Leave**: **{hr['inactive_employees']}** team members\n\n"
+            f"| Company | Headcount | Active Deals | Total Sales |\n"
+            f"| :--- | :--- | :--- | :--- |\n"
+        )
+        for b in breakdown:
+            answer += f"| **{b['name']}** | {b['total_employees']} staff | {b['active_deals']} | {b['total_sales_formatted']} |\n"
+        data = {"hr": hr, "breakdown": breakdown}
+        suggested = [
+            "What are this month's sales?",
+            "Show active CRM deals and pipeline",
+            "What is our current profit?",
+        ]
+
+    elif intent == ERPIntent.CUSTOMER_LOOKUP:
+        if not entity_name:
+            answer = "Please provide a customer name to lookup (e.g. *Lookup customer Acme*)."
+            data = {}
+        else:
+            cust_matches = Customer.objects.filter(
+                company__in=authorized_companies,
+                name__icontains=entity_name,
+            ).select_related("company")[:5]
+            if cust_matches.exists():
+                answer = f"### 👤 Customer Search: \"{entity_name}\"\n\n"
+                answer += "| Customer | Company | Type | Email | Phone |\n| :--- | :--- | :--- | :--- | :--- |\n"
+                for c in cust_matches:
+                    answer += f"| **{c.name}** | {c.company.name} | {c.customer_type} | {c.email or 'N/A'} | {c.phone or 'N/A'} |\n"
+                data = {"matches": [{"name": c.name, "company": c.company.name} for c in cust_matches]}
+            else:
+                answer = f"🔍 No customer matching **\"{entity_name}\"** was found across your authorized workspaces."
+                data = {"found": False}
+        suggested = ["Which customers owe money?", "What are this month's sales?", "What is our current profit?"]
+
+    elif intent == ERPIntent.VENDOR_LOOKUP:
+        if not entity_name:
+            answer = "Please provide a vendor name to lookup (e.g. *Lookup vendor Global Steel*)."
+            data = {}
+        else:
+            from purchase.models import Vendor
+            vend_matches = Vendor.objects.filter(
+                company__in=authorized_companies,
+                name__icontains=entity_name,
+            ).select_related("company")[:5]
+            if vend_matches.exists():
+                answer = f"### 🏢 Vendor Search: \"{entity_name}\"\n\n"
+                answer += "| Vendor | Company | Tax ID | Email | Phone |\n| :--- | :--- | :--- | :--- | :--- |\n"
+                for v in vend_matches:
+                    answer += f"| **{v.name}** | {v.company.name} | {v.tax_id or 'N/A'} | {v.email or 'N/A'} | {v.phone or 'N/A'} |\n"
+                data = {"matches": [{"name": v.name, "company": v.company.name} for v in vend_matches]}
+            else:
+                answer = f"🔍 No vendor matching **\"{entity_name}\"** was found across your authorized workspaces."
+                data = {"found": False}
+        suggested = ["What are our total purchases?", "Which products have low stock?", "Show recent purchase orders."]
 
     else:
         # General / Executive multi-company summary
         answer = (
-            f"### Executive Multi-Workspace Overview\n\n"
+            f"### 🏢 Executive Multi-Workspace Overview\n\n"
             f"{dash['business_summary']}\n\n"
             f"#### Entity Breakdown\n"
             f"| Company | Sales | Purchases | Net Profit | Products | Employees |\n"

@@ -444,7 +444,7 @@ export default function AIAssistantPage() {
         sx={{ mb: 2.5, borderRadius: 2 }}
       >
         <Typography variant="caption" sx={{ fontWeight: 500 }}>
-          <strong>Safe Operational Intelligence:</strong> The AI Assistant strictly inspects live ERP database records for <strong>{activeCompany.name}</strong> without modifying stock counts, deleting entries, or altering invoices or payments.
+          <strong>Safe Operational Intelligence:</strong> The AI Assistant strictly inspects live ERP database records for <strong>{activeCompany?.name || 'All Workspaces'}</strong> without modifying stock counts, deleting entries, or altering invoices or payments.
         </Typography>
       </Alert>
 
@@ -509,7 +509,7 @@ export default function AIAssistantPage() {
                       Operational Intelligence Stream
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Context: {activeCompany.name} (Live DB)
+                      Context: {activeCompany?.name || 'All Authorized Workspaces'} (Live DB)
                     </Typography>
                   </Box>
                 </Stack>
