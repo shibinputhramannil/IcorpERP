@@ -17,6 +17,7 @@ import InventoryPage from '../pages/InventoryPage';
 import SalesPage from '../pages/SalesPage';
 import PurchasePage from '../pages/PurchasePage';
 import FinancePage from '../pages/FinancePage';
+import AIAssistantPage from '../pages/AIAssistantPage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -142,23 +143,8 @@ export default function AppRoutes() {
         />
 
         {/* System & Intelligence Modules */}
-        <Route
-          path="/ai-assistant"
-          element={
-            <ModulePlaceholderPage
-              title="AI Assistant & Intelligence"
-              subtitle="AI-driven business summaries, predictive insights, and automated workflows."
-              category="System & Intelligence"
-              phaseNumber={11}
-              features={[
-                'Natural-language ERP querying',
-                'Business performance summaries based on real telemetry',
-                'Lead scoring & deal velocity recommendations',
-                'Autonomous report generation without hard external dependency',
-              ]}
-            />
-          }
-        />
+        <Route path="/ai-assistant" element={<AIAssistantPage />} />
+        <Route path="/ai" element={<Navigate to="/ai-assistant" replace />} />
 
         <Route
           path="/settings"

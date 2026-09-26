@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "sales",
     "purchase",
     "finance",
+    "ai",
 ]
 
 MIDDLEWARE = [
@@ -170,3 +171,9 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": False,
 }
+
+# ============================================================
+# AI Assistant Configuration
+# ============================================================
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")

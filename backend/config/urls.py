@@ -274,6 +274,11 @@ urlpatterns = [
     # Finance & Accounting - Phase 6
     # ============================================================
     path("api/companies/<int:company_id>/finance/", include("finance.urls")),
+
+    # ============================================================
+    # AI ERP Assistant - Phase 7
+    # ============================================================
+    path("api/companies/<int:company_id>/ai/", include("ai.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

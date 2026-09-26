@@ -1,0 +1,259 @@
+{
+  "info": {
+    "name": "ICORP ERP - Phase 7 AI Assistant",
+    "_postman_id": "icorp-erp-phase7-ai-assistant",
+    "description": "ICORP ERP Phase 7: Practical Read-Only AI ERP Assistant Collection. Covers natural language queries, customer & vendor lookup, and executive insights.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. AI Chat - Month's Sales",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"What are this month's sales?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "2. AI Chat - Outstanding Invoices",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which invoices are outstanding?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "3. AI Chat - Collections",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"How much did we collect?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "4. AI Chat - Total Purchases",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"What are our total purchases?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "5. AI Chat - Low Stock Alerts",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which products have low stock?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "6. AI Chat - Customers Owe Money",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which customers owe money?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "7. AI Chat - Top Vendors by Spend",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which vendors have the highest purchase value?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "8. AI Chat - Current Profit",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"What is the current profit?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "9. AI Chat - Recent Sales Orders",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Show recent sales orders.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "10. AI Chat - Recent Purchase Orders",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Show recent purchase orders.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/chat/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "chat", ""]
+        }
+      }
+    },
+    {
+      "name": "11. AI Customer Lookup",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/customer-lookup/?q=Acme",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "customer-lookup", ""],
+          "query": [{ "key": "q", "value": "Acme" }]
+        }
+      }
+    },
+    {
+      "name": "12. AI Vendor Lookup",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/vendor-lookup/?q=Steel",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "vendor-lookup", ""],
+          "query": [{ "key": "q", "value": "Steel" }]
+        }
+      }
+    },
+    {
+      "name": "13. Executive Insights Digest (All Modules)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/insights/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "insights", ""]
+        }
+      }
+    },
+    {
+      "name": "14. Executive Insights Digest (Filtered)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/ai/insights/?module=sales",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "ai", "insights", ""],
+          "query": [{ "key": "module", "value": "sales" }]
+        }
+      }
+    }
+  ]
+}

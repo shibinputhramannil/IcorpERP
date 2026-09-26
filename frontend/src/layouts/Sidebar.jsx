@@ -62,7 +62,7 @@ const NAV_GROUPS = [
   {
     title: 'SYSTEM & INTELLIGENCE',
     items: [
-      { text: 'AI Assistant', path: '/ai-assistant', icon: AutoAwesomeOutlinedIcon, status: 'upcoming' },
+      { text: 'AI Assistant', path: '/ai-assistant', icon: AutoAwesomeOutlinedIcon, status: 'live' },
       { text: 'Settings', path: '/settings', icon: SettingsOutlinedIcon, status: 'upcoming' },
     ],
   },
