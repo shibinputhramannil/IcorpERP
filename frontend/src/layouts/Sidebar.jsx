@@ -27,6 +27,7 @@ import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 export const DRAWER_WIDTH = 260;
@@ -48,6 +49,7 @@ const NAV_GROUPS = [
       { text: 'Sales', path: '/sales', icon: PointOfSaleOutlinedIcon, status: 'live' },
       { text: 'Purchase', path: '/purchase', icon: ShoppingCartOutlinedIcon, status: 'live' },
       { text: 'Finance', path: '/finance', icon: AccountBalanceWalletOutlinedIcon, status: 'live' },
+      { text: 'Reports', path: '/reports', icon: AssessmentOutlinedIcon, status: 'live' },
     ],
   },
   {

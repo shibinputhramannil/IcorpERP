@@ -1,0 +1,175 @@
+{
+  "info": {
+    "name": "ICORP ERP - Phase 8 Reports & Admin Consolidation",
+    "_postman_id": "icorp-erp-phase8-reports",
+    "description": "ICORP ERP Phase 8: Centralized Reporting & Admin Consolidation Collection. Covers Executive, Sales, Purchase, Inventory, CRM, Finance, Employees, Monthly reports, and CSV exports.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Executive Dashboard Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/executive/?date_from=2026-01-01&date_to=2026-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "executive", ""],
+          "query": [
+            { "key": "date_from", "value": "2026-01-01" },
+            { "key": "date_to", "value": "2026-12-31" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Sales Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/sales/?date_from=2026-01-01&date_to=2026-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "sales", ""],
+          "query": [
+            { "key": "date_from", "value": "2026-01-01" },
+            { "key": "date_to", "value": "2026-12-31" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Purchase Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/purchase/?date_from=2026-01-01&date_to=2026-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "purchase", ""],
+          "query": [
+            { "key": "date_from", "value": "2026-01-01" },
+            { "key": "date_to", "value": "2026-12-31" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Inventory Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/inventory/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "inventory", ""]
+        }
+      }
+    },
+    {
+      "name": "5. CRM Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/crm/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "crm", ""]
+        }
+      }
+    },
+    {
+      "name": "6. Finance Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/finance/?date_from=2026-01-01&date_to=2026-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "finance", ""],
+          "query": [
+            { "key": "date_from", "value": "2026-01-01" },
+            { "key": "date_to", "value": "2026-12-31" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Employee & HR Summary Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/employees/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "employees", ""]
+        }
+      }
+    },
+    {
+      "name": "8. Monthly Business History Report",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/monthly/?months=6",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "monthly", ""],
+          "query": [
+            { "key": "months", "value": "6" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Export Sales Report (CSV)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/export/?report=sales",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "export", ""],
+          "query": [
+            { "key": "report", "value": "sales" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Export Executive Report (CSV)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/companies/{{company_id}}/reports/export/?report=executive",
+          "host": ["{{base_url}}"],
+          "path": ["api", "companies", "{{company_id}}", "reports", "export", ""],
+          "query": [
+            { "key": "report", "value": "executive" }
+          ]
+        }
+      }
+    }
+  ]
+}

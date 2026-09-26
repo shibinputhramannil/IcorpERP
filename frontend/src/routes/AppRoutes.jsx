@@ -17,6 +17,7 @@ import InventoryPage from '../pages/InventoryPage';
 import SalesPage from '../pages/SalesPage';
 import PurchasePage from '../pages/PurchasePage';
 import FinancePage from '../pages/FinancePage';
+import ReportsPage from '../pages/ReportsPage';
 import AIAssistantPage from '../pages/AIAssistantPage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -49,6 +50,7 @@ export default function AppRoutes() {
         <Route path="/purchase" element={<PurchasePage />} />
 
         <Route path="/finance" element={<FinancePage />} />
+        <Route path="/reports" element={<ReportsPage />} />
 
         {/* Workspace & Collaboration Modules */}
         <Route
