@@ -211,7 +211,7 @@ export default function NotificationsPage() {
       )}
 
       {/* Filter Toolbar */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
         <Box
           sx={{
             p: 1.5,
@@ -268,8 +268,8 @@ export default function NotificationsPage() {
           <CircularProgress size={36} />
         </Box>
       ) : notifications.length === 0 ? (
-        <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', py: 8, textAlign: 'center' }}>
-          <NotificationsOutlinedIcon sx={{ fontSize: 48, color: '#cbd5e1', mb: 1.5 }} />
+        <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', py: 8, textAlign: 'center' }}>
+          <NotificationsOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1.5 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
             No notifications found
           </Typography>
@@ -290,7 +290,7 @@ export default function NotificationsPage() {
                   borderRadius: 2,
                   border: '1px solid',
                   borderColor: isUnread ? '#bfdbfe' : '#e2e8f0',
-                  bgcolor: isUnread ? 'background.subtle' : '#ffffff',
+                  bgcolor: isUnread ? 'background.subtle' : 'background.paper',
                   boxShadow: 'none',
                   transition: 'background-color 0.2s',
                   '&:hover': {
@@ -304,7 +304,7 @@ export default function NotificationsPage() {
                       sx={{
                         p: 1,
                         borderRadius: 2,
-                        bgcolor: '#f1f5f9',
+                        bgcolor: 'action.hover',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -336,7 +336,7 @@ export default function NotificationsPage() {
                             fontSize: '0.65rem',
                             fontWeight: 600,
                             textTransform: 'uppercase',
-                            bgcolor: '#f1f5f9',
+                            bgcolor: 'action.hover',
                             color: 'text.secondary',
                           }}
                         />

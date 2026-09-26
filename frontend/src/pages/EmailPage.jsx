@@ -351,7 +351,7 @@ export default function EmailPage() {
         <Grid item xs={12} md={4.5} lg={4.5}>
           <Card sx={{ height: '720px', display: 'flex', flexDirection: 'column' }}>
             {/* Search Header */}
-            <Box sx={{ p: 1.5, borderBottom: '1px solid #e2e8f0' }}>
+            <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
               <TextField
                 fullWidth
                 size="small"
@@ -399,12 +399,12 @@ export default function EmailPage() {
                         key={email.id}
                         disablePadding
                         sx={{
-                          borderBottom: '1px solid #f1f5f9',
+                          borderBottom: 1, borderColor: 'divider',
                           bgcolor: isSelected
                             ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : '#f0fdf4')
                             : !email.is_read
                             ? 'background.subtle'
-                            : '#ffffff',
+                            : 'background.paper',
                         }}
                       >
                         <ListItemButton
@@ -501,7 +501,7 @@ export default function EmailPage() {
                 <Box
                   sx={{
                     p: 2,
-                    borderBottom: '1px solid #e2e8f0',
+                    borderBottom: 1, borderColor: 'divider',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -596,7 +596,7 @@ export default function EmailPage() {
 
       {/* Compose Email Dialog */}
       <Dialog open={composeOpen} onClose={() => setComposeOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>
+        <DialogTitle sx={{ fontWeight: 700, borderBottom: 1, borderColor: 'divider' }}>
           Compose Corporate Correspondence
         </DialogTitle>
         <DialogContent sx={{ pt: 3 }}>
@@ -652,7 +652,7 @@ export default function EmailPage() {
             />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid #e2e8f0', justifyContent: 'space-between' }}>
+        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider', justifyContent: 'space-between' }}>
           <Button onClick={() => handleSendEmail(true)} color="inherit" disabled={sending}>
             Save as Draft
           </Button>

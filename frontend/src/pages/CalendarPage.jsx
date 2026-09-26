@@ -292,10 +292,10 @@ export default function CalendarPage() {
         >
           {/* Month Navigation */}
           <Stack direction="row" spacing={1} alignItems="center">
-            <IconButton onClick={handlePrevMonth} size="small" sx={{ border: '1px solid #e2e8f0' }}>
+            <IconButton onClick={handlePrevMonth} size="small" sx={{ border: 1, borderColor: 'divider' }}>
               <ChevronLeftIcon />
             </IconButton>
-            <IconButton onClick={handleNextMonth} size="small" sx={{ border: '1px solid #e2e8f0' }}>
+            <IconButton onClick={handleNextMonth} size="small" sx={{ border: 1, borderColor: 'divider' }}>
               <ChevronRightIcon />
             </IconButton>
             <Button
@@ -348,7 +348,7 @@ export default function CalendarPage() {
         /* Month View Grid */
         <Card sx={{ overflow: 'hidden' }}>
           {/* Day of Week Headers */}
-          <Grid container sx={{ bgcolor: 'grey.100', borderBottom: '1px solid #e2e8f0' }}>
+          <Grid container sx={{ bgcolor: 'background.subtle', borderBottom: 1, borderColor: 'divider' }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
               <Grid
                 item
@@ -378,10 +378,10 @@ export default function CalendarPage() {
                   sx={{
                     minHeight: 110,
                     p: 1,
-                    borderRight: '1px solid #e2e8f0',
-                    borderBottom: '1px solid #e2e8f0',
+                    borderRight: 1, borderColor: 'divider',
+                    borderBottom: 1, borderColor: 'divider',
                     opacity: 0.35,
-                    bgcolor: '#ffffff',
+                    bgcolor: 'background.paper',
                   }}
                 >
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>

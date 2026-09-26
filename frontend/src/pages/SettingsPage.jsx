@@ -346,13 +346,13 @@ export default function SettingsPage() {
       )}
 
       {/* Tabs */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
-          sx={{ borderBottom: '1px solid #e2e8f0', px: 2 }}
+          sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
         >
           <Tab
             icon={<PersonOutlineOutlinedIcon sx={{ fontSize: 20 }} />}

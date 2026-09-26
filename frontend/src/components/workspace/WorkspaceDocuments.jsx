@@ -224,7 +224,7 @@ export default function WorkspaceDocuments({ companyId, externalOpenUpload, onUp
       )}
 
       {/* Search & Filter Toolbar */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
         <Box sx={{ p: 1.5, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <TextField
             size="small"
@@ -287,10 +287,10 @@ export default function WorkspaceDocuments({ companyId, externalOpenUpload, onUp
       </Card>
 
       {/* Documents Table */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
         <TableContainer component={Paper} elevation={0}>
           <Table size="medium">
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: 'background.subtle' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'text.secondary' }}>DOCUMENT</TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'text.secondary' }}>TYPE</TableCell>
@@ -333,7 +333,7 @@ export default function WorkspaceDocuments({ companyId, externalOpenUpload, onUp
                         <Chip
                           label={doc.file_type || 'FILE'}
                           size="small"
-                          sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600, bgcolor: '#f1f5f9' }}
+                          sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600, bgcolor: 'action.hover' }}
                         />
                       </TableCell>
                       <TableCell>
@@ -432,11 +432,11 @@ export default function WorkspaceDocuments({ companyId, externalOpenUpload, onUp
               onClick={() => fileInputRef.current?.click()}
               sx={{
                 p: 3,
-                border: '2px dashed #cbd5e1',
+                border: '2px dashed', borderColor: 'text.disabled',
                 borderRadius: 2,
                 textAlign: 'center',
                 cursor: 'pointer',
-                bgcolor: '#f8fafc',
+                bgcolor: 'background.subtle',
                 mb: 2,
                 transition: 'border-color 0.2s',
                 '&:hover': { borderColor: 'primary.main', bgcolor: '#eff6ff' },

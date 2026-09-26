@@ -380,7 +380,7 @@ export default function DashboardPage() {
               sx={(theme) => ({
                 background: theme.palette.mode === 'dark'
                   ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
-                  : 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
+                  : (theme) => theme.palette.mode === 'dark' ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
                 borderColor: theme.palette.mode === 'dark' ? '#0369a1' : '#bae6fd',
               })}
             >

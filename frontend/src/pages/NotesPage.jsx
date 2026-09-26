@@ -288,7 +288,7 @@ export default function NotesPage() {
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     p: 2.5,
-                    border: '1px solid #e2e8f0',
+                    border: 1, borderColor: 'divider',
                     transition: 'all 0.2s',
                     '&:hover': {
                       boxShadow: 3,
@@ -343,7 +343,7 @@ export default function NotesPage() {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ borderTop: '1px solid #f1f5f9', pt: 1.5, mt: 'auto' }}>
+                  <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 1.5, mt: 'auto' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <PersonOutlineOutlinedIcon sx={{ fontSize: '0.85rem', color: 'text.secondary' }} />
@@ -395,7 +395,7 @@ export default function NotesPage() {
               <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
                 {selectedNote.content}
               </Typography>
-              <Box sx={{ mt: 3, pt: 1.5, borderTop: '1px solid #e2e8f0' }}>
+              <Box sx={{ mt: 3, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
                 <Typography variant="caption" color="text.secondary">
                   Author: {selectedNote.author_name || 'System'} • Created: {new Date(selectedNote.created_at).toLocaleString()}
                 </Typography>

@@ -98,7 +98,7 @@ export default function ProfileMenu({ user }) {
             overflow: 'visible',
             filter: 'drop-shadow(0px 6px 16px rgba(15, 23, 42, 0.1))',
             mt: 1.5,
-            border: '1px solid #e2e8f0',
+            border: 1, borderColor: 'divider',
             borderRadius: 2.5,
           },
         }}
@@ -132,7 +132,7 @@ export default function ProfileMenu({ user }) {
                     position: 'absolute',
                     bottom: -4,
                     right: -4,
-                    bgcolor: '#ffffff',
+                    bgcolor: 'background.paper',
                     boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                     p: 0.3,
                     '&:hover': { bgcolor: '#eff6ff' },

@@ -14,7 +14,7 @@ export default function PublicRoute() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f8fafc',
+          backgroundColor: 'background.subtle',
         }}
       >
         <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />

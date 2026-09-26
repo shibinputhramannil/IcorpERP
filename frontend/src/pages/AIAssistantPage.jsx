@@ -610,8 +610,8 @@ export default function AIAssistantPage() {
                                 fontSize: '0.725rem',
                                 borderRadius: 1.5,
                                 backgroundColor: 'background.paper',
-                                borderColor: '#cbd5e1',
-                                '&:hover': { borderColor: 'primary.main', backgroundColor: '#f1f5f9' },
+                                borderColor: 'text.disabled',
+                                '&:hover': { borderColor: 'primary.main', backgroundColor: 'action.hover' },
                               }}
                             />
                           ))}

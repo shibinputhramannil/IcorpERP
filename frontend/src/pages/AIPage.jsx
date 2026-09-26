@@ -225,7 +225,7 @@ export default function AIPage() {
       />
 
       {/* Workspace Scope Switcher */}
-      <Card sx={{ mb: 3, p: 1.5, bgcolor: 'background.subtle', border: '1px solid #e2e8f0' }}>
+      <Card sx={{ mb: 3, p: 1.5, bgcolor: 'background.subtle', border: 1, borderColor: 'divider' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }}>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             ASSISTANT SCOPE:
@@ -943,7 +943,7 @@ export default function AIPage() {
                 sx={{
                   p: 2,
                   bgcolor: 'background.subtle',
-                  borderBottom: '1px solid #e2e8f0',
+                  borderBottom: 1, borderColor: 'divider',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -970,7 +970,7 @@ export default function AIPage() {
               </Box>
 
               {/* Quick Prompts Carousel / Bar */}
-              <Box sx={{ p: 1.5, bgcolor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
+              <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1 }}>
                   Suggested Questions:
                 </Typography>
@@ -1029,9 +1029,10 @@ export default function AIPage() {
                         sx={{
                           p: 2,
                           maxWidth: { xs: '85%', md: '75%' },
-                          bgcolor: isUser ? 'primary.main' : '#ffffff',
+                          bgcolor: isUser ? 'primary.main' : 'background.paper',
                           color: isUser ? '#ffffff' : 'text.primary',
-                          border: isUser ? 'none' : '1px solid #e2e8f0',
+                          border: isUser ? 'none' : 1,
+                          borderColor: 'divider',
                           borderRadius: 2,
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
@@ -1065,7 +1066,7 @@ export default function AIPage() {
                     </Avatar>
                     <Paper
                       elevation={0}
-                      sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2 }}
+                      sx={{ p: 2, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}
                     >
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         <CircularProgress size={16} />
@@ -1094,8 +1095,8 @@ export default function AIPage() {
                 }}
                 sx={{
                   p: 2,
-                  bgcolor: '#ffffff',
-                  borderTop: '1px solid #e2e8f0',
+                  bgcolor: 'background.paper',
+                  borderTop: 1, borderColor: 'divider',
                 }}
               >
                 <TextField

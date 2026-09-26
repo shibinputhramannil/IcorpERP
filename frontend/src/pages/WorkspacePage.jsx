@@ -304,13 +304,13 @@ export default function WorkspacePage() {
       )}
 
       {/* 6 Tabs Navigation */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
-          sx={{ borderBottom: '1px solid #e2e8f0', px: 2 }}
+          sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
         >
           <Tab
             icon={<DashboardCustomizeOutlinedIcon sx={{ fontSize: 20 }} />}
@@ -425,7 +425,7 @@ export default function WorkspacePage() {
               </Box>
 
               {/* Filters */}
-              <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+              <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
                 <Box sx={{ p: 1.5, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <TextField
                     size="small"
@@ -457,7 +457,7 @@ export default function WorkspacePage() {
               </Card>
 
               {/* Members Table */}
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
+              <TableContainer component={Paper} elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
                 <Table size="medium">
                   <TableHead sx={{ bgcolor: 'background.subtle' }}>
                     <TableRow>

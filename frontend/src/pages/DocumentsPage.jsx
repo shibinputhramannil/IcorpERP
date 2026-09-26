@@ -274,7 +274,7 @@ export default function DocumentsPage() {
 
       {/* Filter & Category Controls */}
       <Card sx={{ mb: 3 }}>
-        <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0' }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <TextField
             fullWidth
             size="small"
@@ -333,7 +333,7 @@ export default function DocumentsPage() {
           />
         </Card>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2, border: '1px solid #e2e8f0' }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, border: 1, borderColor: 'divider' }}>
           <Table>
             <TableHead sx={{ bgcolor: 'background.subtle' }}>
               <TableRow>
@@ -358,7 +358,7 @@ export default function DocumentsPage() {
                             width: 36,
                             height: 36,
                             borderRadius: 1.5,
-                            bgcolor: '#f1f5f9',
+                            bgcolor: 'action.hover',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -464,14 +464,14 @@ export default function DocumentsPage() {
               <Box
                 onClick={() => fileInputRef.current?.click()}
                 sx={{
-                  border: '2px dashed #cbd5e1',
+                  border: '2px dashed', borderColor: 'text.disabled',
                   borderRadius: 2,
                   p: 3,
                   textAlign: 'center',
                   cursor: 'pointer',
                   bgcolor: selectedFile ? (theme => theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : '#f0fdf4') : 'background.subtle',
                   borderColor: selectedFile ? '#22c55e' : '#cbd5e1',
-                  '&:hover': { bgcolor: '#f1f5f9' },
+                  '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
                 <input

@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
           maxWidth: 440,
           p: { xs: 2.5, sm: 4 },
           boxShadow: '0 8px 30px rgba(15, 23, 42, 0.08)',
-          border: '1px solid #e2e8f0',
+          border: 1, borderColor: 'divider',
           borderRadius: 3,
         }}
       >

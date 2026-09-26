@@ -445,7 +445,7 @@ export default function CompaniesPage() {
             />
           ) : (
             /* Companies Table */
-            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
+            <TableContainer component={Paper} elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead sx={{ backgroundColor: 'background.subtle' }}>
                   <TableRow>
@@ -520,7 +520,7 @@ export default function CompaniesPage() {
                         <Chip
                           label={comp.employee_count ?? 0}
                           size="small"
-                          sx={{ backgroundColor: '#f1f5f9', fontWeight: 600 }}
+                          sx={{ backgroundColor: 'action.hover', fontWeight: 600 }}
                         />
                       </TableCell>
 
@@ -717,7 +717,7 @@ export default function CompaniesPage() {
         </DialogTitle>
         <DialogContent dividers>
           {/* Add Member Subform */}
-          <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: 'background.subtle', border: '1px solid #e2e8f0', borderRadius: 2 }}>
+          <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: 'background.subtle', border: 1, borderColor: 'divider', borderRadius: 2 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
               Add New Company Member
             </Typography>
@@ -774,9 +774,9 @@ export default function CompaniesPage() {
               description="No members are currently assigned to this company."
             />
           ) : (
-            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0' }}>
+            <TableContainer component={Paper} elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
               <Table size="small">
-                <TableHead sx={{ backgroundColor: '#f1f5f9' }}>
+                <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700 }}>USERNAME</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>ASSIGNED ROLE</TableCell>

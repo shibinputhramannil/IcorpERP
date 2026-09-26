@@ -138,8 +138,8 @@ export default function GlobalSearchDialog({ open, onClose, activeCompany }) {
           alignItems: 'center',
           px: 2.5,
           py: 1.5,
-          borderBottom: '1px solid #e2e8f0',
-          backgroundColor: '#ffffff',
+          borderBottom: 1, borderColor: 'divider',
+          backgroundColor: 'background.paper',
         }}
       >
         <SearchIcon sx={{ color: 'text.secondary', fontSize: 24, mr: 1.5 }} />
@@ -172,7 +172,7 @@ export default function GlobalSearchDialog({ open, onClose, activeCompany }) {
             fontSize: '0.65rem',
             fontWeight: 700,
             cursor: 'pointer',
-            backgroundColor: '#f1f5f9',
+            backgroundColor: 'action.hover',
             color: 'text.secondary',
           }}
         />
@@ -183,8 +183,8 @@ export default function GlobalSearchDialog({ open, onClose, activeCompany }) {
         sx={{
           px: 2.5,
           py: 1,
-          backgroundColor: '#f8fafc',
-          borderBottom: '1px solid #f1f5f9',
+          backgroundColor: 'background.subtle',
+          borderBottom: 1, borderColor: 'divider',
           display: 'flex',
           alignItems: 'center',
           gap: 1,
@@ -289,7 +289,7 @@ export default function GlobalSearchDialog({ open, onClose, activeCompany }) {
                           px: 2.5,
                           py: 1,
                           '&:hover': {
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'action.hover',
                           },
                         }}
                       >
@@ -322,7 +322,7 @@ export default function GlobalSearchDialog({ open, onClose, activeCompany }) {
                                   height: 18,
                                   fontSize: '0.625rem',
                                   fontWeight: 600,
-                                  backgroundColor: '#f1f5f9',
+                                  backgroundColor: 'action.hover',
                                   color: 'text.secondary',
                                 }}
                               />

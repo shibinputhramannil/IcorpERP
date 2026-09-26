@@ -124,7 +124,7 @@ export default function NotificationBell() {
           onClick={handleClick}
           sx={{
             color: 'text.secondary',
-            '&:hover': { backgroundColor: '#f1f5f9', color: 'text.primary' },
+            '&:hover': { backgroundColor: 'action.hover', color: 'text.primary' },
           }}
           aria-controls={open ? 'notification-menu' : undefined}
           aria-haspopup="true"
@@ -153,7 +153,7 @@ export default function NotificationBell() {
             flexDirection: 'column',
             filter: 'drop-shadow(0px 6px 16px rgba(15, 23, 42, 0.12))',
             mt: 1.5,
-            border: '1px solid #e2e8f0',
+            border: 1, borderColor: 'divider',
             borderRadius: 2.5,
           },
         }}
@@ -166,7 +166,7 @@ export default function NotificationBell() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #f1f5f9',
+            borderBottom: 1, borderColor: 'divider',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -280,7 +280,7 @@ export default function NotificationBell() {
         <Divider />
 
         {/* Footer */}
-        <Box sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc' }}>
+        <Box sx={{ p: 1, textAlign: 'center', bgcolor: 'background.subtle' }}>
           <Button
             fullWidth
             size="small"

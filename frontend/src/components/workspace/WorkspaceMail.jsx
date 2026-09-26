@@ -250,7 +250,7 @@ export default function WorkspaceMail({ companyId, externalOpenCompose, onCompos
       )}
 
       {/* Search Toolbar */}
-      <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
+      <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', mb: 3 }}>
         <Box sx={{ p: 1.5, display: 'flex', gap: 2 }}>
           <TextField
             size="small"
@@ -278,8 +278,8 @@ export default function WorkspaceMail({ companyId, externalOpenCompose, onCompos
           <CircularProgress size={32} />
         </Box>
       ) : emails.length === 0 ? (
-        <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', py: 8, textAlign: 'center' }}>
-          <EmailOutlinedIcon sx={{ fontSize: 48, color: '#cbd5e1', mb: 1.5 }} />
+        <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', py: 8, textAlign: 'center' }}>
+          <EmailOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1.5 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
             No emails logged yet
           </Typography>
@@ -303,7 +303,7 @@ export default function WorkspaceMail({ companyId, externalOpenCompose, onCompos
               key={e.id}
               sx={{
                 borderRadius: 2,
-                border: '1px solid #e2e8f0',
+                border: 1, borderColor: 'divider',
                 boxShadow: 'none',
                 p: 2,
                 transition: 'border-color 0.2s',

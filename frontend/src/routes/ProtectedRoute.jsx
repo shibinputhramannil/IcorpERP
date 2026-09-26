@@ -17,7 +17,7 @@ export default function ProtectedRoute() {
           alignItems: 'center',
           justifyContent: 'center',
           gap: 2,
-          backgroundColor: '#f8fafc',
+          backgroundColor: 'background.subtle',
         }}
       >
         <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />

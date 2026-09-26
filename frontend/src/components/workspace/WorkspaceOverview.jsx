@@ -53,8 +53,8 @@ export default function WorkspaceOverview({
           p: 2,
           mb: 3,
           borderRadius: 2,
-          border: '1px solid #e2e8f0',
-          bgcolor: '#f8fafc',
+          border: 1, borderColor: 'divider',
+          bgcolor: 'background.subtle',
           display: 'flex',
           flexWrap: 'wrap',
           gap: 1.5,
@@ -115,7 +115,7 @@ export default function WorkspaceOverview({
       {/* Stats Cards */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
             <CardContent sx={{ py: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Avatar sx={{ bgcolor: '#eff6ff', color: 'primary.main', width: 40, height: 40 }}>
@@ -135,7 +135,7 @@ export default function WorkspaceOverview({
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
             <CardContent sx={{ py: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Avatar sx={{ bgcolor: '#fef3c7', color: '#d97706', width: 40, height: 40 }}>
@@ -155,7 +155,7 @@ export default function WorkspaceOverview({
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
             <CardContent sx={{ py: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Avatar sx={{ bgcolor: '#ecfdf5', color: '#059669', width: 40, height: 40 }}>
@@ -175,7 +175,7 @@ export default function WorkspaceOverview({
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
             <CardContent sx={{ py: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Avatar sx={{ bgcolor: '#f5f3ff', color: '#7c3aed', width: 40, height: 40 }}>
@@ -195,7 +195,7 @@ export default function WorkspaceOverview({
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none' }}>
             <CardContent sx={{ py: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Avatar sx={{ bgcolor: '#fff1f2', color: '#e11d48', width: 40, height: 40 }}>
@@ -219,8 +219,8 @@ export default function WorkspaceOverview({
       <Grid container spacing={3}>
         {/* Recent Notes */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', height: '100%' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <NoteAltOutlinedIcon sx={{ color: '#d97706', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -244,7 +244,7 @@ export default function WorkspaceOverview({
               ) : (
                 <Stack spacing={1.5}>
                   {notes.map((n) => (
-                    <Box key={n.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                    <Box key={n.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'background.subtle', border: '1px solid #f1f5f9' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                           {n.title}
@@ -273,8 +273,8 @@ export default function WorkspaceOverview({
 
         {/* Recent Mail */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', height: '100%' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <EmailOutlinedIcon sx={{ color: '#059669', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -298,7 +298,7 @@ export default function WorkspaceOverview({
               ) : (
                 <Stack spacing={1.5}>
                   {emails.map((e) => (
-                    <Box key={e.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                    <Box key={e.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'background.subtle', border: '1px solid #f1f5f9' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                           {e.subject}
@@ -325,8 +325,8 @@ export default function WorkspaceOverview({
 
         {/* Recent Documents */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', height: '100%' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <DescriptionOutlinedIcon sx={{ color: '#7c3aed', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -350,7 +350,7 @@ export default function WorkspaceOverview({
               ) : (
                 <Stack spacing={1.5}>
                   {documents.map((d) => (
-                    <Box key={d.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box key={d.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'background.subtle', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box sx={{ minWidth: 0, mr: 1 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.85rem' }} noWrap>
                           {d.name}
@@ -378,8 +378,8 @@ export default function WorkspaceOverview({
 
         {/* Recent Activities */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: 'none', height: '100%' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Card sx={{ borderRadius: 2, border: 1, borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <HistoryOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -403,7 +403,7 @@ export default function WorkspaceOverview({
               ) : (
                 <Stack spacing={1.5}>
                   {activities.map((act) => (
-                    <Box key={act.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                    <Box key={act.id} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'background.subtle', border: '1px solid #f1f5f9' }}>
                       <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
                         {act.details}
                       </Typography>

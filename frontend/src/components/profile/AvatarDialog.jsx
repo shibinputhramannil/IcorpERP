@@ -200,7 +200,7 @@ export default function AvatarDialog({ open, onClose, user }) {
             py: 2,
             mb: 2,
             borderRadius: 2,
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'background.subtle',
             border: '1px dashed #cbd5e1',
           }}
         >
@@ -227,7 +227,7 @@ export default function AvatarDialog({ open, onClose, user }) {
                   position: 'absolute',
                   bottom: 0,
                   right: 0,
-                  bgcolor: '#ffffff',
+                  bgcolor: 'background.paper',
                   borderRadius: '50%',
                   display: 'flex',
                   p: 0.2,
@@ -363,7 +363,7 @@ export default function AvatarDialog({ open, onClose, user }) {
                         backgroundColor: isSelected ? '#eff6ff' : 'transparent',
                         '&:hover': {
                           transform: 'scale(1.05)',
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'action.hover',
                         },
                       }}
                     >

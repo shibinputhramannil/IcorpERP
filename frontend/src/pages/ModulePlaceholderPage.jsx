@@ -67,7 +67,7 @@ export default function ModulePlaceholderPage({
                       p: 2,
                       bgcolor: 'background.subtle',
                       borderRadius: 2,
-                      border: '1px solid #e2e8f0',
+                      border: 1, borderColor: 'divider',
                       overflowX: 'auto',
                     }}
                   >
@@ -78,8 +78,8 @@ export default function ModulePlaceholderPage({
                           size="small"
                           sx={{
                             fontWeight: 600,
-                            bgcolor: '#ffffff',
-                            border: '1px solid #cbd5e1',
+                            bgcolor: 'background.paper',
+                            border: 1, borderColor: 'text.disabled',
                           }}
                         />
                         {idx < workflowSteps.length - 1 && (
