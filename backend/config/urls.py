@@ -28,6 +28,17 @@ from accounts.views import (
     CompanyMemberCreateView,
     CompanyMemberUpdateView,
 )
+from accounts.workspace_views import (
+    WorkspaceView,
+    WorkspaceMembersView,
+    WorkspaceMemberDetailView,
+)
+from accounts.settings_views import (
+    SettingsProfileView,
+    SettingsChangePasswordView,
+    CompanySettingsView,
+    SettingsNotificationPreferencesView,
+)
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
 from crm.views import (
@@ -121,13 +132,21 @@ urlpatterns = [
     path("api/auth/me/", MeView.as_view(), name="auth_me"),
     path("api/auth/profile/avatar/", AvatarUploadView.as_view(), name="user_avatar_upload"),
 
-    # Company
+    # User Settings (Phase 9C)
+    path("api/settings/profile/", SettingsProfileView.as_view(), name="settings_profile"),
+    path("api/settings/change-password/", SettingsChangePasswordView.as_view(), name="settings_change_password"),
+    path("api/settings/notifications/", SettingsNotificationPreferencesView.as_view(), name="settings_notifications"),
+
+    # Company & Workspace (Phase 9A & 9C)
     path("api/companies/", CompanyListView.as_view(), name="company_list"),
     path("api/companies/<int:pk>/", CompanyDetailView.as_view(), name="company_detail"),
     path("api/companies/create/", CompanyCreateView.as_view(), name="company_create"),
-    path("api/companies/<int:company_id>/members/", CompanyMemberListView.as_view(), name="company_members"),
-    path("api/companies/<int:company_id>/members/add/", CompanyMemberCreateView.as_view(), name="company_member_create"),
-    path("api/companies/<int:company_id>/members/<int:membership_id>/", CompanyMemberUpdateView.as_view(), name="company-member-update"),
+    path("api/companies/<int:company_id>/workspace/", WorkspaceView.as_view(), name="company_workspace"),
+    path("api/companies/<int:company_id>/settings/", CompanySettingsView.as_view(), name="company_settings"),
+    path("api/companies/<int:company_id>/members/", WorkspaceMembersView.as_view(), name="company_members"),
+    path("api/companies/<int:company_id>/members/add/", WorkspaceMembersView.as_view(), name="company_member_create"),
+    path("api/companies/<int:company_id>/members/<int:member_id>/", WorkspaceMemberDetailView.as_view(), name="company_member_detail"),
+    path("api/companies/<int:company_id>/members/<int:membership_id>/", WorkspaceMemberDetailView.as_view(), name="company-member-update"),
 
     # Employee
     path("api/companies/<int:company_id>/employees/", EmployeeListView.as_view(), name="employee_list"),
@@ -284,6 +303,11 @@ urlpatterns = [
     # Reporting & Admin Consolidation - Phase 8
     # ============================================================
     path("api/companies/<int:company_id>/reports/", include("reports.urls")),
+
+    # ============================================================
+    # Notifications - Phase 9B
+    # ============================================================
+    path("api/companies/<int:company_id>/notifications/", include("notifications.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

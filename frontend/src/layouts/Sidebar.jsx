@@ -29,6 +29,8 @@ import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 
 export const DRAWER_WIDTH = 260;
 
@@ -55,6 +57,8 @@ const NAV_GROUPS = [
   {
     title: 'WORKSPACE & COLLABORATION',
     items: [
+      { text: 'Workspace', path: '/workspace', icon: GroupsOutlinedIcon, status: 'live' },
+      { text: 'Notifications', path: '/notifications', icon: NotificationsNoneOutlinedIcon, status: 'live' },
       { text: 'Calendar', path: '/calendar', icon: CalendarMonthOutlinedIcon, status: 'upcoming' },
       { text: 'Notes', path: '/notes', icon: StickyNote2OutlinedIcon, status: 'upcoming' },
       { text: 'Email', path: '/email', icon: AlternateEmailOutlinedIcon, status: 'upcoming' },
@@ -65,7 +69,7 @@ const NAV_GROUPS = [
     title: 'SYSTEM & INTELLIGENCE',
     items: [
       { text: 'AI Assistant', path: '/ai', icon: AutoAwesomeOutlinedIcon, status: 'live' },
-      { text: 'Settings', path: '/settings', icon: SettingsOutlinedIcon, status: 'upcoming' },
+      { text: 'Settings', path: '/settings', icon: SettingsOutlinedIcon, status: 'live' },
     ],
   },
 ];

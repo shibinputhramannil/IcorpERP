@@ -22,6 +22,7 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
+import NotificationBell from '../components/common/NotificationBell';
 import { DRAWER_WIDTH } from './Sidebar';
 import { useCompany } from '../context/CompanyContext';
 
@@ -173,21 +174,7 @@ export default function Header({ onMobileToggle, user }) {
           </Tooltip>
 
           {/* Notifications */}
-          <Tooltip title="Notifications">
-            <IconButton
-              size="medium"
-              color="inherit"
-              onClick={() => navigate('/notifications')}
-              sx={{
-                color: 'text.secondary',
-                '&:hover': { backgroundColor: '#f1f5f9', color: 'text.primary' },
-              }}
-            >
-              <Badge badgeContent={2} color="error" variant="dot">
-                <NotificationsNoneOutlinedIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+          <NotificationBell />
 
           {/* Profile Dropdown */}
           <ProfileMenu user={user} />

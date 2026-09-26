@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
-from .models import CompanyMembership
+from .models import CompanyMembership, WorkspaceActivity
 
 
 class CompanyMembershipSerializer(serializers.ModelSerializer):
@@ -9,14 +9,36 @@ class CompanyMembershipSerializer(serializers.ModelSerializer):
         source="user.username",
         read_only=True,
     )
-
+    user_name = serializers.CharField(
+        source="user.username",
+        read_only=True,
+    )
+    first_name = serializers.CharField(
+        source="user.first_name",
+        read_only=True,
+    )
+    last_name = serializers.CharField(
+        source="user.last_name",
+        read_only=True,
+    )
+    email = serializers.CharField(
+        source="user.email",
+        read_only=True,
+    )
     company_name = serializers.CharField(
         source="company.name",
         read_only=True,
     )
-
     role_name = serializers.CharField(
         source="role.name",
+        read_only=True,
+    )
+    active_status = serializers.BooleanField(
+        source="is_active",
+        read_only=True,
+    )
+    joined_date = serializers.DateTimeField(
+        source="created_at",
         read_only=True,
     )
 
@@ -26,19 +48,31 @@ class CompanyMembershipSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "username",
+            "user_name",
+            "first_name",
+            "last_name",
+            "email",
             "company",
             "company_name",
             "role",
             "role_name",
+            "is_active",
+            "active_status",
             "created_at",
+            "joined_date",
         ]
-
         read_only_fields = [
             "id",
             "created_at",
             "username",
+            "user_name",
+            "first_name",
+            "last_name",
+            "email",
             "company_name",
             "role_name",
+            "active_status",
+            "joined_date",
         ]
 
 
@@ -50,6 +84,7 @@ class CompanyMembershipCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False, write_only=True)
     email = serializers.EmailField(required=False, write_only=True)
     role = serializers.CharField()
+    is_active = serializers.BooleanField(default=True, required=False)
 
     class Meta:
         model = CompanyMembership
@@ -58,6 +93,7 @@ class CompanyMembershipCreateSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "role",
+            "is_active",
         ]
 
     def validate_role(self, value):
@@ -108,12 +144,16 @@ class CompanyMembershipCreateSerializer(serializers.ModelSerializer):
 
 
 class CompanyMembershipRoleUpdateSerializer(serializers.ModelSerializer):
-    role = serializers.CharField()
+    role = serializers.CharField(required=False)
+    is_active = serializers.BooleanField(required=False)
+    active_status = serializers.BooleanField(source="is_active", required=False)
 
     class Meta:
         model = CompanyMembership
         fields = [
             "role",
+            "is_active",
+            "active_status",
         ]
 
     def validate_role(self, value):
@@ -123,3 +163,27 @@ class CompanyMembershipRoleUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Role '{value}' does not exist."
             )
+
+
+class WorkspaceActivitySerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkspaceActivity
+        fields = [
+            "id",
+            "company",
+            "user",
+            "username",
+            "user_name",
+            "action",
+            "details",
+            "created_at",
+        ]
+
+    def get_user_name(self, obj):
+        if obj.user:
+            name = f"{obj.user.first_name} {obj.user.last_name}".strip()
+            return name or obj.user.username
+        return "System"

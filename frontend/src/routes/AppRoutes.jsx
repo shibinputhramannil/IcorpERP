@@ -20,6 +20,9 @@ import FinancePage from '../pages/FinancePage';
 import ReportsPage from '../pages/ReportsPage';
 import AIPage from '../pages/AIPage';
 import AIAssistantPage from '../pages/AIAssistantPage';
+import WorkspacePage from '../pages/WorkspacePage';
+import NotificationsPage from '../pages/NotificationsPage';
+import SettingsPage from '../pages/SettingsPage';
 import ModulePlaceholderPage from '../pages/ModulePlaceholderPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -127,45 +130,14 @@ export default function AppRoutes() {
           }
         />
 
-        <Route
-          path="/notifications"
-          element={
-            <ModulePlaceholderPage
-              title="Notification Center"
-              subtitle="Real-time alerts, task reminders, and audit notices."
-              category="Workspace & Collaboration"
-              phaseNumber={9}
-              features={[
-                'Unread / read notification filtering',
-                'Actionable task alerts',
-                'System security & audit alerts',
-                'Custom notification preferences',
-              ]}
-            />
-          }
-        />
+        {/* Workspace & Collaboration Modules */}
+        <Route path="/workspace" element={<WorkspacePage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
 
         {/* System & Intelligence Modules */}
         <Route path="/ai" element={<AIPage />} />
         <Route path="/ai-assistant" element={<AIPage />} />
-
-        <Route
-          path="/settings"
-          element={
-            <ModulePlaceholderPage
-              title="System Settings"
-              subtitle="Organization settings, role assignments, and system preferences."
-              category="System & Intelligence"
-              phaseNumber={10}
-              features={[
-                'General organization configuration',
-                'Security policies & password rules',
-                'User roles and permissions matrix',
-                'UI theme & regional preferences',
-              ]}
-            />
-          }
-        />
+        <Route path="/settings" element={<SettingsPage />} />
 
           {/* 404 Not Found within ERP Layout */}
           <Route path="*" element={<NotFoundPage />} />
