@@ -580,7 +580,7 @@ export default function SettingsPage() {
                   </List>
                 </Paper>
 
-                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: '#f8fafc' }}>
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: 'background.subtle' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                     Session Security Status
                   </Typography>

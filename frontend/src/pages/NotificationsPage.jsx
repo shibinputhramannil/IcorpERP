@@ -290,11 +290,11 @@ export default function NotificationsPage() {
                   borderRadius: 2,
                   border: '1px solid',
                   borderColor: isUnread ? '#bfdbfe' : '#e2e8f0',
-                  bgcolor: isUnread ? '#f8fafc' : '#ffffff',
+                  bgcolor: isUnread ? 'background.subtle' : '#ffffff',
                   boxShadow: 'none',
                   transition: 'background-color 0.2s',
                   '&:hover': {
-                    bgcolor: isUnread ? '#eff6ff' : '#f8fafc',
+                    bgcolor: isUnread ? '#eff6ff' : 'background.subtle',
                   },
                 }}
               >

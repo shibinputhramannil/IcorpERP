@@ -447,7 +447,7 @@ export default function CompaniesPage() {
             /* Companies Table */
             <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
               <Table sx={{ minWidth: 650 }}>
-                <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+                <TableHead sx={{ backgroundColor: 'background.subtle' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>COMPANY NAME</TableCell>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>CONTACT INFO</TableCell>
@@ -717,7 +717,7 @@ export default function CompaniesPage() {
         </DialogTitle>
         <DialogContent dividers>
           {/* Add Member Subform */}
-          <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 2 }}>
+          <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: 'background.subtle', border: '1px solid #e2e8f0', borderRadius: 2 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
               Add New Company Member
             </Typography>

@@ -521,7 +521,7 @@ export default function AIAssistantPage() {
               </Box>
 
               {/* Chat Messages Body */}
-              <Box sx={{ flexGrow: 1, p: 3, overflowY: 'auto', backgroundColor: '#f8fafc' }}>
+              <Box sx={{ flexGrow: 1, p: 3, overflowY: 'auto', backgroundColor: 'background.subtle' }}>
                 <Stack spacing={2.5}>
                   {messages.map((msg) => (
                     <Box
@@ -609,7 +609,7 @@ export default function AIAssistantPage() {
                               sx={{
                                 fontSize: '0.725rem',
                                 borderRadius: 1.5,
-                                backgroundColor: '#ffffff',
+                                backgroundColor: 'background.paper',
                                 borderColor: '#cbd5e1',
                                 '&:hover': { borderColor: 'primary.main', backgroundColor: '#f1f5f9' },
                               }}

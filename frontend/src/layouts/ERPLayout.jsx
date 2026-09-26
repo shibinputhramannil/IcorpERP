@@ -20,7 +20,7 @@ export default function ERPLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', maxWidth: '100vw', backgroundColor: '#f8fafc' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', maxWidth: '100vw', backgroundColor: 'background.default' }}>
       <CssBaseline />
 
       {/* Top Navigation Header */}
@@ -40,7 +40,7 @@ export default function ERPLayout() {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#f8fafc',
+          backgroundColor: 'background.default',
         }}
       >
         {/* Spacer for fixed AppBar */}

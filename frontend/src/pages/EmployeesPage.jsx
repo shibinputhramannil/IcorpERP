@@ -473,7 +473,7 @@ export default function EmployeesPage() {
             /* Employees Table */
             <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
               <Table sx={{ minWidth: 700 }}>
-                <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+                <TableHead sx={{ backgroundColor: 'background.subtle' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>EMP ID</TableCell>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>STAFF MEMBER</TableCell>

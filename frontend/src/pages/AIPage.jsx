@@ -225,7 +225,7 @@ export default function AIPage() {
       />
 
       {/* Workspace Scope Switcher */}
-      <Card sx={{ mb: 3, p: 1.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+      <Card sx={{ mb: 3, p: 1.5, bgcolor: 'background.subtle', border: '1px solid #e2e8f0' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }}>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             ASSISTANT SCOPE:
@@ -392,7 +392,7 @@ export default function AIPage() {
                   </Typography>
                   <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
                     <Table size="small">
-                      <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                      <TableHead sx={{ bgcolor: 'background.subtle' }}>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 700 }}>Company Workspace</TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>Total Sales</TableCell>
@@ -474,7 +474,7 @@ export default function AIPage() {
                       {sales.recent_orders?.length > 0 ? (
                         <Stack spacing={1}>
                           {sales.recent_orders.slice(0, 3).map((o, idx) => (
-                            <Box key={idx} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box key={idx} sx={{ p: 1, bgcolor: 'background.subtle', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Box>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{o.order_number}</Typography>
                                 <Typography variant="caption" color="text.secondary">{o.customer}</Typography>
@@ -529,7 +529,7 @@ export default function AIPage() {
                       {purchases.recent_pos?.length > 0 ? (
                         <Stack spacing={1}>
                           {purchases.recent_pos.slice(0, 3).map((po, idx) => (
-                            <Box key={idx} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box key={idx} sx={{ p: 1, bgcolor: 'background.subtle', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Box>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{po.order_number}</Typography>
                                 <Typography variant="caption" color="text.secondary">{po.vendor}</Typography>
@@ -755,7 +755,7 @@ export default function AIPage() {
                         key={idx}
                         sx={{
                           p: 1.5,
-                          bgcolor: '#f8fafc',
+                          bgcolor: 'background.subtle',
                           borderLeft: '4px solid #3b82f6',
                           borderRadius: 1,
                         }}
@@ -815,7 +815,7 @@ export default function AIPage() {
                             sx={{
                               p: 2,
                               borderRadius: 2,
-                              bgcolor: isUp ? '#f0fdf4' : isDown ? '#fef2f2' : '#f8fafc',
+                              bgcolor: isUp ? '#f0fdf4' : isDown ? '#fef2f2' : 'background.subtle',
                               borderColor: isUp ? '#bbf7d0' : isDown ? '#fecaca' : '#e2e8f0',
                             }}
                           >
@@ -905,7 +905,7 @@ export default function AIPage() {
                       </Typography>
                       <Stack spacing={1}>
                         {dashboardData?.observations?.sales?.map((obs, idx) => (
-                          <Box key={idx} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 1 }}>
+                          <Box key={idx} sx={{ p: 1, bgcolor: 'background.subtle', borderRadius: 1 }}>
                             <Typography variant="body2">{obs}</Typography>
                           </Box>
                         ))}
@@ -921,7 +921,7 @@ export default function AIPage() {
                       </Typography>
                       <Stack spacing={1}>
                         {dashboardData?.observations?.purchases?.map((obs, idx) => (
-                          <Box key={idx} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 1 }}>
+                          <Box key={idx} sx={{ p: 1, bgcolor: 'background.subtle', borderRadius: 1 }}>
                             <Typography variant="body2">{obs}</Typography>
                           </Box>
                         ))}
@@ -942,7 +942,7 @@ export default function AIPage() {
               <Box
                 sx={{
                   p: 2,
-                  bgcolor: '#f8fafc',
+                  bgcolor: 'background.subtle',
                   borderBottom: '1px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',

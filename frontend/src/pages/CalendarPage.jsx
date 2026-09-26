@@ -56,7 +56,7 @@ const EVENT_TYPE_CONFIG = {
   reminder: { label: 'Reminder', color: 'secondary', icon: NotificationsActiveOutlinedIcon, bg: '#faf5ff', border: '#e9d5ff' },
   deadline: { label: 'Deadline', color: 'error', icon: WarningAmberOutlinedIcon, bg: '#fef2f2', border: '#fecaca' },
   holiday: { label: 'Holiday', color: 'success', icon: CalendarMonthOutlinedIcon, bg: '#ecfdf5', border: '#a7f3d0' },
-  other: { label: 'Other', color: 'default', icon: CalendarMonthOutlinedIcon, bg: '#f8fafc', border: '#e2e8f0' },
+  other: { label: 'Other', color: 'default', icon: CalendarMonthOutlinedIcon, bg: 'background.subtle', border: '#e2e8f0' },
 };
 
 const MONTH_NAMES = [
@@ -367,7 +367,7 @@ export default function CalendarPage() {
           </Grid>
 
           {/* Calendar Day Cells */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', bgcolor: '#f8fafc' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', bgcolor: 'background.subtle' }}>
             {/* Prev month fill days */}
             {Array.from({ length: firstDayIndex }).map((_, i) => {
               const dayNum = daysInPrevMonth - firstDayIndex + i + 1;

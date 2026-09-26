@@ -336,7 +336,7 @@ export default function EmailPage() {
             <Divider sx={{ my: 2 }} />
 
             {/* Delivery Channel Notice */}
-            <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 1.5 }}>
+            <Box sx={{ p: 1.5, bgcolor: 'background.subtle', borderRadius: 1.5 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
                 DELIVERY PROTOCOL
               </Typography>
@@ -403,7 +403,7 @@ export default function EmailPage() {
                           bgcolor: isSelected
                             ? '#f0fdf4'
                             : !email.is_read
-                            ? '#f8fafc'
+                            ? 'background.subtle'
                             : '#ffffff',
                         }}
                       >

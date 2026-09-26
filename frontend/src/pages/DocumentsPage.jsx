@@ -335,7 +335,7 @@ export default function DocumentsPage() {
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, border: '1px solid #e2e8f0' }}>
           <Table>
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: 'background.subtle' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Document Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Category</TableCell>
@@ -469,7 +469,7 @@ export default function DocumentsPage() {
                   p: 3,
                   textAlign: 'center',
                   cursor: 'pointer',
-                  bgcolor: selectedFile ? '#f0fdf4' : '#f8fafc',
+                  bgcolor: selectedFile ? '#f0fdf4' : 'background.subtle',
                   borderColor: selectedFile ? '#22c55e' : '#cbd5e1',
                   '&:hover': { bgcolor: '#f1f5f9' },
                 }}

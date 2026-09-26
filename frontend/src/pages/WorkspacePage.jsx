@@ -459,7 +459,7 @@ export default function WorkspacePage() {
               {/* Members Table */}
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
                 <Table size="medium">
-                  <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                  <TableHead sx={{ bgcolor: 'background.subtle' }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'text.secondary' }}>MEMBER</TableCell>
                       <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'text.secondary' }}>ROLE</TableCell>

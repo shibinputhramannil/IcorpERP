@@ -65,7 +65,7 @@ export default function ModulePlaceholderPage({
                     alignItems={{ xs: 'flex-start', sm: 'center' }}
                     sx={{
                       p: 2,
-                      bgcolor: '#f8fafc',
+                      bgcolor: 'background.subtle',
                       borderRadius: 2,
                       border: '1px solid #e2e8f0',
                       overflowX: 'auto',
@@ -119,7 +119,7 @@ export default function ModulePlaceholderPage({
                     sx={{
                       p: 1.5,
                       borderRadius: 1.5,
-                      bgcolor: '#f8fafc',
+                      bgcolor: 'background.subtle',
                       border: '1px solid #f1f5f9',
                       display: 'flex',
                       alignItems: 'center',
