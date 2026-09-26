@@ -355,6 +355,11 @@ urlpatterns = [
     path("api/ai/summary/", GlobalAISummaryView.as_view(), name="global_ai_summary"),
     path("api/ai/ask/", GlobalAIAskView.as_view(), name="global_ai_ask"),
     path("api/ai/chat/", GlobalAIChatView.as_view(), name="global_ai_chat"),
+
+    # ============================================================
+    # Audit Logging - Phase 10
+    # ============================================================
+    path("api/audit/", include("audit.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

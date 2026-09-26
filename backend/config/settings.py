@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "documents",
     "calendar_events",
     "emails",
+    "audit",
 ]
 
 MIDDLEWARE = [

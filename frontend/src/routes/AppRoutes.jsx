@@ -50,29 +50,29 @@ export default function AppRoutes() {
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/crm" element={<CRMPage />} />
 
-        {/* Operations & Workflow Modules */}
-        <Route path="/inventory" element={<InventoryPage />} />
-        <Route path="/sales" element={<SalesPage />} />
+          {/* Operations & Workflow Modules */}
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/sales" element={<SalesPage />} />
 
-        <Route path="/purchase" element={<PurchasePage />} />
+          <Route path="/purchase" element={<PurchasePage />} />
 
-        <Route path="/finance" element={<FinancePage />} />
-        <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/finance" element={<FinancePage />} />
+          <Route path="/reports" element={<ReportsPage />} />
 
-        {/* Workspace & Collaboration Modules */}
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/notes" element={<NotesPage />} />
-        <Route path="/email" element={<EmailPage />} />
-        <Route path="/documents" element={<DocumentsPage />} />
+          {/* Workspace & Collaboration Modules */}
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/email" element={<EmailPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
 
-        {/* Workspace & Collaboration Modules */}
-        <Route path="/workspace" element={<WorkspacePage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
+          {/* Workspace & Collaboration Modules */}
+          <Route path="/workspace" element={<WorkspacePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
 
-        {/* System & Intelligence Modules */}
-        <Route path="/ai" element={<AIPage />} />
-        <Route path="/ai-assistant" element={<AIPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+          {/* System & Intelligence Modules */}
+          <Route path="/ai" element={<AIPage />} />
+          <Route path="/ai-assistant" element={<AIAssistantPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
 
           {/* 404 Not Found within ERP Layout */}
           <Route path="*" element={<NotFoundPage />} />
