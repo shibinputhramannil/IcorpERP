@@ -39,6 +39,15 @@ from accounts.settings_views import (
     CompanySettingsView,
     SettingsNotificationPreferencesView,
 )
+from accounts.workspace_collaboration_views import (
+    WorkspaceNotesView,
+    WorkspaceNoteDetailView,
+    WorkspaceMailView,
+    WorkspaceMailSendView,
+    WorkspaceMailStatusView,
+    WorkspaceActivitiesView,
+    WorkspaceCollaborationOverviewView,
+)
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
 from crm.views import (
@@ -147,6 +156,18 @@ urlpatterns = [
     path("api/companies/<int:company_id>/members/add/", WorkspaceMembersView.as_view(), name="company_member_create"),
     path("api/companies/<int:company_id>/members/<int:member_id>/", WorkspaceMemberDetailView.as_view(), name="company_member_detail"),
     path("api/companies/<int:company_id>/members/<int:membership_id>/", WorkspaceMemberDetailView.as_view(), name="company-member-update"),
+
+    # Workspace Collaboration (Phase 9A Extension)
+    path("api/companies/<int:company_id>/workspace/collaboration/", WorkspaceCollaborationOverviewView.as_view(), name="workspace_collaboration_overview"),
+    path("api/companies/<int:company_id>/workspace/notes/", WorkspaceNotesView.as_view(), name="workspace_notes"),
+    path("api/companies/<int:company_id>/workspace/notes/<int:pk>/", WorkspaceNoteDetailView.as_view(), name="workspace_note_detail"),
+    path("api/companies/<int:company_id>/workspace/mail/", WorkspaceMailView.as_view(), name="workspace_mail"),
+    path("api/companies/<int:company_id>/workspace/mail/send/", WorkspaceMailSendView.as_view(), name="workspace_mail_send"),
+    path("api/companies/<int:company_id>/workspace/mail/status/", WorkspaceMailStatusView.as_view(), name="workspace_mail_status"),
+    path("api/companies/<int:company_id>/workspace/activities/", WorkspaceActivitiesView.as_view(), name="workspace_activities"),
+
+    # Documents Management (Phase 9A Extension)
+    path("api/companies/<int:company_id>/documents/", include("documents.urls")),
 
     # Employee
     path("api/companies/<int:company_id>/employees/", EmployeeListView.as_view(), name="employee_list"),
