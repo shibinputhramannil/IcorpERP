@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Stack } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 export default function StatCard({
   title,
@@ -32,15 +33,24 @@ export default function StatCard({
           </Box>
           {Icon && (
             <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: `${color}14`, // 8% opacity tint
-                color: color,
+              sx={(theme) => {
+                let resolvedColor = color;
+                if (color === 'primary.main') resolvedColor = theme.palette.primary.main;
+                else if (color === 'secondary.main') resolvedColor = theme.palette.secondary.main;
+                else if (color === 'success.main') resolvedColor = theme.palette.success.main;
+                else if (color === 'warning.main') resolvedColor = theme.palette.warning.main;
+                else if (color === 'error.main') resolvedColor = theme.palette.error.main;
+
+                return {
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: alpha(resolvedColor, 0.08),
+                  color: resolvedColor,
+                };
               }}
             >
               <Icon fontSize="medium" />

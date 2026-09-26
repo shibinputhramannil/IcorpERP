@@ -160,7 +160,7 @@ export default function DashboardPage() {
             value={companies.length > 0 ? String(companies.length) : '0'}
             subtitle="Multi-tenant tenant isolation"
             icon={BusinessOutlinedIcon}
-            color="#1e3a8a"
+            color="primary.main"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             }
             subtitle="Assigned across departments"
             icon={BadgeOutlinedIcon}
-            color="#0284c7"
+            color="secondary.main"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
             }
             subtitle="CRM pipeline tracking"
             icon={PeopleAltOutlinedIcon}
-            color="#10b981"
+            color="success.main"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             value="Active"
             subtitle="ERP system operational"
             icon={TrendingUpOutlinedIcon}
-            color="#f59e0b"
+            color="warning.main"
           />
         </Grid>
       </Grid>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
 
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={4}>
-                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.subtle', border: 1, borderColor: 'divider' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                         Company Management
                       </Typography>
@@ -256,7 +256,7 @@ export default function DashboardPage() {
                   </Grid>
 
                   <Grid item xs={12} sm={4}>
-                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.subtle', border: 1, borderColor: 'divider' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                         Employee Profiles
                       </Typography>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                   </Grid>
 
                   <Grid item xs={12} sm={4}>
-                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.subtle', border: 1, borderColor: 'divider' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                         CRM Contacts &amp; Leads
                       </Typography>
@@ -377,15 +377,17 @@ export default function DashboardPage() {
           <Stack spacing={2.5}>
             {/* AI Insights Card */}
             <Card
-              sx={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
-                borderColor: '#bae6fd',
-              }}
+              sx={(theme) => ({
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
+                  : 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
+                borderColor: theme.palette.mode === 'dark' ? '#0369a1' : '#bae6fd',
+              })}
             >
               <CardContent sx={{ p: 3 }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <AutoAwesomeOutlinedIcon sx={{ color: '#0284c7' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#0369a1' }}>
+                  <AutoAwesomeOutlinedIcon sx={{ color: 'secondary.main' }} />
+                  <Typography variant="h6" sx={(theme) => ({ fontWeight: 700, color: theme.palette.mode === 'dark' ? 'secondary.light' : '#0369a1' })}>
                     AI Operational Insights
                   </Typography>
                 </Stack>
@@ -394,13 +396,14 @@ export default function DashboardPage() {
                   optimization opportunities.
                 </Typography>
                 <Box
-                  sx={{
+                  sx={(theme) => ({
                     p: 2,
                     borderRadius: 2,
-                    bgcolor: '#ffffff',
-                    border: '1px dashed #7dd3fc',
+                    bgcolor: 'background.paper',
+                    border: '1px dashed',
+                    borderColor: theme.palette.mode === 'dark' ? '#0284c7' : '#7dd3fc',
                     mb: 2,
-                  }}
+                  })}
                 >
                   {loadingAi ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
@@ -410,7 +413,7 @@ export default function DashboardPage() {
                     <>
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 600, color: '#0369a1', display: 'block' }}
+                        sx={(theme) => ({ fontWeight: 600, color: theme.palette.mode === 'dark' ? 'secondary.light' : '#0369a1', display: 'block' })}
                       >
                         {aiSummary.title ?? 'AI Summary'}
                       </Typography>
@@ -422,7 +425,7 @@ export default function DashboardPage() {
                     <>
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 600, color: '#0369a1', display: 'block' }}
+                        sx={(theme) => ({ fontWeight: 600, color: theme.palette.mode === 'dark' ? 'secondary.light' : '#0369a1', display: 'block' })}
                       >
                         Awaiting Active Telemetry
                       </Typography>
@@ -437,7 +440,8 @@ export default function DashboardPage() {
                   variant="outlined"
                   fullWidth
                   onClick={() => navigate('/ai')}
-                  sx={{ borderColor: '#38bdf8', color: '#0284c7' }}
+                  color="secondary"
+                  sx={{ borderWidth: 1 }}
                 >
                   Explore AI Assistant
                 </Button>

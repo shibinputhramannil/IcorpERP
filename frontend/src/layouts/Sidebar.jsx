@@ -94,7 +94,8 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           display: 'flex',
           alignItems: 'center',
           px: 3,
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: 1,
+          borderColor: 'divider',
           gap: 1.5,
         }}
       >
@@ -159,16 +160,6 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
                         py: 1,
                         px: 1.5,
                         borderRadius: 1.5,
-                        '&.Mui-selected': {
-                          backgroundColor: '#eff6ff',
-                          color: '#1d4ed8',
-                          '&:hover': {
-                            backgroundColor: '#dbeafe',
-                          },
-                          '& .MuiListItemIcon-root': {
-                            color: '#1d4ed8',
-                          },
-                        },
                       }}
                     >
                       <ListItemIcon
@@ -204,13 +195,13 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
               })}
             </List>
 
-            {groupIdx < NAV_GROUPS.length - 1 && <Divider sx={{ my: 1.5, borderColor: '#f1f5f9' }} />}
+            {groupIdx < NAV_GROUPS.length - 1 && <Divider sx={{ my: 1.5, borderColor: 'divider' }} />}
           </Box>
         ))}
       </Box>
 
       {/* Footer Info */}
-      <Box sx={{ p: 2, borderTop: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', backgroundColor: 'background.subtle' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
             v1.0.0
@@ -234,7 +225,8 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: DRAWER_WIDTH,
-            borderRight: '1px solid #e2e8f0',
+            borderRight: 1,
+            borderColor: 'divider',
           },
         }}
       >
@@ -251,7 +243,8 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: DRAWER_WIDTH,
-            borderRight: '1px solid #e2e8f0',
+            borderRight: 1,
+            borderColor: 'divider',
           },
         }}
         open

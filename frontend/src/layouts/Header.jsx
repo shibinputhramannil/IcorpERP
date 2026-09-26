@@ -20,16 +20,20 @@ import SearchIcon from '@mui/icons-material/Search';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
 import NotificationBell from '../components/common/NotificationBell';
 import GlobalSearchDialog from '../components/common/GlobalSearchDialog';
 import { DRAWER_WIDTH } from './Sidebar';
 import { useCompany } from '../context/CompanyContext';
+import { useThemeContext } from '../context/ThemeContext';
 
 export default function Header({ onMobileToggle, user }) {
   const navigate = useNavigate();
   const { companies, activeCompany, setActiveCompany } = useCompany();
+  const { mode, toggleTheme } = useThemeContext();
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -49,10 +53,11 @@ export default function Header({ onMobileToggle, user }) {
       sx={{
         width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
         ml: { md: `${DRAWER_WIDTH}px` },
-        backgroundColor: '#ffffff',
+        backgroundColor: 'background.paper',
         color: 'text.primary',
         boxShadow: 'none',
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: 1,
+        borderColor: 'divider',
         zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
@@ -74,7 +79,7 @@ export default function Header({ onMobileToggle, user }) {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#f1f5f9',
+            backgroundColor: 'background.subtle',
             borderRadius: 2,
             px: 1.5,
             py: 0.6,
@@ -83,7 +88,7 @@ export default function Header({ onMobileToggle, user }) {
             cursor: 'pointer',
             transition: 'all 0.2s',
             '&:hover': {
-              backgroundColor: '#e2e8f0',
+              backgroundColor: 'action.hover',
             },
           }}
         >
@@ -106,8 +111,9 @@ export default function Header({ onMobileToggle, user }) {
               height: 20,
               fontSize: '0.65rem',
               fontWeight: 600,
-              backgroundColor: '#ffffff',
-              border: '1px solid #cbd5e1',
+              backgroundColor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
               color: 'text.secondary',
               display: { xs: 'none', sm: 'inline-flex' },
             }}
@@ -134,11 +140,11 @@ export default function Header({ onMobileToggle, user }) {
               }}
               sx={{
                 height: 36,
-                backgroundColor: '#f8fafc',
+                backgroundColor: 'background.subtle',
                 borderRadius: 2,
                 fontSize: '0.85rem',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'text.secondary' },
               }}
             >
               {companies.map((c) => (
@@ -183,6 +189,13 @@ export default function Header({ onMobileToggle, user }) {
             >
               AI Assistant
             </Button>
+          </Tooltip>
+
+          {/* Theme Toggle */}
+          <Tooltip title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+            <IconButton onClick={toggleTheme} color="inherit" sx={{ color: 'text.secondary' }}>
+              {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+            </IconButton>
           </Tooltip>
 
           {/* Notifications */}
