@@ -7,7 +7,7 @@ class BaseAIProvider(ABC):
     """
 
     @abstractmethod
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None, **kwargs) -> Dict[str, Any]:
         """
         Send a chat message and optionally receive tool calls.
         Returns a structured dictionary:
@@ -21,7 +21,7 @@ class BaseAIProvider(ABC):
         pass
 
     @abstractmethod
-    def stream_chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None):
+    def stream_chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None, **kwargs):
         """
         Generator for streaming responses.
         Yields chunks of text or tool calls.

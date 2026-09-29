@@ -451,7 +451,7 @@ class AICopilotChatView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            response = provider.chat(messages, tools=AVAILABLE_TOOLS)
+            response = provider.chat(messages, tools=AVAILABLE_TOOLS, user=request.user, company_id=company_id)
             
             # Execute tool calls locally
             if response.get("tool_calls"):
@@ -488,7 +488,7 @@ class AICopilotChatView(APIView):
                             })
                             
                 # Get final response from AI with tool results
-                final_response = provider.chat(messages, tools=AVAILABLE_TOOLS)
+                final_response = provider.chat(messages, tools=AVAILABLE_TOOLS, user=request.user, company_id=company_id)
                 return Response(final_response, status=status.HTTP_200_OK)
                 
             return Response(response, status=status.HTTP_200_OK)

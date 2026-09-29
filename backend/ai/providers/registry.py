@@ -2,12 +2,14 @@ from .base import BaseAIProvider
 from .openai_provider import OpenAIProvider
 from .gemini_provider import GeminiProvider
 from .mock_provider import MockProvider
+from .groq_provider import GroqProvider
 
 class AIProviderRegistry:
     _providers = {
         "openai": OpenAIProvider,
         "gemini": GeminiProvider,
         "mock": MockProvider,
+        "groq": GroqProvider,
     }
 
     @classmethod

@@ -182,8 +182,8 @@ export default function AIAssistantPage() {
   // Settings State
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiSettings, setAiSettings] = useState({
-    provider: 'mock',
-    model: 'offline',
+    provider: 'openai',
+    model: 'gpt-4o',
     voiceOutput: true,
     autoSpeak: false,
     selectedVoice: null
@@ -475,6 +475,7 @@ export default function AIAssistantPage() {
             >
               <MenuItem value="openai">OpenAI</MenuItem>
               <MenuItem value="gemini">Google Gemini</MenuItem>
+              <MenuItem value="groq">Groq (Llama 3)</MenuItem>
               <MenuItem value="mock">Local Offline Mock</MenuItem>
               <MenuItem value="anthropic">Anthropic</MenuItem>
             </Select>

@@ -4,26 +4,30 @@ from django.conf import settings
 from .base import BaseAIProvider
 
 try:
-    import openai
+    from openai import OpenAI
 except ImportError:
-    openai = None
+    OpenAI = None
 
-class OpenAIProvider(BaseAIProvider):
+class GroqProvider(BaseAIProvider):
     def __init__(self, api_key: str = None):
-        self.api_key = api_key or getattr(settings, "OPENAI_API_KEY", None)
+        self.api_key = api_key or getattr(settings, "GROQ_API_KEY", None)
         if not self.api_key:
-            raise ValueError("OpenAI API key is missing.")
-        if openai is None:
+            raise ValueError("Groq API key is missing. Please add it to your .env file as GROQ_API_KEY.")
+        if OpenAI is None:
             raise ImportError("openai package is not installed.")
-        self.client = openai.OpenAI(api_key=self.api_key)
-        self.model = getattr(settings, "OPENAI_MODEL", "gpt-4o")
+            
+        # Groq uses the OpenAI SDK format with a custom base_url
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.groq.com/openai/v1"
+        )
+        self.model = getattr(settings, "GROQ_MODEL", "llama3-70b-8192")
 
     def _format_tools(self, tools: List[Any]) -> List[Dict[str, Any]]:
         if not tools:
             return None
         formatted = []
         for tool in tools:
-            # Assumes tool is a dict following OpenAI function schema
             if isinstance(tool, dict) and "name" in tool:
                 formatted.append({"type": "function", "function": tool})
         return formatted if formatted else None
@@ -67,12 +71,9 @@ class OpenAIProvider(BaseAIProvider):
         )
         
         for chunk in response:
+            if not chunk.choices:
+                continue
             delta = chunk.choices[0].delta
             
-            # Simple content streaming mapping, full tool streaming requires more complex buffering
-            # For simplicity in this implementation, we yield content chunks
             if delta.content:
                 yield json.dumps({"type": "content", "content": delta.content}) + "\n"
-            
-            # Note: comprehensive tool call streaming implementation omitted for brevity,
-            # would require buffering tool call chunks and yielding when complete.

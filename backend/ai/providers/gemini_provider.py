@@ -34,7 +34,7 @@ class GeminiProvider(BaseAIProvider):
         # Placeholder for Gemini tool conversion logic
         return tools if tools else None
 
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None, **kwargs) -> Dict[str, Any]:
         # Temporarily disabling tools for Gemini to avoid JSON schema parsing KeyError
         model = genai.GenerativeModel(model_name=self.model_name)
         gemini_messages = self._convert_messages(messages)
@@ -65,7 +65,7 @@ class GeminiProvider(BaseAIProvider):
             "tool_calls": tool_calls
         }
 
-    def stream_chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None):
+    def stream_chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None, **kwargs):
         model = genai.GenerativeModel(model_name=self.model_name)
         gemini_messages = self._convert_messages(messages)
         
