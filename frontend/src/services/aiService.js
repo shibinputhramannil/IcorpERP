@@ -69,15 +69,13 @@ export const aiService = {
    * Phase 12: Connect to copilot chat with conversational memory and settings.
    */
   copilotChat: async (companyId = null, query, conversationHistory = [], settings = {}) => {
+    // Transform conversationHistory and query into the format expected by the backend
+    const messages = [...conversationHistory, { role: 'user', content: query }];
     const payload = {
-      query,
-      conversation_history: conversationHistory,
-      settings,
+      company_id: companyId,
+      messages: messages,
+      settings: settings,
     };
-    if (companyId) {
-      const response = await api.post(`/companies/${companyId}/ai/copilot/chat/`, payload);
-      return response.data;
-    }
     const response = await api.post('/ai/copilot/chat/', payload);
     return response.data;
   },
