@@ -443,7 +443,8 @@ class AICopilotChatView(APIView):
         
         # Instantiate provider
         # Defaults to openai, ideally from company settings or env
-        provider_name = request.data.get("provider", "openai")
+        settings_data = request.data.get("settings", {})
+        provider_name = settings_data.get("provider", request.data.get("provider", "openai"))
         try:
             provider = AIProviderRegistry.get_provider(provider_name)
         except ValueError as e:
