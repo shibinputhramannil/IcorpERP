@@ -16,7 +16,7 @@ class GeminiProvider(BaseAIProvider):
         if genai is None:
             raise ImportError("google-generativeai package is not installed.")
         genai.configure(api_key=self.api_key)
-        self.model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-pro")
+        self.model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash")
 
     def _convert_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         # Converts OpenAI format to Gemini format
@@ -35,7 +35,8 @@ class GeminiProvider(BaseAIProvider):
         return tools if tools else None
 
     def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Any]] = None) -> Dict[str, Any]:
-        model = genai.GenerativeModel(model_name=self.model_name, tools=self._format_tools(tools))
+        # Temporarily disabling tools for Gemini to avoid JSON schema parsing KeyError
+        model = genai.GenerativeModel(model_name=self.model_name)
         gemini_messages = self._convert_messages(messages)
         
         response = model.generate_content(gemini_messages)
