@@ -66,6 +66,24 @@ export const aiService = {
   },
 
   /**
+   * Phase 12: Connect to copilot chat with conversational memory and settings.
+   */
+  copilotChat: async (companyId = null, query, conversationHistory = [], settings = {}) => {
+    const payload = {
+      query,
+      conversation_history: conversationHistory,
+      settings,
+    };
+    if (companyId) {
+      const response = await api.post(`/companies/${companyId}/ai/copilot/chat/`, payload);
+      return response.data;
+    }
+    const response = await api.post('/ai/copilot/chat/', payload);
+    return response.data;
+  },
+
+
+  /**
    * Explicit global multi-company AI dashboard.
    */
   getGlobalDashboard: async (companyId = null) => {

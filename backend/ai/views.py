@@ -414,3 +414,87 @@ class GlobalAIChatView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
+from ai.providers.registry import AIProviderRegistry
+from ai.tools import AVAILABLE_TOOLS, TOOLS_REGISTRY
+
+class AICopilotChatView(APIView):
+    """
+    POST /api/ai/copilot/chat/
+    Advanced AI Chat using new provider architecture and local tool execution.
+    Requires company_id in payload, enforces strict multi-tenant access.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        company_id = request.data.get("company_id")
+        messages = request.data.get("messages", [])
+        
+        if not company_id:
+            return Response({"detail": "company_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Security: Verify company_id is in user's authorized companies
+        if not request.user.is_superuser:
+            membership = request.user.company_memberships.filter(
+                company_id=company_id, company__is_active=True
+            ).exists()
+            if not membership:
+                return Response({"detail": "Forbidden access to this company."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Instantiate provider
+        # Defaults to openai, ideally from company settings or env
+        provider_name = request.data.get("provider", "openai")
+        try:
+            provider = AIProviderRegistry.get_provider(provider_name)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            response = provider.chat(messages, tools=AVAILABLE_TOOLS)
+            
+            # Execute tool calls locally
+            if response.get("tool_calls"):
+                for tool_call in response["tool_calls"]:
+                    tool_name = tool_call["name"]
+                    tool_args = tool_call.get("arguments", {})
+                    
+                    # Force inject company_id for security
+                    tool_args["company_id"] = company_id
+                    
+                    if tool_name in TOOLS_REGISTRY:
+                        # Execute tool
+                        try:
+                            result = TOOLS_REGISTRY[tool_name](**tool_args)
+                            # Append tool response
+                            messages.append({
+                                "role": "assistant", 
+                                "content": None, 
+                                "tool_calls": [tool_call]
+                            })
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call["id"],
+                                "name": tool_name,
+                                "content": str(result)
+                            })
+                        except Exception as e:
+                            logger.exception(f"Error executing tool {tool_name}")
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call["id"],
+                                "name": tool_name,
+                                "content": f"Error: {str(e)}"
+                            })
+                            
+                # Get final response from AI with tool results
+                final_response = provider.chat(messages, tools=AVAILABLE_TOOLS)
+                return Response(final_response, status=status.HTTP_200_OK)
+                
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error in Copilot Chat: {e}")
+            return Response(
+                {"detail": "An error occurred during AI Copilot interaction.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+

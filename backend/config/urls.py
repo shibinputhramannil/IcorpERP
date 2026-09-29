@@ -54,6 +54,7 @@ from ai.views import (
     GlobalAISummaryView,
     GlobalAIAskView,
     GlobalAIChatView,
+    AICopilotChatView,
 )
 from company.views import CompanyListView, CompanyDetailView,CompanyCreateView
 from apps.employee.views import EmployeeListView,EmployeeDetailView
@@ -355,6 +356,7 @@ urlpatterns = [
     path("api/ai/summary/", GlobalAISummaryView.as_view(), name="global_ai_summary"),
     path("api/ai/ask/", GlobalAIAskView.as_view(), name="global_ai_ask"),
     path("api/ai/chat/", GlobalAIChatView.as_view(), name="global_ai_chat"),
+    path("api/ai/copilot/chat/", AICopilotChatView.as_view(), name="ai_copilot_chat"),
 
     # ============================================================
     # Audit Logging - Phase 10
