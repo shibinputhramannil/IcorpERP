@@ -1165,7 +1165,7 @@ export default function SalesPage() {
                       </Typography>
                     ) : (
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow>
                               <TableCell>Quote #</TableCell>
@@ -1215,7 +1215,7 @@ export default function SalesPage() {
                       </Typography>
                     ) : (
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow>
                               <TableCell>Order #</TableCell>
@@ -1258,7 +1258,7 @@ export default function SalesPage() {
                         Top Customers by Sales Volume
                       </Typography>
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow>
                               <TableCell>Customer</TableCell>
@@ -1312,7 +1312,7 @@ export default function SalesPage() {
                   ),
                 }}
               />
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ width: '40%', minWidth: 250 }}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={quoteStatusFilter}
@@ -1460,7 +1460,7 @@ export default function SalesPage() {
                   ),
                 }}
               />
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ width: '40%', minWidth: 250 }}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={orderStatusFilter}
@@ -1714,7 +1714,7 @@ export default function SalesPage() {
                   ),
                 }}
               />
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ width: '40%', minWidth: 250 }}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={invoiceStatusFilter}
@@ -2137,7 +2137,7 @@ export default function SalesPage() {
                             12-Month Sales & Collections Trend
                           </Typography>
                           <TableContainer>
-                            <Table size="small">
+                            <Table size="small" sx={{ minWidth: 900 }}>
                               <TableHead>
                                 <TableRow>
                                   <TableCell>Month</TableCell>
@@ -2193,7 +2193,7 @@ export default function SalesPage() {
               {/* Customer Performance Report */}
               {reportType === 'customer' && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow>
                         <TableCell>Customer</TableCell>
@@ -2237,7 +2237,7 @@ export default function SalesPage() {
               {/* Product Sales Report */}
               {reportType === 'product' && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow>
                         <TableCell>Product Name</TableCell>
@@ -2310,7 +2310,7 @@ export default function SalesPage() {
                     </Grid>
                   )}
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
                           <TableCell>Invoice #</TableCell>
@@ -2368,7 +2368,7 @@ export default function SalesPage() {
                     </Stack>
                   </Paper>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
                           <TableCell>Payment #</TableCell>
@@ -2468,14 +2468,14 @@ export default function SalesPage() {
                 </Button>
               </Stack>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
+                      <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
                       <TableCell sx={{ width: 120 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                       <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
@@ -2509,6 +2509,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -2518,6 +2519,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -2527,6 +2529,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.discount}
@@ -2536,6 +2539,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.tax}
@@ -2686,14 +2690,14 @@ export default function SalesPage() {
                 </Button>
               </Stack>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
+                      <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
                       <TableCell sx={{ width: 120 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                       <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
@@ -2727,6 +2731,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -2736,6 +2741,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -2745,6 +2751,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.discount}
@@ -2754,6 +2761,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.tax}
@@ -2928,7 +2936,7 @@ export default function SalesPage() {
                 Itemized Lines
               </Typography>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Product</TableCell>
@@ -2986,7 +2994,7 @@ export default function SalesPage() {
                     Stock Reservation Audit Records
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
                           <TableCell>Product</TableCell>
@@ -3027,7 +3035,7 @@ export default function SalesPage() {
                     Recorded Payments
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
                           <TableCell>Payment #</TableCell>
@@ -3382,14 +3390,14 @@ export default function SalesPage() {
                 </Button>
               </Stack>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
+                      <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
                       <TableCell sx={{ width: 120 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
-                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                       <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
@@ -3423,6 +3431,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -3432,6 +3441,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -3441,6 +3451,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.discount}
@@ -3450,6 +3461,7 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <TextField fullWidth
+                              sx={{ minWidth: 75 }}
                               size="small"
                               type="number"
                               value={item.tax}
@@ -3972,7 +3984,7 @@ export default function SalesPage() {
               {/* Tab 0: Quotations */}
               {customerHistoryModal.tab === 0 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Quotation #</TableCell>
@@ -4006,7 +4018,7 @@ export default function SalesPage() {
               {/* Tab 1: Orders */}
               {customerHistoryModal.tab === 1 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Order #</TableCell>
@@ -4040,7 +4052,7 @@ export default function SalesPage() {
               {/* Tab 2: Invoices */}
               {customerHistoryModal.tab === 2 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Invoice #</TableCell>
@@ -4080,7 +4092,7 @@ export default function SalesPage() {
               {/* Tab 3: Payments */}
               {customerHistoryModal.tab === 3 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Payment #</TableCell>
@@ -4116,7 +4128,7 @@ export default function SalesPage() {
               {/* Tab 4: Receipts */}
               {customerHistoryModal.tab === 4 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Receipt #</TableCell>
@@ -4194,7 +4206,7 @@ export default function SalesPage() {
           </Typography>
 
           <TableContainer component={Paper} variant="outlined">
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 900 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                   <TableCell>Product</TableCell>
@@ -4211,7 +4223,8 @@ export default function SalesPage() {
                     <TableCell align="right">{formatCurrency(item.unit_price || 0)}</TableCell>
                     <TableCell align="right">
                       <TextField fullWidth
-                        size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                         type="number"
                         inputProps={{ min: 0, max: item.max_quantity, step: '1' }}
                         value={item.quantity}

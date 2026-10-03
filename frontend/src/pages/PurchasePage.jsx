@@ -1280,7 +1280,7 @@ export default function PurchasePage() {
                         </Button>
                       </Stack>
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>Order #</TableCell>
@@ -1301,7 +1301,7 @@ export default function PurchasePage() {
                                   <TableCell align="right" sx={{ fontWeight: 600 }}>
                                     {formatCurrency(o.total)}
                                   </TableCell>
-                                  <TableCell align="center" sx={{ width: 130 }}>
+                                  <TableCell align="center" sx={{ minWidth: 120 }}>
                                     <Stack spacing={0.5}>
                                       <Typography variant="caption" color="text.secondary">
                                         {parseFloat(o.receiving_percentage || 0).toFixed(0)}%
@@ -1340,7 +1340,7 @@ export default function PurchasePage() {
                         </Button>
                       </Stack>
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>GRN #</TableCell>
@@ -1391,7 +1391,7 @@ export default function PurchasePage() {
                         </Button>
                       </Stack>
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>Invoice #</TableCell>
@@ -1441,7 +1441,7 @@ export default function PurchasePage() {
                         </Button>
                       </Stack>
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>Payment #</TableCell>
@@ -2109,7 +2109,7 @@ export default function PurchasePage() {
                 </Typography>
               ) : (
                 <TableContainer>
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Payment #</TableCell>
@@ -2227,7 +2227,7 @@ export default function PurchasePage() {
                   Procurement & Financial Trends (Past 12 Months)
                 </Typography>
                 <TableContainer>
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Month</TableCell>
@@ -2273,7 +2273,7 @@ export default function PurchasePage() {
                       <Typography variant="body2" color="text.secondary">No vendor data available</Typography>
                     ) : (
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>Vendor</TableCell>
@@ -2313,7 +2313,7 @@ export default function PurchasePage() {
                       <Typography variant="body2" color="text.secondary">No product data available</Typography>
                     ) : (
                       <TableContainer>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                               <TableCell>Product</TableCell>
@@ -2469,7 +2469,7 @@ export default function PurchasePage() {
                   </Box>
                 ) : reportType === 'orders' ? (
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>Order #</TableCell>
@@ -2506,7 +2506,7 @@ export default function PurchasePage() {
                   </TableContainer>
                 ) : reportType === 'vendors' ? (
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>Vendor</TableCell>
@@ -2541,7 +2541,7 @@ export default function PurchasePage() {
                   </TableContainer>
                 ) : reportType === 'receiving' ? (
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>GRN #</TableCell>
@@ -2576,7 +2576,7 @@ export default function PurchasePage() {
                   </TableContainer>
                 ) : (
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>Invoice #</TableCell>
@@ -2756,14 +2756,14 @@ export default function PurchasePage() {
             </Stack>
 
             <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
+                    <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Qty</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Unit Price (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -2795,7 +2795,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
                             value={item.quantity}
@@ -2805,7 +2806,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.unit_price}
@@ -2815,7 +2817,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.discount}
@@ -2824,7 +2827,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.tax}
@@ -2969,14 +2973,14 @@ export default function PurchasePage() {
             </Stack>
 
             <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
+                    <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Qty</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Unit Price (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -3008,7 +3012,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
                             value={item.quantity}
@@ -3018,7 +3023,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.unit_price}
@@ -3028,7 +3034,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.discount}
@@ -3037,7 +3044,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.tax}
@@ -3218,13 +3226,13 @@ export default function PurchasePage() {
 
             {/* Line items table */}
             <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell>Product</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Ordered</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Prev Recv</TableCell>
-                    <TableCell align="right" sx={{ width: 130 }}>Remaining</TableCell>
+                    <TableCell align="right" sx={{ minWidth: 120 }}>Remaining</TableCell>
                     <TableCell sx={{ width: 140 }}>Receive Now</TableCell>
                     <TableCell sx={{ width: 180 }}>Line Notes</TableCell>
                   </TableRow>
@@ -3245,7 +3253,8 @@ export default function PurchasePage() {
                       </TableCell>
                       <TableCell>
                         <TextField fullWidth
-                          size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                           type="number"
                           inputProps={{
                             min: 0,
@@ -3358,7 +3367,7 @@ export default function PurchasePage() {
 
               <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>Received Items</Typography>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: 'action.hover' }}>
                       <TableCell>Product</TableCell>
@@ -3463,7 +3472,7 @@ export default function PurchasePage() {
 
               <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>Items</Typography>
               <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: 'action.hover' }}>
                       <TableCell>Product</TableCell>
@@ -3508,7 +3517,7 @@ export default function PurchasePage() {
                     Linked Goods Received Notes (GRN)
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>Receipt #</TableCell>
@@ -3594,7 +3603,7 @@ export default function PurchasePage() {
                     Payment History
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
+                    <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow sx={{ bgcolor: 'action.hover' }}>
                           <TableCell>Payment #</TableCell>
@@ -3892,7 +3901,7 @@ export default function PurchasePage() {
               {/* Orders Tab */}
               {vendorHistoryModal.tab === 0 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>PO #</TableCell>
@@ -3926,7 +3935,7 @@ export default function PurchasePage() {
               {/* Quotations Tab */}
               {vendorHistoryModal.tab === 1 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Quote #</TableCell>
@@ -3960,7 +3969,7 @@ export default function PurchasePage() {
               {/* Invoices Tab */}
               {vendorHistoryModal.tab === 2 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Invoice #</TableCell>
@@ -3998,7 +4007,7 @@ export default function PurchasePage() {
               {/* Payments Tab */}
               {vendorHistoryModal.tab === 3 && (
                 <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 900 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: 'action.hover' }}>
                         <TableCell>Payment #</TableCell>
@@ -4136,14 +4145,14 @@ export default function PurchasePage() {
             </Stack>
 
             <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 130 }}>Unit Cost (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
-                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
+                    <TableCell sx={{ width: '40%', minWidth: 250 }}>Product</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Qty</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Unit Cost (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -4175,7 +4184,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
                             value={item.quantity}
@@ -4185,7 +4195,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.unit_price}
@@ -4195,7 +4206,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.discount}
@@ -4204,7 +4216,8 @@ export default function PurchasePage() {
                         </TableCell>
                         <TableCell>
                           <TextField fullWidth
-                            size="small"
+                              sx={{ minWidth: 75 }}
+                              size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
                             value={item.tax}
