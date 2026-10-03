@@ -230,6 +230,15 @@ export default function LoginPage() {
                   'Sign In'
                 )}
               </Button>
+
+              <Box sx={{ display: 'flex', justifyContent: 'center', pt: 3 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Don't have an account?{' '}
+                  <Link component={RouterLink} to="/register" underline="hover" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    Sign up
+                  </Link>
+                </Typography>
+              </Box>
             </Stack>
           </Box>
         </CardContent>
