@@ -2760,10 +2760,10 @@ export default function PurchasePage() {
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
                     <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -2794,7 +2794,7 @@ export default function PurchasePage() {
                           </FormControl>
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
@@ -2804,7 +2804,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -2814,7 +2814,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -2823,7 +2823,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -2895,9 +2895,9 @@ export default function PurchasePage() {
           <DialogTitle>Create Purchase Order</DialogTitle>
           <DialogContent dividers sx={{ p: 3 }}>
             <Grid container spacing={2} sx={{ mb: 2.5 }}>
-              <Grid item xs={12} sm={4}>
-                <FormControl fullWidth size="small" required>
-                  <InputLabel>Vendor</InputLabel>
+              <Grid item xs={12} sm={3}>
+                  <FormControl fullWidth size="small" required>
+                    <InputLabel>Vendor</InputLabel>
                   <Select
                     value={orderForm.vendor}
                     label="Vendor"
@@ -2909,9 +2909,9 @@ export default function PurchasePage() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Destination Warehouse</InputLabel>
+              <Grid item xs={12} sm={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Destination Warehouse</InputLabel>
                   <Select
                     value={orderForm.warehouse}
                     label="Destination Warehouse"
@@ -2924,11 +2924,11 @@ export default function PurchasePage() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={2}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Order Date"
+              <Grid item xs={12} sm={3}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Order Date"
                   type="date"
                   value={orderForm.order_date}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, order_date: e.target.value }))}
@@ -2936,11 +2936,11 @@ export default function PurchasePage() {
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={2}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Expected Date"
+              <Grid item xs={12} sm={3}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Expected Date"
                   type="date"
                   value={orderForm.expected_date}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, expected_date: e.target.value }))}
@@ -2973,10 +2973,10 @@ export default function PurchasePage() {
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
                     <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -3007,7 +3007,7 @@ export default function PurchasePage() {
                           </FormControl>
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
@@ -3017,7 +3017,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -3027,7 +3027,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -3036,7 +3036,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -3222,9 +3222,9 @@ export default function PurchasePage() {
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell>Product</TableCell>
-                    <TableCell align="right" sx={{ width: 100 }}>Ordered</TableCell>
-                    <TableCell align="right" sx={{ width: 100 }}>Prev Recv</TableCell>
-                    <TableCell align="right" sx={{ width: 110 }}>Remaining</TableCell>
+                    <TableCell align="right" sx={{ width: 120 }}>Ordered</TableCell>
+                    <TableCell align="right" sx={{ width: 120 }}>Prev Recv</TableCell>
+                    <TableCell align="right" sx={{ width: 130 }}>Remaining</TableCell>
                     <TableCell sx={{ width: 140 }}>Receive Now</TableCell>
                     <TableCell sx={{ width: 180 }}>Line Notes</TableCell>
                   </TableRow>
@@ -3244,7 +3244,7 @@ export default function PurchasePage() {
                         {itm.remaining_quantity.toFixed(2)}
                       </TableCell>
                       <TableCell>
-                        <TextField
+                        <TextField fullWidth
                           size="small"
                           type="number"
                           inputProps={{
@@ -3264,8 +3264,7 @@ export default function PurchasePage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <TextField
-                          size="small"
+                        <TextField fullWidth size="small"
                           placeholder="Condition / Batch..."
                           value={itm.notes}
                           onChange={(e) => handleReceiveItemNotesChange(idx, e.target.value)}
@@ -4066,9 +4065,9 @@ export default function PurchasePage() {
           </DialogTitle>
           <DialogContent dividers sx={{ p: 3 }}>
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth size="small" required>
-                  <InputLabel>Vendor / Supplier</InputLabel>
+              <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth size="small" required>
+                    <InputLabel>Vendor / Supplier</InputLabel>
                   <Select
                     value={directBillForm.vendor}
                     label="Vendor / Supplier"
@@ -4082,21 +4081,21 @@ export default function PurchasePage() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Vendor Bill / Ref #"
+              <Grid item xs={12} sm={4}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Vendor Bill / Ref #"
                   placeholder="e.g. INV-2026-001"
                   value={directBillForm.vendor_invoice_number}
                   onChange={(e) => setDirectBillForm((prev) => ({ ...prev, vendor_invoice_number: e.target.value }))}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Bill Date"
+              <Grid item xs={12} sm={2}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Bill Date"
                   type="date"
                   value={directBillForm.invoice_date}
                   onChange={(e) => setDirectBillForm((prev) => ({ ...prev, invoice_date: e.target.value }))}
@@ -4141,10 +4140,10 @@ export default function PurchasePage() {
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell sx={{ minWidth: 220 }}>Product</TableCell>
-                    <TableCell sx={{ width: 110 }}>Qty</TableCell>
-                    <TableCell sx={{ width: 130 }}>Unit Cost ($)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Discount ($)</TableCell>
-                    <TableCell sx={{ width: 110 }}>Tax ($)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Qty</TableCell>
+                    <TableCell sx={{ width: 130 }}>Unit Cost (₹)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Discount (₹)</TableCell>
+                    <TableCell sx={{ width: 130 }}>Tax (₹)</TableCell>
                     <TableCell align="right" sx={{ width: 120 }}>Total</TableCell>
                     <TableCell align="center" sx={{ width: 50 }}></TableCell>
                   </TableRow>
@@ -4175,7 +4174,7 @@ export default function PurchasePage() {
                           </FormControl>
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0.01, step: 'any' }}
@@ -4185,7 +4184,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -4195,7 +4194,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}
@@ -4204,7 +4203,7 @@ export default function PurchasePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <TextField
+                          <TextField fullWidth
                             size="small"
                             type="number"
                             inputProps={{ min: 0, step: 'any' }}

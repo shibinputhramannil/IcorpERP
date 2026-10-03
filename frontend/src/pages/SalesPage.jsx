@@ -2472,11 +2472,11 @@ export default function SalesPage() {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
-                      <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
-                      <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
+                      <TableCell sx={{ width: 120 }}>Quantity</TableCell>
+                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
                   </TableHead>
@@ -2508,7 +2508,7 @@ export default function SalesPage() {
                             </FormControl>
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -2517,7 +2517,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -2526,7 +2526,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.discount}
@@ -2535,7 +2535,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.tax}
@@ -2690,11 +2690,11 @@ export default function SalesPage() {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
-                      <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
-                      <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
+                      <TableCell sx={{ width: 120 }}>Quantity</TableCell>
+                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
                   </TableHead>
@@ -2726,7 +2726,7 @@ export default function SalesPage() {
                             </FormControl>
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -2735,7 +2735,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -2744,7 +2744,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.discount}
@@ -2753,7 +2753,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.tax}
@@ -3386,11 +3386,11 @@ export default function SalesPage() {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
-                      <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
-                      <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
-                      <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
+                      <TableCell sx={{ width: 120 }}>Quantity</TableCell>
+                      <TableCell sx={{ width: 130 }}>Unit Price (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Discount (₹)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Tax (₹)</TableCell>
+                      <TableCell sx={{ width: 120 }} align="right">Line Total</TableCell>
                       <TableCell sx={{ width: 50 }}></TableCell>
                     </TableRow>
                   </TableHead>
@@ -3422,7 +3422,7 @@ export default function SalesPage() {
                             </FormControl>
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.quantity}
@@ -3431,7 +3431,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.unit_price}
@@ -3440,7 +3440,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.discount}
@@ -3449,7 +3449,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <TextField
+                            <TextField fullWidth
                               size="small"
                               type="number"
                               value={item.tax}
@@ -4210,7 +4210,7 @@ export default function SalesPage() {
                     <TableCell align="right">{parseFloat(item.max_quantity).toFixed(2)}</TableCell>
                     <TableCell align="right">{formatCurrency(item.unit_price || 0)}</TableCell>
                     <TableCell align="right">
-                      <TextField
+                      <TextField fullWidth
                         size="small"
                         type="number"
                         inputProps={{ min: 0, max: item.max_quantity, step: '1' }}
@@ -4221,7 +4221,7 @@ export default function SalesPage() {
                           newItems[idx] = { ...item, quantity: val };
                           setReturnModal((prev) => ({ ...prev, items: newItems }));
                         }}
-                        sx={{ width: 100 }}
+                        sx={{ width: 120 }}
                       />
                     </TableCell>
                   </TableRow>
