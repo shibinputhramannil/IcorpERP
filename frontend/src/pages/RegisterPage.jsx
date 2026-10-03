@@ -12,7 +12,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { extractErrorMessage } from '../utils/errorUtils';
 
 export default function RegisterPage() {
@@ -37,9 +37,9 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register/`, formData);
+      await api.post('/auth/register/', formData);
       // Auto-login after successful registration
-      const loginRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/token/`, {
+      const loginRes = await api.post('/auth/login/', {
         username: formData.email, // using email as username via our custom token view
         password: formData.password
       });

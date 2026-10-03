@@ -11,6 +11,7 @@ const api = axios.create({
 // List of endpoints that MUST NOT include an Authorization header
 const PUBLIC_AUTH_ENDPOINTS = [
   '/auth/login/',
+  '/auth/register/',
   '/auth/refresh/',
   '/auth/forgot-password/',
 ];
