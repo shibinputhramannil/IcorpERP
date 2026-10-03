@@ -25,6 +25,7 @@ import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlin
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
@@ -433,53 +434,144 @@ export default function CRMPage() {
       )}
 
       {/* CUSTOMER 360 DRAWER */}
-      <Drawer anchor="right" open={customer360Open} onClose={() => setCustomer360Open(false)} PaperProps={{ sx: { width: 500, p: 3 } }}>
+      <Drawer anchor="right" open={customer360Open} onClose={() => setCustomer360Open(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 500, md: 650 } } }}>
         {selectedCustomer && (
-          <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h5" mb={1}>{selectedCustomer.name}</Typography>
-              <IconButton onClick={(e) => openMenu(e, selectedCustomer, 'customer')}><MoreVertIcon /></IconButton>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Drawer Header */}
+            <Box sx={{ p: 4, pb: 3, bgcolor: 'primary.main', color: 'white', position: 'relative' }}>
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography variant="h4" fontWeight="800" mb={1}>{selectedCustomer.name}</Typography>
+                  <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <BusinessOutlinedIcon fontSize="small" /> {selectedCustomer.industry || 'No Industry Specified'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LanguageOutlinedIcon fontSize="small" /> {selectedCustomer.website || 'No Website'}
+                    </Typography>
+                  </Stack>
+                </Box>
+                <Stack direction="row" spacing={0.5}>
+                  <IconButton onClick={(e) => openMenu(e, selectedCustomer, 'customer')} sx={{ color: 'white' }}>
+                    <MoreVertIcon />
+                  </IconButton>
+                  <Button variant="outlined" sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)', '&:hover': { borderColor: 'white' } }} onClick={() => setCustomer360Open(false)}>Close</Button>
+                </Stack>
+              </Box>
             </Box>
-            <Typography variant="body2" color="text.secondary" mb={3}>{selectedCustomer.industry} | {selectedCustomer.website}</Typography>
-            
-            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-              <Typography variant="h6">Contacts</Typography>
-              <Button size="small" onClick={() => openForm('contact', { customer: selectedCustomer.id })}>Add</Button>
-            </Box>
-            <List>
-              {contacts.filter(c => c.customer === selectedCustomer.id).map(c => (
-                <ListItem key={c.id} divider>
-                  <ListItemText primary={`${c.first_name} ${c.last_name}`} secondary={c.email} />
-                  <IconButton size="small" onClick={(e) => openMenu(e, c, 'contact')}><EditOutlinedIcon fontSize="small" /></IconButton>
-                </ListItem>
-              ))}
-            </List>
 
-            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-              <Typography variant="h6">Deals</Typography>
-              <Button size="small" onClick={() => openForm('deal', { customer: selectedCustomer.id, stage: 'Discovery' })}>Add</Button>
-            </Box>
-            <List>
-              {deals.filter(d => d.customer === selectedCustomer.id).map(d => (
-                <ListItem key={d.id} divider>
-                  <ListItemText primary={d.title} secondary={`Stage: ${d.stage} | Value: $${d.value}`} />
-                  <IconButton size="small" onClick={(e) => openMenu(e, d, 'deal')}><EditOutlinedIcon fontSize="small" /></IconButton>
-                </ListItem>
-              ))}
-            </List>
+            {/* Drawer Content Area */}
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 4, bgcolor: 'background.subtle' }}>
+              
+              {/* CONTACTS */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                <Typography variant="h6" fontWeight="700" color="text.primary">Contacts</Typography>
+                <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => openForm('contact', { customer: selectedCustomer.id })}>Add Contact</Button>
+              </Box>
+              <Card sx={{ mb: 4, boxShadow: '0 2px 10px rgba(0,0,0,0.04)', borderRadius: 2 }}>
+                <List disablePadding>
+                  {contacts.filter(c => c.customer === selectedCustomer.id).length > 0 ? (
+                    contacts.filter(c => c.customer === selectedCustomer.id).map((c, idx, arr) => (
+                      <React.Fragment key={c.id}>
+                        <ListItem sx={{ py: 2 }}>
+                          <ListItemIcon sx={{ minWidth: 48 }}>
+                            <Box sx={{ bgcolor: 'rgba(47, 96, 75, 0.1)', color: 'primary.main', p: 1, borderRadius: '50%', display: 'flex' }}>
+                              <PeopleAltOutlinedIcon fontSize="small" />
+                            </Box>
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={<Typography fontWeight="600">{c.first_name} {c.last_name}</Typography>} 
+                            secondary={
+                              <Stack direction="row" spacing={2} mt={0.5}>
+                                {c.email && <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><EmailOutlinedIcon fontSize="inherit" /> {c.email}</Typography>}
+                                {c.phone && <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><PhoneOutlinedIcon fontSize="inherit" /> {c.phone}</Typography>}
+                              </Stack>
+                            } 
+                          />
+                          <IconButton size="small" onClick={(e) => openMenu(e, c, 'contact')}><MoreVertIcon fontSize="small" /></IconButton>
+                        </ListItem>
+                        {idx < arr.length - 1 && <Divider />}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <Box p={4} textAlign="center"><Typography variant="body2" color="text.secondary">No contacts associated.</Typography></Box>
+                  )}
+                </List>
+              </Card>
 
-            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-              <Typography variant="h6">Activities</Typography>
-              <Button size="small" onClick={() => openForm('activity', { customer: selectedCustomer.id })}>Add</Button>
+              {/* DEALS */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                <Typography variant="h6" fontWeight="700" color="text.primary">Deals & Opportunities</Typography>
+                <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => openForm('deal', { customer: selectedCustomer.id, stage: 'Discovery' })}>Add Deal</Button>
+              </Box>
+              <Card sx={{ mb: 4, boxShadow: '0 2px 10px rgba(0,0,0,0.04)', borderRadius: 2 }}>
+                <List disablePadding>
+                  {deals.filter(d => d.customer === selectedCustomer.id).length > 0 ? (
+                    deals.filter(d => d.customer === selectedCustomer.id).map((d, idx, arr) => (
+                      <React.Fragment key={d.id}>
+                        <ListItem sx={{ py: 2 }}>
+                          <ListItemIcon sx={{ minWidth: 48 }}>
+                            <Box sx={{ bgcolor: 'rgba(255, 152, 0, 0.1)', color: 'warning.main', p: 1, borderRadius: '50%', display: 'flex' }}>
+                              <MonetizationOnOutlinedIcon fontSize="small" />
+                            </Box>
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={<Typography fontWeight="600">{d.title}</Typography>} 
+                            secondary={
+                              <Stack direction="row" spacing={1} mt={0.5} alignItems="center">
+                                <Chip label={d.stage} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, bgcolor: 'grey.200' }} />
+                                <Typography variant="caption" fontWeight="700" color="success.main">${parseFloat(d.value).toLocaleString()}</Typography>
+                              </Stack>
+                            } 
+                          />
+                          <IconButton size="small" onClick={(e) => openMenu(e, d, 'deal')}><MoreVertIcon fontSize="small" /></IconButton>
+                        </ListItem>
+                        {idx < arr.length - 1 && <Divider />}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <Box p={4} textAlign="center"><Typography variant="body2" color="text.secondary">No active deals.</Typography></Box>
+                  )}
+                </List>
+              </Card>
+
+              {/* ACTIVITIES */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                <Typography variant="h6" fontWeight="700" color="text.primary">Recent Activities</Typography>
+                <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => openForm('activity', { customer: selectedCustomer.id })}>Add Activity</Button>
+              </Box>
+              <Card sx={{ mb: 4, boxShadow: '0 2px 10px rgba(0,0,0,0.04)', borderRadius: 2 }}>
+                <List disablePadding>
+                  {activities.filter(a => a.customer === selectedCustomer.id).length > 0 ? (
+                    activities.filter(a => a.customer === selectedCustomer.id).map((a, idx, arr) => (
+                      <React.Fragment key={a.id}>
+                        <ListItem sx={{ py: 2 }}>
+                          <ListItemIcon sx={{ minWidth: 48 }}>
+                            <Box sx={{ bgcolor: 'rgba(33, 150, 243, 0.1)', color: 'info.main', p: 1, borderRadius: '50%', display: 'flex' }}>
+                              <EventNoteOutlinedIcon fontSize="small" />
+                            </Box>
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={<Typography fontWeight="600">{a.title}</Typography>} 
+                            secondary={
+                              <Stack direction="row" spacing={1} mt={0.5} alignItems="center">
+                                <Chip label={a.activity_type} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />
+                                <Chip label={a.status} size="small" color={a.status === 'Completed' ? 'success' : 'default'} sx={{ height: 20, fontSize: '0.7rem' }} />
+                              </Stack>
+                            } 
+                          />
+                          <IconButton size="small" onClick={(e) => openMenu(e, a, 'activity')}><MoreVertIcon fontSize="small" /></IconButton>
+                        </ListItem>
+                        {idx < arr.length - 1 && <Divider />}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <Box p={4} textAlign="center"><Typography variant="body2" color="text.secondary">No activities logged.</Typography></Box>
+                  )}
+                </List>
+              </Card>
+
             </Box>
-            <List>
-              {activities.filter(a => a.customer === selectedCustomer.id).map(a => (
-                <ListItem key={a.id} divider>
-                  <ListItemText primary={a.title} secondary={`${a.activity_type} - ${a.status}`} />
-                  <IconButton size="small" onClick={(e) => openMenu(e, a, 'activity')}><EditOutlinedIcon fontSize="small" /></IconButton>
-                </ListItem>
-              ))}
-            </List>
           </Box>
         )}
       </Drawer>
