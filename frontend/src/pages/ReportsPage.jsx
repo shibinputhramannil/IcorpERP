@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -51,13 +52,7 @@ import reportsService from '../services/reportsService';
 import { useCompany } from '../context/CompanyContext';
 import { extractErrorMessage } from '../utils/errorUtils';
 
-const formatCurrency = (val) => {
-  const num = Number(val) || 0;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(num);
-};
+
 
 export default function ReportsPage() {
   const { activeCompany, loading: companyLoading } = useCompany();
@@ -296,8 +291,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Total Sales (Invoiced)"
-                    value={reportData.kpis?.sales_total_formatted || '$0.00'}
-                    subtitle={`Paid: ${reportData.kpis?.sales_paid_formatted || '$0.00'}`}
+                    value={reportData.kpis?.sales_total_formatted || '₹0.00'}
+                    subtitle={`Paid: ${reportData.kpis?.sales_paid_formatted || '₹0.00'}`}
                     icon={PointOfSaleOutlinedIcon}
                     color="primary"
                   />
@@ -305,8 +300,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Total Purchases (Billed)"
-                    value={reportData.kpis?.purchase_total_formatted || '$0.00'}
-                    subtitle={`Paid: ${reportData.kpis?.purchase_paid_formatted || '$0.00'}`}
+                    value={reportData.kpis?.purchase_total_formatted || '₹0.00'}
+                    subtitle={`Paid: ${reportData.kpis?.purchase_paid_formatted || '₹0.00'}`}
                     icon={ShoppingCartOutlinedIcon}
                     color="warning"
                   />
@@ -314,8 +309,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Operating Net Profit"
-                    value={reportData.kpis?.net_profit_formatted || '$0.00'}
-                    subtitle={`Gross: ${reportData.kpis?.gross_profit_formatted || '$0.00'}`}
+                    value={reportData.kpis?.net_profit_formatted || '₹0.00'}
+                    subtitle={`Gross: ${reportData.kpis?.gross_profit_formatted || '₹0.00'}`}
                     icon={TrendingUpOutlinedIcon}
                     color="success"
                   />
@@ -323,8 +318,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Liquid Funds (Cash+Bank)"
-                    value={reportData.kpis?.liquid_funds_formatted || '$0.00'}
-                    subtitle={`Receivables: ${reportData.kpis?.sales_outstanding_formatted || '$0.00'}`}
+                    value={reportData.kpis?.liquid_funds_formatted || '₹0.00'}
+                    subtitle={`Receivables: ${reportData.kpis?.sales_outstanding_formatted || '₹0.00'}`}
                     icon={AccountBalanceWalletOutlinedIcon}
                     color="info"
                   />
@@ -422,7 +417,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Invoiced Revenue"
-                    value={reportData.summary?.total_invoiced_formatted || '$0.00'}
+                    value={reportData.summary?.total_invoiced_formatted || '₹0.00'}
                     subtitle={`${reportData.summary?.invoices_count || 0} invoices`}
                     icon={PointOfSaleOutlinedIcon}
                     color="primary"
@@ -431,7 +426,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Collected Payments"
-                    value={reportData.summary?.total_paid_formatted || '$0.00'}
+                    value={reportData.summary?.total_paid_formatted || '₹0.00'}
                     subtitle="Received to date"
                     icon={CheckCircleOutlinedIcon}
                     color="success"
@@ -440,7 +435,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Outstanding Receivables"
-                    value={reportData.summary?.total_balance_due_formatted || '$0.00'}
+                    value={reportData.summary?.total_balance_due_formatted || '₹0.00'}
                     subtitle="Unpaid invoices"
                     icon={WarningAmberOutlinedIcon}
                     color="error"
@@ -449,8 +444,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Average Order Value"
-                    value={reportData.summary?.average_order_value_formatted || '$0.00'}
-                    subtitle={`${reportData.summary?.total_orders || 0} total sales orders`}
+                    value={reportData.summary?.average_order_value_formatted || '₹0.00'}
+                    subtitle={`{formatCurrency(reportData.summary?.total_orders || 0)} total sales orders`}
                     icon={TrendingUpOutlinedIcon}
                     color="info"
                   />
@@ -570,7 +565,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Total Procurement"
-                    value={reportData.summary?.total_billed_formatted || '$0.00'}
+                    value={reportData.summary?.total_billed_formatted || '₹0.00'}
                     subtitle={`${reportData.summary?.bills_count || 0} vendor bills`}
                     icon={ShoppingCartOutlinedIcon}
                     color="warning"
@@ -579,7 +574,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Disbursed Payments"
-                    value={reportData.summary?.total_paid_formatted || '$0.00'}
+                    value={reportData.summary?.total_paid_formatted || '₹0.00'}
                     subtitle="Paid to suppliers"
                     icon={CheckCircleOutlinedIcon}
                     color="success"
@@ -588,7 +583,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Accounts Payable (A/P)"
-                    value={reportData.summary?.total_balance_due_formatted || '$0.00'}
+                    value={reportData.summary?.total_balance_due_formatted || '₹0.00'}
                     subtitle="Unpaid obligations"
                     icon={WarningAmberOutlinedIcon}
                     color="error"
@@ -597,8 +592,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Average PO Size"
-                    value={reportData.summary?.average_po_value_formatted || '$0.00'}
-                    subtitle={`${reportData.summary?.total_purchase_orders || 0} total POs`}
+                    value={reportData.summary?.average_po_value_formatted || '₹0.00'}
+                    subtitle={`{formatCurrency(reportData.summary?.total_purchase_orders || 0)} total POs`}
                     icon={TrendingDownOutlinedIcon}
                     color="info"
                   />
@@ -677,8 +672,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <StatCard
                     title="Total Inventory Valuation"
-                    value={reportData.summary?.total_valuation_formatted || '$0.00'}
-                    subtitle={`${reportData.summary?.total_skus || 0} active SKUs`}
+                    value={reportData.summary?.total_valuation_formatted || '₹0.00'}
+                    subtitle={`{formatCurrency(reportData.summary?.total_skus || 0)} active SKUs`}
                     icon={Inventory2OutlinedIcon}
                     color="primary"
                   />
@@ -815,8 +810,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Deal Pipeline Value"
-                    value={reportData.summary?.total_deal_pipeline_value_formatted || '$0.00'}
-                    subtitle={`${reportData.summary?.total_deals || 0} active deals`}
+                    value={reportData.summary?.total_deal_pipeline_value_formatted || '₹0.00'}
+                    subtitle={`{formatCurrency(reportData.summary?.total_deals || 0)} active deals`}
                     icon={AccountBalanceWalletOutlinedIcon}
                     color="warning"
                   />
@@ -893,7 +888,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Net Profit"
-                    value={reportData.pnl?.net_profit_formatted || '$0.00'}
+                    value={reportData.pnl?.net_profit_formatted || '₹0.00'}
                     subtitle="Income statement"
                     icon={TrendingUpOutlinedIcon}
                     color="success"
@@ -902,7 +897,7 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Operating Revenue"
-                    value={reportData.pnl?.operating_revenue_formatted || '$0.00'}
+                    value={reportData.pnl?.operating_revenue_formatted || '₹0.00'}
                     subtitle="Total revenue"
                     icon={PointOfSaleOutlinedIcon}
                     color="primary"
@@ -911,8 +906,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Total Liquid Capital"
-                    value={reportData.liquidity?.total_liquid_capital_formatted || '$0.00'}
-                    subtitle={`Bank: ${reportData.liquidity?.total_bank_balance_formatted || '$0.00'}`}
+                    value={reportData.liquidity?.total_liquid_capital_formatted || '₹0.00'}
+                    subtitle={`Bank: {formatCurrency(reportData.liquidity?.total_bank_balance_formatted || '₹0.00')}`}
                     icon={AccountBalanceWalletOutlinedIcon}
                     color="info"
                   />
@@ -920,8 +915,8 @@ export default function ReportsPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <StatCard
                     title="Operating Expenses"
-                    value={reportData.pnl?.operating_expenses_formatted || '$0.00'}
-                    subtitle={`COGS: ${reportData.pnl?.cost_of_goods_sold_formatted || '$0.00'}`}
+                    value={reportData.pnl?.operating_expenses_formatted || '₹0.00'}
+                    subtitle={`COGS: ${reportData.pnl?.cost_of_goods_sold_formatted || '₹0.00'}`}
                     icon={TrendingDownOutlinedIcon}
                     color="warning"
                   />

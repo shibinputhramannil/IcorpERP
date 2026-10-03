@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -689,7 +690,7 @@ export default function InventoryPage() {
               <StatCard
                 title="Total Stock Units"
                 value={dashboard.metrics.total_stock_quantity}
-                subtitle={`Across ${dashboard.metrics.total_warehouses} warehouses`}
+                subtitle={`Across {formatCurrency(dashboard.metrics.total_warehouses)} warehouses`}
                 icon={LayersOutlinedIcon}
                 color="#0284c7"
               />
@@ -864,11 +865,11 @@ export default function InventoryPage() {
                         <Chip label={prod.sku} size="small" variant="outlined" />
                       </TableCell>
                       <TableCell>{prod.category_name || '-'}</TableCell>
-                      <TableCell>${Number(prod.cost_price).toFixed(2)}</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>${Number(prod.selling_price).toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(Number(prod.cost_price).toFixed(2))}</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>{formatCurrency(Number(prod.selling_price).toFixed(2))}</TableCell>
                       <TableCell>
                         <Chip
-                          label={`${prod.total_available_stock} ${prod.unit}`}
+                          label={`{formatCurrency(prod.total_available_stock)} ${prod.unit}`}
                           size="small"
                           color={
                             Number(prod.total_available_stock) === 0
@@ -1513,7 +1514,7 @@ export default function InventoryPage() {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Cost Price ($)"
+                  label="Cost Price (₹)"
                   value={productFormData.cost_price}
                   onChange={(e) => setProductFormData({ ...productFormData, cost_price: e.target.value })}
                 />
@@ -1522,7 +1523,7 @@ export default function InventoryPage() {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Selling Price ($)"
+                  label="Selling Price (₹)"
                   value={productFormData.selling_price}
                   onChange={(e) => setProductFormData({ ...productFormData, selling_price: e.target.value })}
                 />

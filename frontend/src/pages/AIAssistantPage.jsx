@@ -728,10 +728,10 @@ export default function AIAssistantPage() {
           </Box>
           {insightsLoading ? <LoadingState message="Generating digest..." /> : insightsError ? <Alert severity="error">{insightsError}</Alert> : insightsData ? (
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}><StatCard title="Month Sales" value={insightsData.sales?.month_sales_formatted || '$0.00'} subtitle={`${insightsData.sales?.month_invoice_count || 0} invoices`} icon={PointOfSaleOutlinedIcon} color="primary" /></Grid>
-              <Grid item xs={12} sm={6} md={3}><StatCard title="Total Purchases" value={insightsData.purchases?.total_purchases_formatted || '$0.00'} subtitle={`Unpaid: ${insightsData.purchases?.unpaid_bills_formatted || '$0.00'}`} icon={ShoppingCartOutlinedIcon} color="warning" /></Grid>
-              <Grid item xs={12} sm={6} md={3}><StatCard title="Current Net Profit" value={insightsData.finance?.net_profit_formatted || '$0.00'} subtitle={`Gross: ${insightsData.finance?.gross_profit_formatted || '$0.00'}`} icon={AccountBalanceWalletOutlinedIcon} color="success" /></Grid>
-              <Grid item xs={12} sm={6} md={3}><StatCard title="Liquid Funds" value={insightsData.finance?.liquid_funds_formatted || '$0.00'} subtitle={`Receivables: ${insightsData.finance?.receivables_formatted || '$0.00'}`} icon={BusinessOutlinedIcon} color="info" /></Grid>
+              <Grid item xs={12} sm={6} md={3}><StatCard title="Month Sales" value={insightsData.sales?.month_sales_formatted || '₹0.00'} subtitle={`${insightsData.sales?.month_invoice_count || 0} invoices`} icon={PointOfSaleOutlinedIcon} color="primary" /></Grid>
+              <Grid item xs={12} sm={6} md={3}><StatCard title="Total Purchases" value={insightsData.purchases?.total_purchases_formatted || '₹0.00'} subtitle={`Unpaid: ${insightsData.purchases?.unpaid_bills_formatted || '₹0.00'}`} icon={ShoppingCartOutlinedIcon} color="warning" /></Grid>
+              <Grid item xs={12} sm={6} md={3}><StatCard title="Current Net Profit" value={insightsData.finance?.net_profit_formatted || '₹0.00'} subtitle={`Gross: ${insightsData.finance?.gross_profit_formatted || '₹0.00'}`} icon={AccountBalanceWalletOutlinedIcon} color="success" /></Grid>
+              <Grid item xs={12} sm={6} md={3}><StatCard title="Liquid Funds" value={insightsData.finance?.liquid_funds_formatted || '₹0.00'} subtitle={`Receivables: ${insightsData.finance?.receivables_formatted || '₹0.00'}`} icon={BusinessOutlinedIcon} color="info" /></Grid>
             </Grid>
           ) : null}
         </Box>

@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -71,13 +72,7 @@ const CATEGORY_COLORS = {
   EXPENSE: 'error',
 };
 
-const formatCurrency = (val) => {
-  const num = Number(val) || 0;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(num);
-};
+
 
 export default function FinancePage() {
   const { activeCompany, loading: companyLoading } = useCompany();
@@ -2037,7 +2032,7 @@ export default function FinancePage() {
                           ) : (
                             <Chip
                               size="small"
-                              label={`Diff: $${Math.abs(totalJeDebit - totalJeCredit).toFixed(2)}`}
+                              label={`Diff: ${formatCurrency(Math.abs(totalJeDebit - totalJeCredit).toFixed(2))}`}
                               color="error"
                             />
                           )}

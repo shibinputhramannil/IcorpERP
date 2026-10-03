@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -965,7 +966,7 @@ export default function SalesPage() {
                 <StatCard
                   title="Total Quotations"
                   value={dashboard.summary.total_quotations}
-                  subtitle={`Valued at $${parseFloat(dashboard.summary.quotations_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                  subtitle={`Valued at ${formatCurrency(dashboard.summary.quotations_value || 0)}`}
                   icon={ReceiptLongOutlinedIcon}
                   color="#1976d2"
                 />
@@ -973,8 +974,8 @@ export default function SalesPage() {
               <Grid item xs={12} sm={6} md={3}>
                 <StatCard
                   title="Total Sales Value"
-                  value={`$${parseFloat(dashboard.summary.total_sales_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                  subtitle={`${dashboard.summary.total_orders} total orders recorded`}
+                  value={`${formatCurrency(dashboard.summary.total_sales_value || 0)}`}
+                  subtitle={`{formatCurrency(dashboard.summary.total_orders)} total orders recorded`}
                   icon={MonetizationOnOutlinedIcon}
                   color="#2e7d32"
                 />
@@ -983,7 +984,7 @@ export default function SalesPage() {
                 <StatCard
                   title="Conversion Rate"
                   value={`${dashboard.summary.conversion_rate_percentage}%`}
-                  subtitle={`${dashboard.summary.converted_quotations} of ${dashboard.summary.total_quotations} quotes converted`}
+                  subtitle={`${dashboard.summary.converted_quotations} of {formatCurrency(dashboard.summary.total_quotations)} quotes converted`}
                   icon={TrendingUpOutlinedIcon}
                   color="#ed6c02"
                 />
@@ -1004,8 +1005,8 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Total Invoiced"
-                      value={`$${parseFloat(financialSummary.total_invoiced_amount || financialSummary.total_invoiced || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                      subtitle={`${financialSummary.total_invoices_count || financialSummary.invoices_count || 0} total invoices`}
+                      value={`${formatCurrency(financialSummary.total_invoiced_amount || financialSummary.total_invoiced || 0)}`}
+                      subtitle={`{formatCurrency(financialSummary.total_invoices_count || financialSummary.invoices_count || 0)} total invoices`}
                       icon={DescriptionOutlinedIcon}
                       color="#0288d1"
                     />
@@ -1013,7 +1014,7 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Total Collected"
-                      value={`$${parseFloat(financialSummary.total_paid_amount || financialSummary.total_collected || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                      value={`${formatCurrency(financialSummary.total_paid_amount || financialSummary.total_collected || 0)}`}
                       subtitle={`${financialSummary.paid_invoices_count || 0} invoices settled`}
                       icon={AccountBalanceWalletOutlinedIcon}
                       color="#2e7d32"
@@ -1022,7 +1023,7 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Outstanding Balance"
-                      value={`$${parseFloat(financialSummary.total_outstanding_amount || financialSummary.total_outstanding || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                      value={`${formatCurrency(financialSummary.total_outstanding_amount || financialSummary.total_outstanding || 0)}`}
                       subtitle={`${(financialSummary.issued_invoices_count || 0) + (financialSummary.partially_paid_invoices_count || 0)} awaiting payment`}
                       icon={CreditCardOutlinedIcon}
                       color="#ed6c02"
@@ -1178,7 +1179,7 @@ export default function SalesPage() {
                               <TableRow key={q.id}>
                                 <TableCell sx={{ fontWeight: 600 }}>{q.quotation_number}</TableCell>
                                 <TableCell>{q.customer_name}</TableCell>
-                                <TableCell>${parseFloat(q.total).toFixed(2)}</TableCell>
+                                <TableCell>{formatCurrency(q.total)}</TableCell>
                                 <TableCell>
                                   <Chip
                                     label={q.status}
@@ -1230,7 +1231,7 @@ export default function SalesPage() {
                                 <TableCell sx={{ fontWeight: 600 }}>{o.order_number}</TableCell>
                                 <TableCell>{o.customer_name}</TableCell>
                                 <TableCell>{o.warehouse_name || '—'}</TableCell>
-                                <TableCell>${parseFloat(o.total).toFixed(2)}</TableCell>
+                                <TableCell>{formatCurrency(o.total)}</TableCell>
                                 <TableCell>
                                   <Chip
                                     label={o.status}
@@ -1271,7 +1272,7 @@ export default function SalesPage() {
                                 <TableCell sx={{ fontWeight: 600 }}>{c.customer__name}</TableCell>
                                 <TableCell align="center">{c.order_count}</TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
-                                  ${parseFloat(c.total_spent || 0).toFixed(2)}
+                                  {formatCurrency(c.total_spent || 0)}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -1385,7 +1386,7 @@ export default function SalesPage() {
                       <TableCell>{quote.valid_until || '—'}</TableCell>
                       <TableCell align="center">{quote.items_count}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700 }}>
-                        ${parseFloat(quote.total).toFixed(2)}
+                        {formatCurrency(quote.total)}
                       </TableCell>
                       <TableCell align="center">
                         <Chip
@@ -1557,7 +1558,7 @@ export default function SalesPage() {
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700 }}>
-                        ${parseFloat(order.total).toFixed(2)}
+                        {formatCurrency(order.total)}
                       </TableCell>
                       <TableCell align="center">
                         <Select
@@ -1813,10 +1814,10 @@ export default function SalesPage() {
                           )}
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600 }}>
-                          ${parseFloat(inv.total).toFixed(2)}
+                          {formatCurrency(inv.total)}
                         </TableCell>
                         <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>
-                          ${parseFloat(inv.amount_paid).toFixed(2)}
+                          {formatCurrency(inv.amount_paid)}
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, color: balDue > 0 ? 'warning.dark' : 'text.secondary' }}>
                           ${balDue.toFixed(2)}
@@ -1950,7 +1951,7 @@ export default function SalesPage() {
                       </TableCell>
                       <TableCell>{rec.reference || '—'}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, color: 'success.dark', fontSize: '1rem' }}>
-                        ${parseFloat(rec.amount_paid).toFixed(2)}
+                        {formatCurrency(rec.amount_paid)}
                       </TableCell>
                       <TableCell>
                         {new Date(rec.receipt_date || rec.created_at).toLocaleDateString()}
@@ -2094,7 +2095,7 @@ export default function SalesPage() {
                     <StatCard
                       title="Total Orders"
                       value={reportData.data.total_orders}
-                      subtitle={`Avg Order: $${parseFloat(reportData.data.average_order_value || 0).toFixed(2)}`}
+                      subtitle={`Avg Order: {formatCurrency(formatCurrency(reportData.data.average_order_value || 0))}`}
                       icon={ShoppingBagOutlinedIcon}
                       color="#1976d2"
                     />
@@ -2102,7 +2103,7 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Total Sales Value"
-                      value={`$${parseFloat(reportData.data.total_sales_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                      value={`${formatCurrency(reportData.data.total_sales_value || 0)}`}
                       subtitle={`${reportData.data.active_customers_count || 0} active customers`}
                       icon={MonetizationOnOutlinedIcon}
                       color="#2e7d32"
@@ -2111,7 +2112,7 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Total Collected"
-                      value={`$${parseFloat(reportData.data.total_collected || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                      value={`${formatCurrency(reportData.data.total_collected || 0)}`}
                       subtitle={`${reportData.data.collection_rate_percentage}% collection rate`}
                       icon={AccountBalanceWalletOutlinedIcon}
                       color="#0288d1"
@@ -2120,8 +2121,8 @@ export default function SalesPage() {
                   <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                       title="Outstanding Balance"
-                      value={`$${parseFloat(reportData.data.total_outstanding || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                      subtitle={`Returns: $${parseFloat(reportData.data.total_returns_amount || 0).toFixed(2)}`}
+                      value={`${formatCurrency(reportData.data.total_outstanding || 0)}`}
+                      subtitle={`Returns: {formatCurrency(formatCurrency(reportData.data.total_returns_amount || 0))}`}
                       icon={CreditCardOutlinedIcon}
                       color="#ed6c02"
                     />
@@ -2151,9 +2152,9 @@ export default function SalesPage() {
                                   <TableRow key={m.month}>
                                     <TableCell sx={{ fontWeight: 600 }}>{m.month}</TableCell>
                                     <TableCell align="right">{m.orders_count}</TableCell>
-                                    <TableCell align="right">${parseFloat(m.sales_total).toFixed(2)}</TableCell>
-                                    <TableCell align="right">${parseFloat(m.invoiced_total).toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>${parseFloat(m.collected_total).toFixed(2)}</TableCell>
+                                    <TableCell align="right">{formatCurrency(m.sales_total)}</TableCell>
+                                    <TableCell align="right">{formatCurrency(m.invoiced_total)}</TableCell>
+                                    <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>{formatCurrency(m.collected_total)}</TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -2177,7 +2178,7 @@ export default function SalesPage() {
                               <Stack key={item.status} direction="row" justifyContent="space-between" alignItems="center">
                                 <Chip size="small" label={item.label} color={ORDER_STATUS_COLORS[item.status] || 'default'} />
                                 <Typography variant="body2" fontWeight={600}>
-                                  {item.count} orders (${parseFloat(item.total_amount).toFixed(2)})
+                                  {item.count} orders ({formatCurrency(item.total_amount)})
                                 </Typography>
                               </Stack>
                             ))}
@@ -2211,10 +2212,10 @@ export default function SalesPage() {
                           <TableCell sx={{ fontWeight: 600 }}>{row.customer_name}</TableCell>
                           <TableCell>{row.customer_email || '—'}</TableCell>
                           <TableCell align="right">{row.orders_count}</TableCell>
-                          <TableCell align="right">${parseFloat(row.total_sales).toFixed(2)}</TableCell>
-                          <TableCell align="right">${parseFloat(row.invoiced_total).toFixed(2)}</TableCell>
-                          <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>${parseFloat(row.paid_total).toFixed(2)}</TableCell>
-                          <TableCell align="right" sx={{ color: parseFloat(row.balance_due) > 0 ? 'error.main' : 'text.primary', fontWeight: 600 }}>${parseFloat(row.balance_due).toFixed(2)}</TableCell>
+                          <TableCell align="right">{formatCurrency(row.total_sales)}</TableCell>
+                          <TableCell align="right">{formatCurrency(row.invoiced_total)}</TableCell>
+                          <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>{formatCurrency(row.paid_total)}</TableCell>
+                          <TableCell align="right" sx={{ color: parseFloat(row.balance_due) > 0 ? 'error.main' : 'text.primary', fontWeight: 600 }}>{formatCurrency(row.balance_due)}</TableCell>
                           <TableCell align="center">
                             <Tooltip title="View Complete Sales History">
                               <IconButton
@@ -2243,7 +2244,7 @@ export default function SalesPage() {
                         <TableCell>SKU</TableCell>
                         <TableCell align="right">Units Sold</TableCell>
                         <TableCell align="right">Total Sales ($)</TableCell>
-                        <TableCell align="right">Avg Unit Price ($)</TableCell>
+                        <TableCell align="right">Avg Unit Price (₹)</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -2252,8 +2253,8 @@ export default function SalesPage() {
                           <TableCell sx={{ fontWeight: 600 }}>{row.product_name}</TableCell>
                           <TableCell>{row.product_sku}</TableCell>
                           <TableCell align="right">{parseFloat(row.units_sold).toFixed(2)}</TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 600, color: 'primary.main' }}>${parseFloat(row.total_sales).toFixed(2)}</TableCell>
-                          <TableCell align="right">${parseFloat(row.average_unit_price).toFixed(2)}</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: 'primary.main' }}>{formatCurrency(row.total_sales)}</TableCell>
+                          <TableCell align="right">{formatCurrency(row.average_unit_price)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -2270,7 +2271,7 @@ export default function SalesPage() {
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">Current</Typography>
                           <Typography variant="h6" fontWeight={700} color="success.main">
-                            ${parseFloat(reportData.summary.current_amount || 0).toFixed(2)}
+                            {formatCurrency(reportData.summary.current_amount || 0)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -2278,7 +2279,7 @@ export default function SalesPage() {
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">1-30 Days Overdue</Typography>
                           <Typography variant="h6" fontWeight={700} color="warning.main">
-                            ${parseFloat(reportData.summary.days_1_30_amount || 0).toFixed(2)}
+                            {formatCurrency(reportData.summary.days_1_30_amount || 0)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -2286,7 +2287,7 @@ export default function SalesPage() {
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">31-60 Days Overdue</Typography>
                           <Typography variant="h6" fontWeight={700} color="error.light">
-                            ${parseFloat(reportData.summary.days_31_60_amount || 0).toFixed(2)}
+                            {formatCurrency(reportData.summary.days_31_60_amount || 0)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -2294,7 +2295,7 @@ export default function SalesPage() {
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">60+ Days Overdue</Typography>
                           <Typography variant="h6" fontWeight={700} color="error.main">
-                            ${parseFloat(reportData.summary.days_60_plus_amount || 0).toFixed(2)}
+                            {formatCurrency(reportData.summary.days_60_plus_amount || 0)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -2302,7 +2303,7 @@ export default function SalesPage() {
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', bgcolor: 'background.default' }}>
                           <Typography variant="caption" color="text.secondary">Total Outstanding</Typography>
                           <Typography variant="h6" fontWeight={700}>
-                            ${parseFloat(reportData.summary.total_outstanding || 0).toFixed(2)}
+                            {formatCurrency(reportData.summary.total_outstanding || 0)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -2319,7 +2320,7 @@ export default function SalesPage() {
                           <TableCell>Status</TableCell>
                           <TableCell>Aging Bucket</TableCell>
                           <TableCell align="right">Days Overdue</TableCell>
-                          <TableCell align="right">Total ($)</TableCell>
+                          <TableCell align="right">Total (₹)</TableCell>
                           <TableCell align="right">Balance Due ($)</TableCell>
                         </TableRow>
                       </TableHead>
@@ -2341,9 +2342,9 @@ export default function SalesPage() {
                               />
                             </TableCell>
                             <TableCell align="right">{row.days_overdue}</TableCell>
-                            <TableCell align="right">${parseFloat(row.total).toFixed(2)}</TableCell>
+                            <TableCell align="right">{formatCurrency(row.total)}</TableCell>
                             <TableCell align="right" sx={{ fontWeight: 700, color: parseFloat(row.balance_due) > 0 ? 'error.main' : 'inherit' }}>
-                              ${parseFloat(row.balance_due).toFixed(2)}
+                              {formatCurrency(row.balance_due)}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -2358,11 +2359,11 @@ export default function SalesPage() {
                 <Box>
                   <Paper variant="outlined" sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="subtitle1" fontWeight={700}>
-                      Total Collections: ${parseFloat(reportData.total_collected || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      Total Collections: {formatCurrency(reportData.total_collected || 0)}
                     </Typography>
                     <Stack direction="row" spacing={1}>
                       {Object.entries(reportData.method_totals || {}).map(([method, amt]) => (
-                        <Chip key={method} size="small" label={`${method}: $${parseFloat(amt).toFixed(2)}`} variant="outlined" />
+                        <Chip key={method} size="small" label={`${method}: ${formatCurrency(amt)}`} variant="outlined" />
                       ))}
                     </Stack>
                   </Paper>
@@ -2375,7 +2376,7 @@ export default function SalesPage() {
                           <TableCell>Customer</TableCell>
                           <TableCell>Invoice #</TableCell>
                           <TableCell>Method</TableCell>
-                          <TableCell align="right">Amount ($)</TableCell>
+                          <TableCell align="right">Amount (₹)</TableCell>
                           <TableCell>Reference</TableCell>
                         </TableRow>
                       </TableHead>
@@ -2390,7 +2391,7 @@ export default function SalesPage() {
                               <Chip size="small" label={row.payment_method} variant="outlined" />
                             </TableCell>
                             <TableCell align="right" sx={{ color: 'success.main', fontWeight: 700 }}>
-                              ${parseFloat(row.amount).toFixed(2)}
+                              {formatCurrency(row.amount)}
                             </TableCell>
                             <TableCell>{row.reference || '—'}</TableCell>
                           </TableRow>
@@ -2472,7 +2473,7 @@ export default function SalesPage() {
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
                       <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price ($)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
                       <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
                       <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
                       <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
@@ -2500,7 +2501,7 @@ export default function SalesPage() {
                                 <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
-                                    {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
+                                    {p.name} ({p.sku}) - {formatCurrency(p.selling_price)}
                                   </MenuItem>
                                 ))}
                               </Select>
@@ -2543,7 +2544,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ${lineTot}
+                            {formatCurrency(lineTot)}
                           </TableCell>
                           <TableCell>
                             <IconButton
@@ -2568,21 +2569,21 @@ export default function SalesPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Subtotal:</Typography>
-                      <Typography variant="body2">${quoteTotals.subtotal}</Typography>
+                      <Typography variant="body2">{formatCurrency(quoteTotals.subtotal)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Total Discount:</Typography>
-                      <Typography variant="body2" color="error.main">-${quoteTotals.discount}</Typography>
+                      <Typography variant="body2" color="error.main">-{formatCurrency(quoteTotals.discount)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Estimated Tax:</Typography>
-                      <Typography variant="body2">+${quoteTotals.tax}</Typography>
+                      <Typography variant="body2">+{formatCurrency(quoteTotals.tax)}</Typography>
                     </Stack>
                     <Divider sx={{ my: 0.5 }} />
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="subtitle2" fontWeight={700}>Total Amount:</Typography>
                       <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-                        ${quoteTotals.total}
+                        {formatCurrency(quoteTotals.total)}
                       </Typography>
                     </Stack>
                   </Stack>
@@ -2690,7 +2691,7 @@ export default function SalesPage() {
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
                       <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price ($)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
                       <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
                       <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
                       <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
@@ -2718,7 +2719,7 @@ export default function SalesPage() {
                                 <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
-                                    {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
+                                    {p.name} ({p.sku}) - {formatCurrency(p.selling_price)}
                                   </MenuItem>
                                 ))}
                               </Select>
@@ -2761,7 +2762,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ${lineTot}
+                            {formatCurrency(lineTot)}
                           </TableCell>
                           <TableCell>
                             <IconButton
@@ -2786,21 +2787,21 @@ export default function SalesPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Subtotal:</Typography>
-                      <Typography variant="body2">${orderTotals.subtotal}</Typography>
+                      <Typography variant="body2">{formatCurrency(orderTotals.subtotal)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Discount:</Typography>
-                      <Typography variant="body2" color="error.main">-${orderTotals.discount}</Typography>
+                      <Typography variant="body2" color="error.main">-{formatCurrency(orderTotals.discount)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Tax:</Typography>
-                      <Typography variant="body2">+${orderTotals.tax}</Typography>
+                      <Typography variant="body2">+{formatCurrency(orderTotals.tax)}</Typography>
                     </Stack>
                     <Divider sx={{ my: 0.5 }} />
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="subtitle2" fontWeight={700}>Total Amount:</Typography>
                       <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-                        ${orderTotals.total}
+                        {formatCurrency(orderTotals.total)}
                       </Typography>
                     </Stack>
                   </Stack>
@@ -2966,11 +2967,11 @@ export default function SalesPage() {
                             </TableCell>
                           </>
                         )}
-                        <TableCell align="right">${parseFloat(item.unit_price).toFixed(2)}</TableCell>
-                        <TableCell align="right">${parseFloat(item.discount).toFixed(2)}</TableCell>
-                        <TableCell align="right">${parseFloat(item.tax).toFixed(2)}</TableCell>
+                        <TableCell align="right">{formatCurrency(item.unit_price)}</TableCell>
+                        <TableCell align="right">{formatCurrency(item.discount)}</TableCell>
+                        <TableCell align="right">{formatCurrency(item.tax)}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700 }}>
-                          ${parseFloat(item.line_total).toFixed(2)}
+                          {formatCurrency(item.line_total)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -3046,7 +3047,7 @@ export default function SalesPage() {
                             </TableCell>
                             <TableCell>{pmt.reference || '—'}</TableCell>
                             <TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
-                              ${parseFloat(pmt.amount).toFixed(2)}
+                              {formatCurrency(pmt.amount)}
                             </TableCell>
                             <TableCell>
                               {new Date(pmt.payment_date || pmt.created_at).toLocaleDateString()}
@@ -3080,21 +3081,21 @@ export default function SalesPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Subtotal:</Typography>
-                      <Typography variant="body2">${parseFloat(viewDetailModal.data.subtotal).toFixed(2)}</Typography>
+                      <Typography variant="body2">{formatCurrency(viewDetailModal.data.subtotal)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Discount:</Typography>
-                      <Typography variant="body2" color="error.main">-${parseFloat(viewDetailModal.data.discount).toFixed(2)}</Typography>
+                      <Typography variant="body2" color="error.main">-{formatCurrency(viewDetailModal.data.discount)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Tax:</Typography>
-                      <Typography variant="body2">+${parseFloat(viewDetailModal.data.tax).toFixed(2)}</Typography>
+                      <Typography variant="body2">+{formatCurrency(viewDetailModal.data.tax)}</Typography>
                     </Stack>
                     <Divider sx={{ my: 0.5 }} />
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="subtitle2" fontWeight={700}>Total Amount:</Typography>
                       <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-                        ${parseFloat(viewDetailModal.data.total).toFixed(2)}
+                        {formatCurrency(viewDetailModal.data.total)}
                       </Typography>
                     </Stack>
                     {viewDetailModal.type === 'invoice' && (
@@ -3102,7 +3103,7 @@ export default function SalesPage() {
                         <Stack direction="row" justifyContent="space-between">
                           <Typography variant="caption" color="text.secondary">Amount Paid:</Typography>
                           <Typography variant="body2" color="success.main" fontWeight={600}>
-                            ${parseFloat(viewDetailModal.data.amount_paid || 0).toFixed(2)}
+                            {formatCurrency(viewDetailModal.data.amount_paid || 0)}
                           </Typography>
                         </Stack>
                         <Stack direction="row" justifyContent="space-between">
@@ -3112,7 +3113,7 @@ export default function SalesPage() {
                             fontWeight={700}
                             color={parseFloat(viewDetailModal.data.balance_due) > 0 ? 'warning.dark' : 'text.secondary'}
                           >
-                            ${parseFloat(viewDetailModal.data.balance_due || 0).toFixed(2)}
+                            {formatCurrency(viewDetailModal.data.balance_due || 0)}
                           </Typography>
                         </Stack>
                       </>
@@ -3386,7 +3387,7 @@ export default function SalesPage() {
                     <TableRow>
                       <TableCell sx={{ minWidth: 180 }}>Product</TableCell>
                       <TableCell sx={{ width: 100 }}>Quantity</TableCell>
-                      <TableCell sx={{ width: 110 }}>Unit Price ($)</TableCell>
+                      <TableCell sx={{ width: 110 }}>Unit Price (₹)</TableCell>
                       <TableCell sx={{ width: 90 }}>Discount ($)</TableCell>
                       <TableCell sx={{ width: 90 }}>Tax ($)</TableCell>
                       <TableCell sx={{ width: 100 }} align="right">Line Total</TableCell>
@@ -3414,7 +3415,7 @@ export default function SalesPage() {
                                 <MenuItem value=""><em>Select Product...</em></MenuItem>
                                 {products.map((p) => (
                                   <MenuItem key={p.id} value={p.id}>
-                                    {p.name} ({p.sku}) - ${parseFloat(p.selling_price).toFixed(2)}
+                                    {p.name} ({p.sku}) - {formatCurrency(p.selling_price)}
                                   </MenuItem>
                                 ))}
                               </Select>
@@ -3457,7 +3458,7 @@ export default function SalesPage() {
                             />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ${lineTot}
+                            {formatCurrency(lineTot)}
                           </TableCell>
                           <TableCell>
                             <IconButton
@@ -3482,21 +3483,21 @@ export default function SalesPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Subtotal:</Typography>
-                      <Typography variant="body2">${invoiceTotals.subtotal}</Typography>
+                      <Typography variant="body2">{formatCurrency(invoiceTotals.subtotal)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Total Discount:</Typography>
-                      <Typography variant="body2" color="error.main">-${invoiceTotals.discount}</Typography>
+                      <Typography variant="body2" color="error.main">-{formatCurrency(invoiceTotals.discount)}</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="caption" color="text.secondary">Estimated Tax:</Typography>
-                      <Typography variant="body2">+${invoiceTotals.tax}</Typography>
+                      <Typography variant="body2">+{formatCurrency(invoiceTotals.tax)}</Typography>
                     </Stack>
                     <Divider sx={{ my: 0.5 }} />
                     <Stack direction="row" justifyContent="space-between">
                       <Typography variant="subtitle2" fontWeight={700}>Total Amount:</Typography>
                       <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-                        ${invoiceTotals.total}
+                        {formatCurrency(invoiceTotals.total)}
                       </Typography>
                     </Stack>
                   </Stack>
@@ -3536,7 +3537,7 @@ export default function SalesPage() {
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="caption" color="text.secondary">Order Total:</Typography>
                   <Typography variant="body2" fontWeight={700}>
-                    ${parseFloat(invoiceOrderDialog.order?.total || 0).toFixed(2)}
+                    {formatCurrency(invoiceOrderDialog.order?.total || 0)}
                   </Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
@@ -3620,7 +3621,7 @@ export default function SalesPage() {
                     .filter((i) => i.status !== 'PAID' && i.status !== 'CANCELLED' && parseFloat(i.balance_due || 0) > 0)
                     .map((i) => (
                       <MenuItem key={i.id} value={i.id}>
-                        {i.invoice_number} ({i.customer_name}) - Balance: ${parseFloat(i.balance_due).toFixed(2)}
+                        {i.invoice_number} ({i.customer_name}) - Balance: {formatCurrency(i.balance_due)}
                       </MenuItem>
                     ))}
                 </Select>
@@ -3640,17 +3641,17 @@ export default function SalesPage() {
                 <Stack spacing={0.5}>
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="caption" color="text.secondary">Total Invoiced:</Typography>
-                    <Typography variant="body2">${parseFloat(paymentDialog.invoice?.total || 0).toFixed(2)}</Typography>
+                    <Typography variant="body2">{formatCurrency(paymentDialog.invoice?.total || 0)}</Typography>
                   </Stack>
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="caption" color="text.secondary">Already Paid:</Typography>
-                    <Typography variant="body2" color="success.main">${parseFloat(paymentDialog.invoice?.amount_paid || 0).toFixed(2)}</Typography>
+                    <Typography variant="body2" color="success.main">{formatCurrency(paymentDialog.invoice?.amount_paid || 0)}</Typography>
                   </Stack>
                   <Divider sx={{ my: 0.5 }} />
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="subtitle2" fontWeight={700}>Remaining Balance Due:</Typography>
                     <Typography variant="subtitle2" fontWeight={700} color="warning.dark">
-                      ${parseFloat(paymentDialog.invoice?.balance_due || 0).toFixed(2)}
+                      {formatCurrency(paymentDialog.invoice?.balance_due || 0)}
                     </Typography>
                   </Stack>
                 </Stack>
@@ -3660,7 +3661,7 @@ export default function SalesPage() {
 
           <Stack spacing={2}>
             <TextField
-              label="Payment Amount ($)"
+              label="Payment Amount (₹)"
               type="number"
               fullWidth
               size="small"
@@ -3822,7 +3823,7 @@ export default function SalesPage() {
                   Amount Received
                 </Typography>
                 <Typography variant="h3" fontWeight={800} color="success.dark">
-                  ${parseFloat(receiptModal.receipt.amount_paid).toFixed(2)}
+                  {formatCurrency(receiptModal.receipt.amount_paid)}
                 </Typography>
               </Paper>
 
@@ -3890,7 +3891,7 @@ export default function SalesPage() {
                   <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">Total Quoted</Typography>
                     <Typography variant="h6" fontWeight={700} color="primary.main">
-                      ${parseFloat(customerHistoryModal.data.metrics?.total_quoted || 0).toFixed(2)}
+                      {formatCurrency(customerHistoryModal.data.metrics?.total_quoted || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {customerHistoryModal.data.metrics?.quotations_count || 0} quotes
@@ -3901,7 +3902,7 @@ export default function SalesPage() {
                   <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">Total Ordered</Typography>
                     <Typography variant="h6" fontWeight={700} color="info.main">
-                      ${parseFloat(customerHistoryModal.data.metrics?.total_ordered || 0).toFixed(2)}
+                      {formatCurrency(customerHistoryModal.data.metrics?.total_ordered || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {customerHistoryModal.data.metrics?.orders_count || 0} orders
@@ -3912,7 +3913,7 @@ export default function SalesPage() {
                   <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">Total Invoiced</Typography>
                     <Typography variant="h6" fontWeight={700} color="secondary.main">
-                      ${parseFloat(customerHistoryModal.data.metrics?.total_invoiced || 0).toFixed(2)}
+                      {formatCurrency(customerHistoryModal.data.metrics?.total_invoiced || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {customerHistoryModal.data.metrics?.invoices_count || 0} invoices
@@ -3923,7 +3924,7 @@ export default function SalesPage() {
                   <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">Total Paid</Typography>
                     <Typography variant="h6" fontWeight={700} color="success.main">
-                      ${parseFloat(customerHistoryModal.data.metrics?.total_paid || 0).toFixed(2)}
+                      {formatCurrency(customerHistoryModal.data.metrics?.total_paid || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {customerHistoryModal.data.metrics?.payments_count || 0} payments
@@ -3946,7 +3947,7 @@ export default function SalesPage() {
                       fontWeight={700}
                       color={parseFloat(customerHistoryModal.data.metrics?.outstanding_balance || 0) > 0 ? 'error.main' : 'text.primary'}
                     >
-                      ${parseFloat(customerHistoryModal.data.metrics?.outstanding_balance || 0).toFixed(2)}
+                      {formatCurrency(customerHistoryModal.data.metrics?.outstanding_balance || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Conversion: {parseFloat(customerHistoryModal.data.metrics?.conversion_rate || 0).toFixed(1)}%
@@ -3990,7 +3991,7 @@ export default function SalesPage() {
                             <TableCell sx={{ fontWeight: 600 }}>{q.quotation_number}</TableCell>
                             <TableCell>{q.quotation_date}</TableCell>
                             <TableCell>{q.valid_until || '—'}</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(q.total_amount).toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600 }}>{formatCurrency(q.total_amount)}</TableCell>
                             <TableCell align="center">
                               <Chip label={q.status} size="small" color={QUOTATION_STATUS_COLORS[q.status] || 'default'} />
                             </TableCell>
@@ -4024,7 +4025,7 @@ export default function SalesPage() {
                             <TableCell sx={{ fontWeight: 600 }}>{o.order_number}</TableCell>
                             <TableCell>{o.order_date}</TableCell>
                             <TableCell>{o.warehouse_name || '—'}</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 600 }}>${parseFloat(o.total_amount).toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600 }}>{formatCurrency(o.total_amount)}</TableCell>
                             <TableCell align="center">
                               <Chip label={o.status} size="small" color={ORDER_STATUS_COLORS[o.status] || 'default'} />
                             </TableCell>
@@ -4060,10 +4061,10 @@ export default function SalesPage() {
                             <TableCell sx={{ fontWeight: 600 }}>{inv.invoice_number}</TableCell>
                             <TableCell>{inv.issue_date}</TableCell>
                             <TableCell>{inv.due_date}</TableCell>
-                            <TableCell align="right">${parseFloat(inv.total_amount).toFixed(2)}</TableCell>
-                            <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>${parseFloat(inv.paid_amount).toFixed(2)}</TableCell>
+                            <TableCell align="right">{formatCurrency(inv.total_amount)}</TableCell>
+                            <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>{formatCurrency(inv.paid_amount)}</TableCell>
                             <TableCell align="right" sx={{ color: parseFloat(inv.balance_due) > 0 ? 'error.main' : 'text.primary', fontWeight: 600 }}>
-                              ${parseFloat(inv.balance_due).toFixed(2)}
+                              {formatCurrency(inv.balance_due)}
                             </TableCell>
                             <TableCell align="center">
                               <Chip label={inv.status} size="small" color={INVOICE_STATUS_COLORS[inv.status] || 'default'} />
@@ -4102,7 +4103,7 @@ export default function SalesPage() {
                             <TableCell><Chip label={p.payment_method?.replace('_', ' ')} size="small" variant="outlined" /></TableCell>
                             <TableCell>{p.reference || '—'}</TableCell>
                             <TableCell align="right" sx={{ color: 'success.main', fontWeight: 700 }}>
-                              ${parseFloat(p.amount_paid).toFixed(2)}
+                              {formatCurrency(p.amount_paid)}
                             </TableCell>
                           </TableRow>
                         ))
@@ -4136,7 +4137,7 @@ export default function SalesPage() {
                             <TableCell>{r.invoice_number}</TableCell>
                             <TableCell>{new Date(r.receipt_date || r.created_at).toLocaleDateString()}</TableCell>
                             <TableCell align="right" sx={{ fontWeight: 700 }}>
-                              ${parseFloat(r.amount_paid).toFixed(2)}
+                              {formatCurrency(r.amount_paid)}
                             </TableCell>
                           </TableRow>
                         ))
@@ -4207,7 +4208,7 @@ export default function SalesPage() {
                   <TableRow key={item.sales_order_item || idx}>
                     <TableCell sx={{ fontWeight: 600 }}>{item.product_name}</TableCell>
                     <TableCell align="right">{parseFloat(item.max_quantity).toFixed(2)}</TableCell>
-                    <TableCell align="right">${parseFloat(item.unit_price || 0).toFixed(2)}</TableCell>
+                    <TableCell align="right">{formatCurrency(item.unit_price || 0)}</TableCell>
                     <TableCell align="right">
                       <TextField
                         size="small"

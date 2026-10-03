@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Button, Card, CardContent, Stack, Typography, Chip, Grid,
@@ -284,7 +285,7 @@ export default function CRMPage() {
                         <CardContent sx={{ pr: 5 }}>
                           <Typography fontWeight="bold">{deal.title}</Typography>
                           <Typography variant="body2" color="text.secondary">{deal.customer_name || 'No Account'}</Typography>
-                          <Typography variant="body2" sx={{ mt: 1 }}>Value: ${deal.value}</Typography>
+                          <Typography variant="body2" sx={{ mt: 1 }}>Value: {formatCurrency(deal.value)}</Typography>
                           <Typography variant="caption" color="text.secondary">Close: {deal.expected_close_date || 'TBD'}</Typography>
                           <IconButton 
                             size="small" 
@@ -520,7 +521,7 @@ export default function CRMPage() {
                             secondary={
                               <Stack direction="row" spacing={1} mt={0.5} alignItems="center">
                                 <Chip label={d.stage} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, bgcolor: 'grey.200' }} />
-                                <Typography variant="caption" fontWeight="700" color="success.main">${parseFloat(d.value).toLocaleString()}</Typography>
+                                <Typography variant="caption" fontWeight="700" color="success.main">{formatCurrency(parseFloat(d.value).toLocaleString())}</Typography>
                               </Stack>
                             } 
                           />
