@@ -76,7 +76,13 @@ export default function LoginPage() {
       setIsSubmitting(false);
       if (err.response?.data) {
         const data = err.response.data;
-        if (data.detail) {
+          if (typeof data === 'string') {
+            if (data.trim().startsWith('<')) {
+              setServerError('A server error occurred. Please check the backend logs.');
+            } else {
+              setServerError(data);
+            }
+          } else if (data.detail) {
           setServerError(data.detail);
         } else if (data.non_field_errors) {
           setServerError(data.non_field_errors.join(' '));
