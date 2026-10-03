@@ -23,6 +23,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from accounts.auth_serializers import EmailOrUsernameTokenObtainPairView
 from accounts.views import (
     MeView,
+    RegisterView,
     AvatarUploadView,
     CompanyMemberListView,
     CompanyMemberCreateView,
@@ -147,6 +148,7 @@ urlpatterns = [
     path("api/auth/login/", EmailOrUsernameTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/me/", MeView.as_view(), name="auth_me"),
+    path("api/auth/register/", RegisterView.as_view(), name="auth_register"),
     path("api/auth/profile/avatar/", AvatarUploadView.as_view(), name="user_avatar_upload"),
 
     # User Settings (Phase 9C)
@@ -365,4 +367,4 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+
