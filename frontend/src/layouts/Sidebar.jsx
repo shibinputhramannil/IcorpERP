@@ -99,9 +99,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
         }}
       >
         <img 
-          src="/src/assets/branding/transt-logo.svg" 
+          src="/src/assets/branding/transt-logo-transparent.svg" 
           alt="transt" 
-          style={{ height: 40, width: 'auto', display: 'block' }} 
+          style={{ height: 32, width: 'auto', display: 'block' }} 
         />
       </Box>
 

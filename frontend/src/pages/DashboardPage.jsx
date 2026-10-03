@@ -124,7 +124,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
       {/* Page Header */}
       <PageHeader
         title="Enterprise Overview"

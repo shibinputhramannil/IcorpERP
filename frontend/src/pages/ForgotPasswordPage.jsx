@@ -55,16 +55,32 @@ export default function ForgotPasswordPage() {
       sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'background.subtle',
         p: 2,
       }}
     >
+      {/* Header & Branding (Outside Card) */}
+      <Box sx={{ textAlign: 'center', mb: 4, width: '100%', maxWidth: 420 }}>
+        <img 
+          src="/src/assets/branding/transt-logo-transparent.svg" 
+          alt="transt" 
+          style={{ width: '100%', maxWidth: '200px', height: 'auto', marginBottom: '16px', display: 'inline-block' }} 
+        />
+        <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
+          Reset Password
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Enter your corporate email address to receive password recovery instructions.
+        </Typography>
+      </Box>
+
       <Card
         sx={{
           width: '100%',
-          maxWidth: 440,
+          maxWidth: 420,
           p: { xs: 2.5, sm: 4 },
           boxShadow: '0 8px 30px rgba(15, 23, 42, 0.08)',
           border: 1, borderColor: 'divider',
@@ -112,21 +128,6 @@ export default function ForgotPasswordPage() {
             </Box>
           ) : (
             <>
-              {/* Header */}
-              <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-                <img 
-                  src="/src/assets/branding/transt-logo.svg" 
-                  alt="transt" 
-                  style={{ height: 50, width: 'auto', marginBottom: '16px' }} 
-                />
-                <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                  Reset Password
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                  Enter your corporate email address to receive password recovery instructions.
-                </Typography>
-              </Box>
-
               {error && (
                 <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2 }} onClose={() => setError('')}>
                   {error}

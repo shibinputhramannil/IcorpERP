@@ -100,17 +100,30 @@ export default function LoginPage() {
       sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'background.subtle',
         p: 2,
       }}
     >
+      {/* Header & Branding (Outside Card) */}
+      <Box sx={{ textAlign: 'center', mb: 4, width: '100%', maxWidth: 420 }}>
+        <img 
+          src="/src/assets/branding/transt-logo-transparent.svg" 
+          alt="transt" 
+          style={{ width: '100%', maxWidth: '200px', height: 'auto', marginBottom: '16px', display: 'inline-block' }} 
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Sign in to your enterprise account
+        </Typography>
+      </Box>
+
       {/* Login Card */}
       <Card
         sx={{
           width: '100%',
-          maxWidth: 440,
+          maxWidth: 420,
           p: { xs: 2.5, sm: 4 },
           boxShadow: '0 8px 30px rgba(15, 23, 42, 0.08)',
           border: 1, borderColor: 'divider',
@@ -118,18 +131,6 @@ export default function LoginPage() {
         }}
       >
         <CardContent sx={{ p: 0 }}>
-          {/* Header & Branding */}
-          <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-            <img 
-              src="/src/assets/branding/transt-logo.svg" 
-              alt="transt" 
-              style={{ height: 60, width: 'auto', marginBottom: '16px' }} 
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Sign in to your enterprise account
-            </Typography>
-          </Box>
-
           {/* Server Error Alert */}
           {serverError && (
             <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2 }} onClose={() => setServerError('')}>
