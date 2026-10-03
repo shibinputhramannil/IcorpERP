@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { getAppTheme } from '../theme';
 
@@ -12,7 +12,7 @@ export const useThemeContext = () => useContext(ThemeContext);
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState(() => {
     try {
-      const stored = localStorage.getItem('icorp_theme_mode');
+      const stored = localStorage.getItem('transt_theme_mode');
       return stored === 'dark' || stored === 'light' ? stored : 'light';
     } catch {
       return 'light';
@@ -23,7 +23,7 @@ export const ThemeProvider = ({ children }) => {
     setMode((prev) => {
       const newMode = prev === 'light' ? 'dark' : 'light';
       try {
-        localStorage.setItem('icorp_theme_mode', newMode);
+        localStorage.setItem('transt_theme_mode', newMode);
       } catch (e) {
         console.error('Failed to save theme to localStorage');
       }

@@ -117,7 +117,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
         </Box>
         <Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary' }}>
-            ICORP ERP
+            transt
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
             Enterprise Suite

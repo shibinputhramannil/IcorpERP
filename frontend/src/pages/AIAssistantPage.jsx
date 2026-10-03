@@ -170,7 +170,7 @@ export default function AIAssistantPage() {
     {
       id: 1,
       sender: 'ai',
-      text: "👋 Hello! I am your ICORP AI Copilot. I can analyze sales orders, monitor inventory, check cash collections, track vendor spend, and report company profit.\n\nAsk me anything or select one of the suggested prompts below.",
+      text: "👋 Hello! I am your transt AI Copilot. I can analyze sales orders, monitor inventory, check cash collections, track vendor spend, and report company profit.\n\nAsk me anything or select one of the suggested prompts below.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -475,6 +475,7 @@ export default function AIAssistantPage() {
             >
               <MenuItem value="openai">OpenAI</MenuItem>
               <MenuItem value="gemini">Google Gemini</MenuItem>
+              <MenuItem value="g4f">Free Web AI (GPT-4o Mini)</MenuItem>
               <MenuItem value="groq">Groq (Llama 3)</MenuItem>
               <MenuItem value="mock">Local Offline Mock</MenuItem>
               <MenuItem value="anthropic">Anthropic</MenuItem>
@@ -548,7 +549,7 @@ export default function AIAssistantPage() {
                   </Avatar>
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                      ICORP AI Copilot
+                      transt AI Copilot
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                       Model: {aiSettings.model} | Provider: {aiSettings.provider.toUpperCase()}

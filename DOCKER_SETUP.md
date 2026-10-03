@@ -1,40 +1,40 @@
-# Docker Setup & Operations Guide for ICORP ERP
+﻿# Docker Setup & Operations Guide for transt
 
-This document outlines the containerized deployment architecture for ICORP ERP using Docker and Docker Compose.
+This document outlines the containerized deployment architecture for transt using Docker and Docker Compose.
 
 ---
 
 ## Architecture Overview
 
-ICORP ERP containerization consists of three orchestrated microservices:
+transt containerization consists of three orchestrated microservices:
 
 ```
-    ┌──────────────────────────────────────────────┐
-    │          React / Vite Frontend               │
-    │          Container: icorp_frontend           │
-    │          Port: 3000                          │
-    └──────────────────────┬───────────────────────┘
-                           │
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚          React / Vite Frontend               â”‚
+    â”‚          Container: transt_frontend           â”‚
+    â”‚          Port: 3000                          â”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
                  Internal Docker Network
               (VITE_BACKEND_URL: http://backend:8000)
-                           │
-                           ▼
-    ┌──────────────────────────────────────────────┐
-    │       Django REST Framework Backend          │
-    │          Container: icorp_backend            │
-    │          Port: 8000                          │
-    └──────────────────────┬───────────────────────┘
-                           │
+                           â”‚
+                           â–¼
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚       Django REST Framework Backend          â”‚
+    â”‚          Container: transt_backend            â”‚
+    â”‚          Port: 8000                          â”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
                  Internal Docker Network
                  (DB_HOST: db, Port: 5432)
-                           │
-                           ▼
-    ┌──────────────────────────────────────────────┐
-    │          PostgreSQL 16 Database              │
-    │          Container: icorp_db                 │
-    │          Internal: 5432 | Host: 5433         │
-    │          Volume: icorp_postgres_data         │
-    └──────────────────────────────────────────────┘
+                           â”‚
+                           â–¼
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚          PostgreSQL 16 Database              â”‚
+    â”‚          Container: transt_db                 â”‚
+    â”‚          Internal: 5432 | Host: 5433         â”‚
+    â”‚          Volume: transt_postgres_data         â”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -56,7 +56,7 @@ cp .env.example .env
 ```
 
 Default variables:
-- `POSTGRES_DB`: Name of PostgreSQL database (`icorp_erp`).
+- `POSTGRES_DB`: Name of PostgreSQL database (`transt_erp`).
 - `POSTGRES_USER`: Database superuser (`postgres`).
 - `POSTGRES_PASSWORD`: Database password (`postgres_secure_password`).
 - `HOST_DB_PORT`: Host port mapping (`5433` avoids collision with local Postgres).
@@ -168,7 +168,7 @@ docker compose up -d
 
 > [!CAUTION]
 > **DO NOT USE `docker compose down -v`** in normal operations.
-> The `-v` flag removes the named volume `icorp_postgres_data` and permanently deletes all stored enterprise database records.
+> The `-v` flag removes the named volume `transt_postgres_data` and permanently deletes all stored enterprise database records.
 
 ---
 

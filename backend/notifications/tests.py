@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+﻿from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -31,8 +31,8 @@ class NotificationTests(APITestCase):
             password=self.user_password,
         )
 
-        self.company1 = Company.objects.create(name="Company One", email="c1@icorp.com")
-        self.company2 = Company.objects.create(name="Company Two", email="c2@icorp.com")
+        self.company1 = Company.objects.create(name="Company One", email="c1@transt.com")
+        self.company2 = Company.objects.create(name="Company Two", email="c2@transt.com")
 
         CompanyMembership.objects.create(
             user=self.admin_user,

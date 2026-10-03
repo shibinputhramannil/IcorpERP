@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 import os
 import re
@@ -1031,16 +1031,16 @@ def synthesize_deterministic_response(intent, entity_name, company):
 
     if intent == ERPIntent.GREETING_HELP:
         answer = (
-            f"### 👋 Welcome to ICORP ERP Assistant — {company.name}\n\n"
+            f"### ðŸ‘‹ Welcome to transt Assistant â€” {company.name}\n\n"
             f"I am your dedicated enterprise AI assistant for **{company.name}**, directly connected to your operational ledgers.\n\n"
-            f"#### 💡 Here is what I can inspect for you:\n"
-            f"- 📊 **Sales & Orders**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
-            f"- 💰 **Financial Performance**: *\"What is the current profit?\"* or *\"Show cash reserves\"*\n"
-            f"- 📋 **Debts & Invoices**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
-            f"- 📦 **Stock & Warehouses**: *\"Which products have low stock?\"*\n"
-            f"- 🛒 **Procurement**: *\"What are our total purchases?\"* or *\"Which vendors have the highest purchase value?\"*\n"
-            f"- 🎯 **CRM Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
-            f"- 👥 **Staff & HR**: *\"How many employees do we have?\"*\n\n"
+            f"#### ðŸ’¡ Here is what I can inspect for you:\n"
+            f"- ðŸ“Š **Sales & Orders**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
+            f"- ðŸ’° **Financial Performance**: *\"What is the current profit?\"* or *\"Show cash reserves\"*\n"
+            f"- ðŸ“‹ **Debts & Invoices**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
+            f"- ðŸ“¦ **Stock & Warehouses**: *\"Which products have low stock?\"*\n"
+            f"- ðŸ›’ **Procurement**: *\"What are our total purchases?\"* or *\"Which vendors have the highest purchase value?\"*\n"
+            f"- ðŸŽ¯ **CRM Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
+            f"- ðŸ‘¥ **Staff & HR**: *\"How many employees do we have?\"*\n\n"
             f"Select a question below or ask me anything!"
         )
         return {
@@ -1058,7 +1058,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.MONTHLY_SALES:
         data = get_sales_metrics(company)
         answer = (
-            f"### 📊 Sales Performance\n\n"
+            f"### ðŸ“Š Sales Performance\n\n"
             f"- **This Month's Sales**: **{data['month_sales_formatted']}** ({data['month_invoice_count']} invoices issued)\n"
             f"- **All-Time Sales Revenue**: **{data['total_sales_formatted']}** ({data['total_invoice_count']} invoices total)\n"
             f"- **Total Sales Orders**: **{data['total_orders_count']}** orders logged\n\n"
@@ -1066,7 +1066,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
         if data["recent_orders"]:
             answer += "#### Recent Orders:\n"
             for o in data["recent_orders"]:
-                answer += f"- **{o['order_number']}** — {o['customer']}: {format_currency(o['total'])} (`{o['status']}`)\n"
+                answer += f"- **{o['order_number']}** â€” {o['customer']}: {format_currency(o['total'])} (`{o['status']}`)\n"
 
         return {
             "intent": intent,
@@ -1078,7 +1078,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.OUTSTANDING_INVOICES:
         data = get_outstanding_invoices_data(company)
         answer = (
-            f"### 📋 Outstanding Sales Invoices\n\n"
+            f"### ðŸ“‹ Outstanding Sales Invoices\n\n"
             f"- **Total Outstanding Receivables**: **{data['total_outstanding_formatted']}**\n"
             f"- **Total Unpaid Invoices**: **{data['count']}** (with **{data['overdue_count']}** overdue)\n\n"
         )
@@ -1086,10 +1086,10 @@ def synthesize_deterministic_response(intent, entity_name, company):
             answer += "| Invoice | Customer | Due Date | Balance Due | Status |\n"
             answer += "| :--- | :--- | :--- | :--- | :--- |\n"
             for inv in data["invoices"]:
-                due_badge = "⚠️ Overdue" if inv["is_overdue"] else "Pending"
+                due_badge = "âš ï¸ Overdue" if inv["is_overdue"] else "Pending"
                 answer += f"| **{inv['invoice_number']}** | {inv['customer']} | {inv['due_date']} | **{format_currency(inv['balance_due'])}** | {due_badge} |\n"
         else:
-            answer += "🎉 Great news! There are currently no outstanding invoices."
+            answer += "ðŸŽ‰ Great news! There are currently no outstanding invoices."
 
         return {
             "intent": intent,
@@ -1101,7 +1101,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.COLLECTIONS:
         data = get_collections_data(company)
         answer = (
-            f"### 💵 Cash & Payment Collections\n\n"
+            f"### ðŸ’µ Cash & Payment Collections\n\n"
             f"- **Collected This Month**: **{data['month_collected_formatted']}**\n"
             f"- **Total All-Time Collections**: **{data['total_collected_formatted']}** across {data['payment_count']} payments\n\n"
         )
@@ -1120,7 +1120,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.TOTAL_PURCHASES:
         data = get_purchase_metrics(company)
         answer = (
-            f"### 🛒 Purchase & Procurement Summary\n\n"
+            f"### ðŸ›’ Purchase & Procurement Summary\n\n"
             f"- **Total All-Time Purchases**: **{data['total_purchases_formatted']}**\n"
             f"- **Purchases This Month**: **{data['month_purchases_formatted']}**\n"
             f"- **Unpaid Vendor Bills**: **{data['unpaid_bills_formatted']}** ({data['unpaid_bills_count']} bills awaiting payment)\n\n"
@@ -1140,7 +1140,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.LOW_STOCK:
         data = get_inventory_metrics(company)
         answer = (
-            f"### 📦 Inventory & Stock Alerts\n\n"
+            f"### ðŸ“¦ Inventory & Stock Alerts\n\n"
             f"- **Total Cataloged SKUs**: **{data['total_products']}** across {data['warehouses_count']} active warehouses\n"
             f"- **Estimated Inventory Valuation**: **{data['total_valuation_formatted']}**\n"
             f"- **Low Stock SKUs**: **{data['low_stock_count']}**\n"
@@ -1151,10 +1151,10 @@ def synthesize_deterministic_response(intent, entity_name, company):
             answer += "| SKU | Product | Stock | Reorder Level | Unit Price |\n"
             answer += "| :--- | :--- | :--- | :--- | :--- |\n"
             for itm in items_to_show[:10]:
-                stock_label = f"🔴 {itm['current_stock']} {itm['unit']}" if Decimal(itm["current_stock"]) <= 0 else f"⚠️ {itm['current_stock']} {itm['unit']}"
+                stock_label = f"ðŸ”´ {itm['current_stock']} {itm['unit']}" if Decimal(itm["current_stock"]) <= 0 else f"âš ï¸ {itm['current_stock']} {itm['unit']}"
                 answer += f"| `{itm['sku']}` | **{itm['name']}** | {stock_label} | {itm['reorder_level']} | {format_currency(itm['cost_price'])} |\n"
         else:
-            answer += "✅ All product stock levels are currently healthy and above reorder thresholds."
+            answer += "âœ… All product stock levels are currently healthy and above reorder thresholds."
 
         return {
             "intent": intent,
@@ -1166,7 +1166,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.CUSTOMERS_OWE:
         data = get_customers_owe_data(company)
         answer = (
-            f"### 👥 Customers With Outstanding Balances\n\n"
+            f"### ðŸ‘¥ Customers With Outstanding Balances\n\n"
             f"- **Total Outstanding Receivables**: **{data['total_receivable_formatted']}**\n"
             f"- **Debtors Count**: **{data['total_debtors_count']}** customer(s) with pending balances\n\n"
         )
@@ -1177,7 +1177,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
                 contact = c["phone"] or c["email"] or "N/A"
                 answer += f"| **{c['name']}** | **{c['total_owed_formatted']}** | {c['invoice_count']} | {contact} |\n"
         else:
-            answer += "🎉 No customers currently owe money! All issued invoices are paid."
+            answer += "ðŸŽ‰ No customers currently owe money! All issued invoices are paid."
 
         return {
             "intent": intent,
@@ -1188,7 +1188,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
 
     elif intent == ERPIntent.TOP_VENDORS:
         data = get_top_vendors_by_spend(company, limit=5)
-        answer = "### 🏢 Vendors With Highest Purchase Value\n\n"
+        answer = "### ðŸ¢ Vendors With Highest Purchase Value\n\n"
         if data:
             answer += "| Rank | Vendor | Total Spend | Contact |\n"
             answer += "| :--- | :--- | :--- | :--- |\n"
@@ -1208,7 +1208,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent in [ERPIntent.CURRENT_PROFIT, ERPIntent.NET_PROFIT]:
         data = get_finance_metrics(company)
         answer = (
-            f"### 📈 Current Financial Performance & Profitability\n\n"
+            f"### ðŸ“ˆ Current Financial Performance & Profitability\n\n"
             f"- **Current Net Profit**: **{data['net_profit_formatted']}**\n"
             f"- **Gross Profit**: **{data['gross_profit_formatted']}**\n"
             f"- **Operating Revenue**: **{data['revenue_total_formatted']}**\n"
@@ -1227,7 +1227,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.RECEIVABLES_PAYABLES:
         fin = get_finance_metrics(company)
         answer = (
-            f"### ⚖️ Working Capital & Ledger Balances — {company.name}\n\n"
+            f"### âš–ï¸ Working Capital & Ledger Balances â€” {company.name}\n\n"
             f"- **Accounts Receivable (AR)**: **{fin['receivables_formatted']}**\n"
             f"- **Accounts Payable (AP)**: **{fin['payables_formatted']}**\n"
             f"- **Liquid Funds (Cash+Bank)**: **{fin['liquid_funds_formatted']}**\n"
@@ -1243,7 +1243,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.EMPLOYEES_HR:
         data = get_hr_metrics(company)
         answer = (
-            f"### 👥 Workforce & Headcount — {company.name}\n\n"
+            f"### ðŸ‘¥ Workforce & Headcount â€” {company.name}\n\n"
             f"- **Total Registered Employees**: **{data['total_employees']}**\n"
             f"- **Active Staff**: **{data['active_employees']}** team members on active duty\n"
             f"- **Inactive / On-Leave**: **{data['inactive_employees']}** team members\n\n"
@@ -1263,7 +1263,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     elif intent == ERPIntent.CRM_PIPELINE:
         data = get_crm_metrics(company)
         answer = (
-            f"### 🎯 CRM & Deal Pipeline — {company.name}\n\n"
+            f"### ðŸŽ¯ CRM & Deal Pipeline â€” {company.name}\n\n"
             f"- **Total Customers**: **{data['total_customers']}** ({data['corporate_customers']} corporate, {data['individual_customers']} individual)\n"
             f"- **Total Leads**: **{data['total_leads']}** ({data['converted_leads']} converted)\n"
             f"- **Lead Conversion Rate**: **{data['conversion_rate_percentage']}%**\n"
@@ -1284,7 +1284,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
 
     elif intent == ERPIntent.RECENT_SALES_ORDERS:
         orders = list(SalesOrder.objects.filter(company=company).select_related("customer").order_by("-order_date", "-id")[:5])
-        answer = "### 🛒 Recent Sales Orders\n\n"
+        answer = "### ðŸ›’ Recent Sales Orders\n\n"
         if orders:
             answer += "| Order # | Customer | Date | Total | Status |\n"
             answer += "| :--- | :--- | :--- | :--- | :--- |\n"
@@ -1305,7 +1305,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
 
     elif intent == ERPIntent.RECENT_PURCHASE_ORDERS:
         pos = list(PurchaseOrder.objects.filter(company=company).select_related("vendor").order_by("-order_date", "-id")[:5])
-        answer = "### 📦 Recent Purchase Orders\n\n"
+        answer = "### ðŸ“¦ Recent Purchase Orders\n\n"
         if pos:
             answer += "| PO # | Vendor | Date | Total | Status |\n"
             answer += "| :--- | :--- | :--- | :--- | :--- |\n"
@@ -1336,13 +1336,13 @@ def synthesize_deterministic_response(intent, entity_name, company):
         if not results:
             return {
                 "intent": intent,
-                "answer": f"🔍 No customer matching **'{entity_name}'** was found in company **{company.name}**.",
+                "answer": f"ðŸ” No customer matching **'{entity_name}'** was found in company **{company.name}**.",
                 "data": {"query": entity_name, "found": False},
                 "suggested_questions": ["Which customers owe money?", "Show recent sales orders."],
             }
         cust = results[0]
         answer = (
-            f"### 👤 Customer Profile: {cust['name']}\n\n"
+            f"### ðŸ‘¤ Customer Profile: {cust['name']}\n\n"
             f"- **Customer Type**: {cust['customer_type']}\n"
             f"- **Email**: {cust['email'] or 'N/A'}\n"
             f"- **Phone**: {cust['phone'] or 'N/A'}\n"
@@ -1376,13 +1376,13 @@ def synthesize_deterministic_response(intent, entity_name, company):
         if not results:
             return {
                 "intent": intent,
-                "answer": f"🔍 No vendor matching **'{entity_name}'** was found in company **{company.name}**.",
+                "answer": f"ðŸ” No vendor matching **'{entity_name}'** was found in company **{company.name}**.",
                 "data": {"query": entity_name, "found": False},
                 "suggested_questions": ["Which vendors have the highest purchase value?", "Show recent purchase orders."],
             }
         vend = results[0]
         answer = (
-            f"### 🏢 Vendor Profile: {vend['name']}\n\n"
+            f"### ðŸ¢ Vendor Profile: {vend['name']}\n\n"
             f"- **Tax ID / GST**: {vend['tax_id'] or 'N/A'}\n"
             f"- **Email**: {vend['email'] or 'N/A'}\n"
             f"- **Phone**: {vend['phone'] or 'N/A'}\n"
@@ -1411,7 +1411,7 @@ def synthesize_deterministic_response(intent, entity_name, company):
     fin = data["finance"]
 
     answer = (
-        f"### 🏢 ICORP ERP Executive Overview — {company.name}\n\n"
+        f"### ðŸ¢ transt Executive Overview â€” {company.name}\n\n"
         f"Here is your real-time operational digest:\n\n"
         f"| Module | Key Metric | Value |\n"
         f"| :--- | :--- | :--- |\n"
@@ -1571,7 +1571,7 @@ def process_ai_query(company, query, conversation_history=None):
 
     if ai_key:
         system_context = (
-            f"You are the ICORP ERP AI Assistant for company '{company.name}'.\n"
+            f"You are the transt AI Assistant for company '{company.name}'.\n"
             f"RULES:\n"
             f"- Strictly use the verified company data provided below.\n"
             f"- Do not hallucinate numbers or speculate.\n"
@@ -1972,7 +1972,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     if not authorized_companies.exists():
         return {
             "intent": ERPIntent.GENERAL,
-            "answer": "You do not currently have access to any companies or workspaces in ICORP ERP.",
+            "answer": "You do not currently have access to any companies or workspaces in transt.",
             "data": {},
             "suggested_questions": ["How do I create a company workspace?"],
             "llm_augmented": False,
@@ -2014,17 +2014,17 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
 
     if intent == ERPIntent.GREETING_HELP:
         answer = (
-            f"### 👋 Welcome to ICORP Global ERP Assistant\n\n"
+            f"### ðŸ‘‹ Welcome to transt Global ERP Assistant\n\n"
             f"I am your real-time operational intelligence assistant, currently analyzing data across **{len(breakdown)}** authorized company workspaces.\n\n"
             f"All metrics are retrieved directly from verified database ledgers with zero mathematical hallucination.\n\n"
-            f"#### 💡 Here is what I can inspect for you:\n"
-            f"- 📊 **Sales & Revenue**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
-            f"- 💰 **Profitability & Liquidity**: *\"What is our current profit?\"* or *\"Show cash reserves\"*\n"
-            f"- 📋 **Receivables & Debtors**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
-            f"- 📦 **Stock & Warehouses**: *\"Which products have low stock?\"* or *\"Show catalog valuation\"*\n"
-            f"- 🛒 **Procurement & Payables**: *\"What are our total purchases?\"* or *\"Show unpaid bills\"*\n"
-            f"- 🎯 **CRM & Deal Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
-            f"- 👥 **Staff & Headcount**: *\"How many employees do we have?\"*\n\n"
+            f"#### ðŸ’¡ Here is what I can inspect for you:\n"
+            f"- ðŸ“Š **Sales & Revenue**: *\"What are this month's sales?\"* or *\"Show recent sales orders\"*\n"
+            f"- ðŸ’° **Profitability & Liquidity**: *\"What is our current profit?\"* or *\"Show cash reserves\"*\n"
+            f"- ðŸ“‹ **Receivables & Debtors**: *\"Which invoices are outstanding?\"* or *\"Which customers owe money?\"*\n"
+            f"- ðŸ“¦ **Stock & Warehouses**: *\"Which products have low stock?\"* or *\"Show catalog valuation\"*\n"
+            f"- ðŸ›’ **Procurement & Payables**: *\"What are our total purchases?\"* or *\"Show unpaid bills\"*\n"
+            f"- ðŸŽ¯ **CRM & Deal Pipeline**: *\"Show active CRM deals and pipeline\"*\n"
+            f"- ðŸ‘¥ **Staff & Headcount**: *\"How many employees do we have?\"*\n\n"
             f"Click any prompt below or ask me a specific business question!"
         )
         data = {"company_count": len(breakdown)}
@@ -2038,7 +2038,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.MONTHLY_SALES:
         sales = insights["sales"]
         answer = (
-            f"### 📊 Consolidated Monthly Sales\n\n"
+            f"### ðŸ“Š Consolidated Monthly Sales\n\n"
             f"Across all **{len(breakdown)}** authorized workspaces, total billed sales for the current month stand at **{sales['month_sales_formatted']}** "
             f"(Cumulative all-time revenue: **{sales['total_sales_formatted']}** across {sales['total_invoice_count']} invoices).\n\n"
             f"| Company | Total Sales | Net Profit | Active Deals |\n"
@@ -2057,7 +2057,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
         rec_pay = dash["receivables_payables"]
         fin = insights["finance"]
         answer = (
-            f"### 📋 Consolidated Accounts Receivable & Payables\n\n"
+            f"### ðŸ“‹ Consolidated Accounts Receivable & Payables\n\n"
             f"- **Customer Receivables (AR)**: **{rec_pay['total_receivables_formatted']}** across all workspaces\n"
             f"- **Vendor Payables (AP)**: **{rec_pay['total_payables_formatted']}** across all workspaces\n"
             f"- **Liquid Cash Reserves**: **{rec_pay['liquid_funds_formatted']}**\n"
@@ -2078,7 +2078,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
         rec_pay = dash["receivables_payables"]
         fin = insights["finance"]
         answer = (
-            f"### 💳 Customer Receivables & Debtors\n\n"
+            f"### ðŸ’³ Customer Receivables & Debtors\n\n"
             f"Total customer receivables awaiting collection across group entities stand at **{rec_pay['total_receivables_formatted']}**.\n\n"
             f"- **Outstanding Customer Invoices**: **{rec_pay['total_receivables_formatted']}**\n"
             f"- **Liquid Funds (Cash & Bank)**: **{rec_pay['liquid_funds_formatted']}**\n"
@@ -2099,7 +2099,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
         fin = insights["finance"]
         sales = insights["sales"]
         answer = (
-            f"### 💵 Payment Collections & Cash Position\n\n"
+            f"### ðŸ’µ Payment Collections & Cash Position\n\n"
             f"- **This Month's Billed Sales**: **{sales['month_sales_formatted']}**\n"
             f"- **Total Sales Revenue**: **{sales['total_sales_formatted']}**\n"
             f"- **Total Liquid Funds (Cash+Bank)**: **{fin['liquid_funds_formatted']}**\n"
@@ -2115,7 +2115,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent in [ERPIntent.CURRENT_PROFIT, ERPIntent.NET_PROFIT]:
         fin = insights["finance"]
         answer = (
-            f"### 📈 Consolidated Financial Position & Net Profit\n\n"
+            f"### ðŸ“ˆ Consolidated Financial Position & Net Profit\n\n"
             f"- **Combined Net Operating Profit**: **{fin['net_profit_formatted']}**\n"
             f"- **Total Operating Revenue**: **{fin['revenue_total_formatted']}**\n"
             f"- **Total Operating Expenses**: **{fin['expenses_total_formatted']}**\n"
@@ -2136,7 +2136,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.TOTAL_PURCHASES:
         purch = insights["purchases"]
         answer = (
-            f"### 🛒 Consolidated Procurement & Purchases\n\n"
+            f"### ðŸ›’ Consolidated Procurement & Purchases\n\n"
             f"- **Cumulative Procurement Spend**: **{purch['total_purchases_formatted']}**\n"
             f"- **This Month's Purchases**: **{purch['month_purchases_formatted']}**\n"
             f"- **Unpaid Vendor Liabilities**: **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)\n\n"
@@ -2154,7 +2154,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.TOP_VENDORS:
         purch = insights["purchases"]
         answer = (
-            f"### 🏢 Vendor Spend & Procurement Intelligence\n\n"
+            f"### ðŸ¢ Vendor Spend & Procurement Intelligence\n\n"
             f"- **Cumulative Procurement Spend**: **{purch['total_purchases_formatted']}**\n"
             f"- **Unpaid Vendor Liabilities**: **{purch['unpaid_bills_formatted']}** across **{purch['unpaid_bills_count']}** bill(s)\n\n"
             f"| Company | Procurement Spend | Catalog Items | Employees |\n| :--- | :--- | :--- | :--- |\n"
@@ -2171,7 +2171,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.RECENT_SALES_ORDERS:
         sales = insights["sales"]
         orders = sales.get("recent_orders", [])
-        answer = "### 🛒 Recent Sales Orders\n\n"
+        answer = "### ðŸ›’ Recent Sales Orders\n\n"
         if orders:
             answer += "| Company | Order # | Customer | Date | Total | Status |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n"
             for o in orders:
@@ -2188,7 +2188,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.RECENT_PURCHASE_ORDERS:
         purch = insights["purchases"]
         pos = purch.get("recent_pos", [])
-        answer = "### 📦 Recent Purchase Orders\n\n"
+        answer = "### ðŸ“¦ Recent Purchase Orders\n\n"
         if pos:
             answer += "| Company | PO # | Vendor | Date | Total | Status |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n"
             for p in pos:
@@ -2207,20 +2207,20 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
         low_stock = inv["low_stock_items"]
         out_of_stock = inv["out_of_stock_items"]
         answer = (
-            f"### 📦 Group Inventory Stock Health\n\n"
+            f"### ðŸ“¦ Group Inventory Stock Health\n\n"
             f"- **Total Catalog SKUs**: **{inv['total_products']}** items\n"
             f"- **Total Inventory Valuation**: **{inv['total_valuation_formatted']}**\n"
             f"- **Critical Stockouts**: **{inv['out_of_stock_count']}** items with zero inventory\n"
             f"- **Low Stock Warnings**: **{inv['low_stock_count']}** items below reorder threshold\n\n"
         )
         if out_of_stock:
-            answer += "#### ⚠️ Out of Stock (Immediate Reorder Required):\n"
+            answer += "#### âš ï¸ Out of Stock (Immediate Reorder Required):\n"
             answer += "| Company | SKU | Product Name | Stock | Cost |\n| :--- | :--- | :--- | :--- | :--- |\n"
             for it in out_of_stock[:5]:
                 answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | **{it['name']}** | {it['current_stock']} | ${it['cost_price']} |\n"
             answer += "\n"
         if low_stock:
-            answer += "#### 🔔 Low Stock Alerts:\n"
+            answer += "#### ðŸ”” Low Stock Alerts:\n"
             answer += "| Company | SKU | Product Name | Stock | Reorder Level |\n| :--- | :--- | :--- | :--- | :--- |\n"
             for it in low_stock[:5]:
                 answer += f"| {it.get('company', 'Workspace')} | `{it['sku']}` | {it['name']} | {it['current_stock']} | {it['reorder_level']} |\n"
@@ -2234,7 +2234,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.CRM_PIPELINE:
         crm = insights["crm"]
         answer = (
-            f"### 🎯 Consolidated CRM & Sales Pipeline\n\n"
+            f"### ðŸŽ¯ Consolidated CRM & Sales Pipeline\n\n"
             f"- **Customer Accounts**: **{crm['total_customers']}** registered customers\n"
             f"- **Total Leads**: **{crm['total_leads']}** leads logged (**{crm['converted_leads']}** converted)\n"
             f"- **Lead Conversion Rate**: **{crm['conversion_rate_percentage']}%**\n"
@@ -2255,7 +2255,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     elif intent == ERPIntent.EMPLOYEES_HR:
         hr = insights["hr"]
         answer = (
-            f"### 👥 Group Workforce & Headcount\n\n"
+            f"### ðŸ‘¥ Group Workforce & Headcount\n\n"
             f"Across all authorized company workspaces, there are **{hr['total_employees']}** total registered employees:\n\n"
             f"- **Active Staff**: **{hr['active_employees']}** team members on active status\n"
             f"- **Inactive / On-Leave**: **{hr['inactive_employees']}** team members\n\n"
@@ -2281,13 +2281,13 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
                 name__icontains=entity_name,
             ).select_related("company")[:5]
             if cust_matches.exists():
-                answer = f"### 👤 Customer Search: \"{entity_name}\"\n\n"
+                answer = f"### ðŸ‘¤ Customer Search: \"{entity_name}\"\n\n"
                 answer += "| Customer | Company | Type | Email | Phone |\n| :--- | :--- | :--- | :--- | :--- |\n"
                 for c in cust_matches:
                     answer += f"| **{c.name}** | {c.company.name} | {c.customer_type} | {c.email or 'N/A'} | {c.phone or 'N/A'} |\n"
                 data = {"matches": [{"name": c.name, "company": c.company.name} for c in cust_matches]}
             else:
-                answer = f"🔍 No customer matching **\"{entity_name}\"** was found across your authorized workspaces."
+                answer = f"ðŸ” No customer matching **\"{entity_name}\"** was found across your authorized workspaces."
                 data = {"found": False}
         suggested = ["Which customers owe money?", "What are this month's sales?", "What is our current profit?"]
 
@@ -2302,20 +2302,20 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
                 name__icontains=entity_name,
             ).select_related("company")[:5]
             if vend_matches.exists():
-                answer = f"### 🏢 Vendor Search: \"{entity_name}\"\n\n"
+                answer = f"### ðŸ¢ Vendor Search: \"{entity_name}\"\n\n"
                 answer += "| Vendor | Company | Tax ID | Email | Phone |\n| :--- | :--- | :--- | :--- | :--- |\n"
                 for v in vend_matches:
                     answer += f"| **{v.name}** | {v.company.name} | {v.tax_id or 'N/A'} | {v.email or 'N/A'} | {v.phone or 'N/A'} |\n"
                 data = {"matches": [{"name": v.name, "company": v.company.name} for v in vend_matches]}
             else:
-                answer = f"🔍 No vendor matching **\"{entity_name}\"** was found across your authorized workspaces."
+                answer = f"ðŸ” No vendor matching **\"{entity_name}\"** was found across your authorized workspaces."
                 data = {"found": False}
         suggested = ["What are our total purchases?", "Which products have low stock?", "Show recent purchase orders."]
 
     else:
         # General / Executive multi-company summary
         answer = (
-            f"### 🏢 Executive Multi-Workspace Overview\n\n"
+            f"### ðŸ¢ Executive Multi-Workspace Overview\n\n"
             f"{dash['business_summary']}\n\n"
             f"#### Entity Breakdown\n"
             f"| Company | Sales | Purchases | Net Profit | Products | Employees |\n"
@@ -2337,7 +2337,7 @@ def process_global_ai_query(user, query, company_id=None, conversation_history=N
     ai_key = get_active_ai_key()
     if ai_key:
         system_context = (
-            f"You are the ICORP ERP Global Executive Assistant. You assist the authorized user across all their companies.\n"
+            f"You are the transt Global Executive Assistant. You assist the authorized user across all their companies.\n"
             f"STRICT RULES:\n"
             f"- Ground your answers strictly on the verified ERP context provided below.\n"
             f"- Do not hallucinate numbers or calculate new accounting numbers yourself.\n"

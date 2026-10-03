@@ -1,4 +1,4 @@
-"""
+﻿"""
 Phase 7 Live Verification Script: Practical Read-Only AI ERP Assistant
 Tests all 10 required questions, customer/vendor lookup, executive insights,
 tenant isolation, read-only guarantees, and error handling.
@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def run_tests():
     print("=" * 80)
-    print("ICORP ERP PHASE 7: AI ERP ASSISTANT LIVE VERIFICATION")
+    print("transt PHASE 7: AI ERP ASSISTANT LIVE VERIFICATION")
     print("=" * 80)
     return run_django_client_tests()
 

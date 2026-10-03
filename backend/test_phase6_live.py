@@ -1,4 +1,4 @@
-"""
+﻿"""
 Phase 6 Live Verification Script: Central Finance Module & Integration
 Tests end-to-end accounting workflow:
 Authentication -> Company -> Accounts -> Journal Entry -> Ledger ->
@@ -20,7 +20,7 @@ BASE_URL = "http://127.0.0.1:8000"
 
 def run_tests():
     print("=" * 80)
-    print("ICORP ERP PHASE 6: CENTRAL FINANCE MODULE LIVE VERIFICATION")
+    print("transt PHASE 6: CENTRAL FINANCE MODULE LIVE VERIFICATION")
     print("=" * 80)
     return run_django_client_tests()
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Phase 8 Live Verification Script: Centralized Reporting & Admin Consolidation
 Tests all 8 consolidated report dimensions, date-range filtering,
 CSV exports, and multi-tenant isolation.
@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def run_tests():
     print("=" * 80)
-    print("ICORP ERP PHASE 8: REPORTING & ADMIN CONSOLIDATION LIVE VERIFICATION")
+    print("transt PHASE 8: REPORTING & ADMIN CONSOLIDATION LIVE VERIFICATION")
     print("=" * 80)
     return run_django_client_tests()
 

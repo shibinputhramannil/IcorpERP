@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+﻿from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -169,7 +169,7 @@ class WorkspaceCollaborationTests(APITestCase):
             user=self.emp_user,
             activity_type="Email",
             title="Internal Email",
-            description="[To: c1@icorp.com]\n\nInternal info",
+            description="[To: c1@transt.com]\n\nInternal info",
         )
 
         list_url = reverse("workspace_mail", kwargs={"company_id": self.company1.id})

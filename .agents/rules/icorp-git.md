@@ -1,9 +1,9 @@
-# ICORP ERP Git Workflow
+﻿# transt Git Workflow
 
-This rule applies only to the ICORP ERP repository.
+This rule applies only to the transt repository.
 
 Repository:
-C:\Assignment\erp\IcorpERP
+C:\Assignment\erp\transtERP
 
 Never access, modify, copy, move, delete, or commit anything from:
 C:\Assignment\CRM
@@ -25,7 +25,7 @@ After completing a requested development task or phase:
    - git status
    - git diff --stat
 7. Make sure there are no secrets or credentials in the changes.
-8. Stage the completed ICORP ERP changes.
+8. Stage the completed transt changes.
 9. Create a descriptive commit.
 10. Push the commit to:
     origin main
@@ -76,4 +76,4 @@ After a successful commit and push, report:
 - commit message
 - push result
 
-The goal is automatic checkpointing of completed ICORP ERP work while preserving repository safety.
+The goal is automatic checkpointing of completed transt work while preserving repository safety.

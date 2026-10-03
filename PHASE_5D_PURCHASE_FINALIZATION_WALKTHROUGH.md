@@ -1,11 +1,11 @@
-# ICORP ERP - Phase 5D: Purchase Finalization, Reporting & Financial Integration Walkthrough
+﻿# transt - Phase 5D: Purchase Finalization, Reporting & Financial Integration Walkthrough
 ## Comprehensive Accounts Payable (AP), Reports Suite, Procurement Analytics & End-to-End Lifecycle
 
 ---
 
 ## Executive Summary
 
-**Phase 5D** finalizes the **Purchase Management Module** of ICORP ERP, integrating procurement operations with Accounts Payable (AP) finance, delivering deep PostgreSQL-driven operational reporting, interactive analytics, and multi-tab frontend workflows.
+**Phase 5D** finalizes the **Purchase Management Module** of transt, integrating procurement operations with Accounts Payable (AP) finance, delivering deep PostgreSQL-driven operational reporting, interactive analytics, and multi-tab frontend workflows.
 
 The complete Procure-to-Pay (P2P) pipeline operates with strict tenant isolation, row-level locking for atomic financial balance recalculations, automated status progression, overpayment prevention, and an immutable audit trail.
 
@@ -15,20 +15,20 @@ The complete Procure-to-Pay (P2P) pipeline operates with strict tenant isolation
 
 ```
 Purchase Quotation (PQT)
-       │
-       ▼ (Accepted & Converted)
+       â”‚
+       â–¼ (Accepted & Converted)
 Purchase Order (PO)
-       │
-       ├─► Goods Receiving (GRN) ──► Real PostgreSQL Stock IN (Inventory Module)
-       │
-       ▼ (Billed)
+       â”‚
+       â”œâ”€â–º Goods Receiving (GRN) â”€â”€â–º Real PostgreSQL Stock IN (Inventory Module)
+       â”‚
+       â–¼ (Billed)
 Purchase Invoice (PINV - Vendor Bill)
-       │
-       ▼ (Disbursed)
+       â”‚
+       â–¼ (Disbursed)
 Supplier Payment (PPAY - Accounts Payable)
-       │
-       ├─► Partial Payment: Invoice status = PARTIALLY_PAID, PO payment_status = PARTIALLY_PAID
-       └─► Full Payment:    Invoice status = PAID,           PO payment_status = PAID
+       â”‚
+       â”œâ”€â–º Partial Payment: Invoice status = PARTIALLY_PAID, PO payment_status = PARTIALLY_PAID
+       â””â”€â–º Full Payment:    Invoice status = PAID,           PO payment_status = PAID
 ```
 
 ---
@@ -157,8 +157,8 @@ The frontend in `frontend/src/pages/PurchasePage.jsx` has been finalized with a 
   ```powershell
   npm run build
   ```
-  **Result**: `✓ built in 1.32s (0 errors, clean build)`
+  **Result**: `âœ“ built in 1.32s (0 errors, clean build)`
 
 ### 4. Postman Collection
-- Located at: `backend/postman/ICORP_ERP_Phase5D.postman_collection.json`
+- Located at: `backend/postman/transt_ERP_Phase5D.postman_collection.json`
 - Contains 14 automated test requests covering the entire Phase 5D surface.

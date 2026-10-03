@@ -1,7 +1,7 @@
-# ICORP ERP
+﻿# transt
 
 ## Project Description
-ICORP ERP is a comprehensive, multi-tenant Enterprise Resource Planning system built to manage complex business operations. It unites human resources, CRM pipelines, advanced inventory logistics, full lifecycle sales and purchasing, strict double-entry finance, interactive workspace collaboration tools, and an integrated AI Assistant into a single seamless platform.
+transt is a comprehensive, multi-tenant Enterprise Resource Planning system built to manage complex business operations. It unites human resources, CRM pipelines, advanced inventory logistics, full lifecycle sales and purchasing, strict double-entry finance, interactive workspace collaboration tools, and an integrated AI Assistant into a single seamless platform.
 
 ## Version
 Version 1.1.0 - **Production Ready** (Phase 11 Completed)

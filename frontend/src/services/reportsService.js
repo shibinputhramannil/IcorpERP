@@ -1,4 +1,4 @@
-import api from './api';
+﻿import api from './api';
 
 export const reportsService = {
   getExecutiveReport: async (companyId, dateFrom = null, dateTo = null) => {
@@ -72,7 +72,7 @@ export const reportsService = {
     const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `icorp_${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `transt_${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     link.parentNode.removeChild(link);

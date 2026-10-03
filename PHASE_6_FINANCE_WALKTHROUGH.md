@@ -1,8 +1,8 @@
-# Phase 6: Finance & Accounting Module & Docker Containerization Walkthrough
+﻿# Phase 6: Finance & Accounting Module & Docker Containerization Walkthrough
 
 ## Executive Summary
 
-Phase 6 introduces the central **Finance & Accounting** module for ICORP ERP and fully containerizes the enterprise platform using **Docker** and **Docker Compose**.
+Phase 6 introduces the central **Finance & Accounting** module for transt and fully containerizes the enterprise platform using **Docker** and **Docker Compose**.
 
 Key deliverables:
 1. **Double-Entry Accounting Engine**: Concurrency-safe journal entry posting (`JE-YYYY-XXXXXX`), database transactions (`transaction.atomic()`), and mathematical debit/credit balancing verification using Python `Decimal`.
@@ -66,7 +66,7 @@ All financial mutations write to `finance.JournalEntryLine` within a database tr
 
 ---
 
-## 3. Operational Integration (Sales & Purchase → Finance)
+## 3. Operational Integration (Sales & Purchase â†’ Finance)
 
 ### Sales Invoicing & Receipts
 - When a `sales.Invoice` is issued:
@@ -116,7 +116,7 @@ All endpoints are company-scoped under `/api/companies/<company_id>/finance/`:
 ## 5. Docker Infrastructure Architecture
 
 - **`docker-compose.yml`**:
-  - `db`: `postgres:16-alpine`, persistent volume `icorp_postgres_data`, healthcheck `pg_isready`, host port `5433:5432`.
+  - `db`: `postgres:16-alpine`, persistent volume `transt_postgres_data`, healthcheck `pg_isready`, host port `5433:5432`.
   - `backend`: `python:3.12-slim`, reads DB configuration from environment variables, depends on `db (service_healthy)`, port `8000:8000`.
   - `frontend`: `node:20-alpine`, Vite dev server with host binding `0.0.0.0:3000`, proxying `/api` and `/media` to `http://backend:8000`.
 - **Validation**:

@@ -1,8 +1,8 @@
-# ICORP ERP - Phase 4A: Sales Foundation Walkthrough & Verification Report
+﻿# transt - Phase 4A: Sales Foundation Walkthrough & Verification Report
 
 ## 1. Executive Summary
 
-Phase 4A establishes the core **Sales Foundation** for ICORP ERP. It introduces formal Sales Quotation estimation and Sales Order fulfillment records with cross-module integration across CRM (Customers) and Inventory (Products). All operations enforce strict multi-tenant isolation, precise financial calculations using Python's `Decimal` type, atomic conversion workflows, and a modern Material UI workspace.
+Phase 4A establishes the core **Sales Foundation** for transt. It introduces formal Sales Quotation estimation and Sales Order fulfillment records with cross-module integration across CRM (Customers) and Inventory (Products). All operations enforce strict multi-tenant isolation, precise financial calculations using Python's `Decimal` type, atomic conversion workflows, and a modern Material UI workspace.
 
 ---
 
@@ -11,28 +11,28 @@ Phase 4A establishes the core **Sales Foundation** for ICORP ERP. It introduces 
 The `sales` Django app was created under `backend/sales/` and registered in `settings.py`.
 
 ```
-                  ┌──────────────────────┐
-                  │    Company (Tenant)  │
-                  └──────────┬───────────┘
-                             │
-            ┌────────────────┴────────────────┐
-            ▼                                 ▼
-   ┌─────────────────┐               ┌─────────────────┐
-   │ crm.Customer    │               │inventory.Product│
-   └────────┬────────┘               └────────┬────────┘
-            │                                 │
-            ├──────────────────────┐          │
-            ▼                      ▼          │
-   ┌─────────────────┐    ┌─────────────────┐ │
-   │    Quotation    │───►│   SalesOrder    │ │
-   │ (Status Machine)│    │ (Status Machine)│ │
-   └────────┬────────┘    └────────┬────────┘ │
-            │                      │          │
-            ▼                      ▼          │
-   ┌─────────────────┐    ┌─────────────────┐ │
-   │  QuotationItem  │    │ SalesOrderItem  │◄┘
-   │ (Product Link)  │    │ (Product Link)  │
-   └─────────────────┘    └─────────────────┘
+                  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                  â”‚    Company (Tenant)  â”‚
+                  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                             â”‚
+            â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+            â–¼                                 â–¼
+   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”               â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+   â”‚ crm.Customer    â”‚               â”‚inventory.Productâ”‚
+   â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜               â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+            â”‚                                 â”‚
+            â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”          â”‚
+            â–¼                      â–¼          â”‚
+   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+   â”‚    Quotation    â”‚â”€â”€â”€â–ºâ”‚   SalesOrder    â”‚ â”‚
+   â”‚ (Status Machine)â”‚    â”‚ (Status Machine)â”‚ â”‚
+   â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+            â”‚                      â”‚          â”‚
+            â–¼                      â–¼          â”‚
+   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+   â”‚  QuotationItem  â”‚    â”‚ SalesOrderItem  â”‚â—„â”˜
+   â”‚ (Product Link)  â”‚    â”‚ (Product Link)  â”‚
+   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### 2.1 Database Models
@@ -166,7 +166,7 @@ manage.py test accounts company apps.employee crm inventory sales
 - **Migrations**: `0001_initial.py`, `0002_alter_quotation_quotation_date_and_more.py`
 - **Automated Tests**: `backend/sales/tests.py` (18 tests)
 - **Demo Data Seed Command**: `backend/accounts/management/commands/seed_demo_data.py` (Section 17)
-- **Postman Collection**: `backend/postman/ICORP_ERP_Phase4A.postman_collection.json`
+- **Postman Collection**: `backend/postman/transt_ERP_Phase4A.postman_collection.json`
 - **Frontend Service**: `frontend/src/services/salesService.js`
 - **Frontend Workspace**: `frontend/src/pages/SalesPage.jsx`
 - **Frontend Routing & Sidebar**: `AppRoutes.jsx`, `Sidebar.jsx`

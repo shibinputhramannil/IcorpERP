@@ -1,4 +1,4 @@
-import io
+﻿import io
 from django.contrib.auth.models import Group, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -55,7 +55,7 @@ class DocumentManagementTests(APITestCase):
         self.client.force_authenticate(user=self.emp_user)
         url = reverse("document_list_create", kwargs={"company_id": self.company1.id})
 
-        file_content = b"PDF dummy content for ICORP enterprise testing"
+        file_content = b"PDF dummy content for transt enterprise testing"
         uploaded_file = SimpleUploadedFile("contract.pdf", file_content, content_type="application/pdf")
 
         response = self.client.post(url, {

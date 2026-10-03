@@ -1,7 +1,7 @@
-# ICORP ERP - Phase 4C: Sales Invoicing, Payments & Receipts Walkthrough
+﻿# transt - Phase 4C: Sales Invoicing, Payments & Receipts Walkthrough
 
 ## Executive Summary
-Phase 4C successfully delivers the end-to-end financial transaction pipeline for the Sales module of ICORP ERP. Customers and orders seamlessly progress from quotation and inventory fulfillment to billing, row-locked payment collection, atomic payment receipt issuance, and real-time financial tracking.
+Phase 4C successfully delivers the end-to-end financial transaction pipeline for the Sales module of transt. Customers and orders seamlessly progress from quotation and inventory fulfillment to billing, row-locked payment collection, atomic payment receipt issuance, and real-time financial tracking.
 
 ---
 
@@ -102,4 +102,4 @@ All 13 live scenarios verified against the running Django backend on `http://127
 - `python manage.py seed_demo_data` populated demo invoices, payments, and receipts.
 
 ### Postman Collection
-- Created `backend/postman/ICORP_ERP_Phase4C.postman_collection.json`.
+- Created `backend/postman/transt_ERP_Phase4C.postman_collection.json`.

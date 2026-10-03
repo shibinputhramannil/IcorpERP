@@ -1,3 +1,3 @@
-"""
-Finance application for ICORP ERP.
+﻿"""
+Finance application for transt.
 """

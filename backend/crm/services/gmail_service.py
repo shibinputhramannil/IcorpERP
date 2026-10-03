@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 from django.core.mail import send_mail
 from django.conf import settings
@@ -53,7 +53,7 @@ class GmailService:
             }
 
         try:
-            from_email = sender or getattr(settings, "DEFAULT_FROM_EMAIL", "erp@icorp.com")
+            from_email = sender or getattr(settings, "DEFAULT_FROM_EMAIL", "erp@transt.com")
             send_mail(
                 subject=subject,
                 message=body,

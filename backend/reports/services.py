@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import io
 import logging
 from decimal import Decimal
@@ -783,7 +783,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
 
     if report_type == "sales":
         data = get_sales_summary(company, date_from, date_to)
-        writer.writerow(["ICORP ERP - SALES SUMMARY REPORT"])
+        writer.writerow(["transt - SALES SUMMARY REPORT"])
         writer.writerow(["Company", company.name])
         writer.writerow(["Date Range", f"{date_from or 'Beginning'} to {date_to or 'Present'}"])
         writer.writerow([])
@@ -810,7 +810,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
 
     elif report_type == "purchase":
         data = get_purchase_summary(company, date_from, date_to)
-        writer.writerow(["ICORP ERP - PURCHASE SUMMARY REPORT"])
+        writer.writerow(["transt - PURCHASE SUMMARY REPORT"])
         writer.writerow(["Company", company.name])
         writer.writerow(["Date Range", f"{date_from or 'Beginning'} to {date_to or 'Present'}"])
         writer.writerow([])
@@ -835,7 +835,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
 
     elif report_type == "inventory":
         data = get_inventory_summary(company)
-        writer.writerow(["ICORP ERP - INVENTORY SUMMARY REPORT"])
+        writer.writerow(["transt - INVENTORY SUMMARY REPORT"])
         writer.writerow(["Company", company.name])
         writer.writerow(["Total Valuation", data["summary"]["total_valuation_formatted"]])
         writer.writerow(["Total Cataloged SKUs", data["summary"]["total_skus"]])
@@ -855,7 +855,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
 
     elif report_type == "employees":
         data = get_employee_hr_summary(company)
-        writer.writerow(["ICORP ERP - EMPLOYEE & HR ROSTER REPORT"])
+        writer.writerow(["transt - EMPLOYEE & HR ROSTER REPORT"])
         writer.writerow(["Company", company.name])
         writer.writerow(["Total Employees", data["summary"]["total_employees"]])
         writer.writerow(["Active Employees", data["summary"]["active_employees"]])
@@ -875,7 +875,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
 
     elif report_type == "monthly":
         data = get_monthly_business_summary(company)
-        writer.writerow(["ICORP ERP - MONTHLY BUSINESS HISTORICAL SUMMARY"])
+        writer.writerow(["transt - MONTHLY BUSINESS HISTORICAL SUMMARY"])
         writer.writerow(["Company", company.name])
         writer.writerow([])
         writer.writerow(["Month", "Sales Invoiced", "Purchases Billed", "Collections", "Net Margin"])
@@ -891,7 +891,7 @@ def generate_csv_report(report_type, company, date_from=None, date_to=None):
     else:
         # Executive default
         data = get_executive_summary(company, date_from, date_to)
-        writer.writerow(["ICORP ERP - EXECUTIVE CONSOLIDATED REPORT"])
+        writer.writerow(["transt - EXECUTIVE CONSOLIDATED REPORT"])
         writer.writerow(["Company", company.name])
         writer.writerow(["Date Range", f"{data['date_from']} to {data['date_to']}"])
         writer.writerow([])

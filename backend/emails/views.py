@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from django.utils import timezone
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
@@ -112,7 +112,7 @@ class EmailListCreateView(EmailBaseView):
 
         # Sender details
         sender_user = request.user
-        sender_email = sender_user.email or "noreply@icorp.local"
+        sender_email = sender_user.email or "noreply@transt.local"
         sender_name = f"{sender_user.first_name} {sender_user.last_name}".strip() or sender_user.username
 
         # CRM linkage resolution

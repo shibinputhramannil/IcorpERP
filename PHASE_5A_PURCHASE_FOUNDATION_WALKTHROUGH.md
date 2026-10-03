@@ -1,8 +1,8 @@
-# ICORP ERP - Phase 5A: Purchase Management Foundation Walkthrough
+﻿# transt - Phase 5A: Purchase Management Foundation Walkthrough
 
 ## 1. Executive Summary
 
-Phase 5A establishes the **Purchase Management Foundation** for ICORP ERP. It delivers a comprehensive procurement lifecycle—from vendor quotations through confirmed purchase orders—strictly integrated with the existing tenant architecture, authentication, user roles, inventory vendor registry, product master catalog, and warehouse facilities.
+Phase 5A establishes the **Purchase Management Foundation** for transt. It delivers a comprehensive procurement lifecycleâ€”from vendor quotations through confirmed purchase ordersâ€”strictly integrated with the existing tenant architecture, authentication, user roles, inventory vendor registry, product master catalog, and warehouse facilities.
 
 > [!IMPORTANT]
 > - **Zero Model Duplication**: Strictly reuses existing `inventory.Vendor`, `inventory.Product`, and `inventory.Warehouse` models.
@@ -132,4 +132,4 @@ All 13 live verification scenarios passed against the live PostgreSQL-backed Dja
 - Cross-tenant security rejection (`HTTP 403/404`)
 
 ### 6.4 Postman Collection
-Saved at `backend/postman/ICORP_ERP_Phase5A.postman_collection.json` with 12 pre-configured requests and automated assertions.
+Saved at `backend/postman/transt_ERP_Phase5A.postman_collection.json` with 12 pre-configured requests and automated assertions.

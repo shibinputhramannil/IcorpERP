@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -194,7 +194,7 @@ class ExportCSVReportView(ReportsBaseView):
         date_from, date_to = self.parse_date_range(request)
 
         csv_content = generate_csv_report(report_type, company, date_from, date_to)
-        filename = f"icorp_{report_type}_report_{datetime.now().strftime('%Y%m%d')}.csv"
+        filename = f"transt_{report_type}_report_{datetime.now().strftime('%Y%m%d')}.csv"
 
         response = HttpResponse(csv_content, content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'

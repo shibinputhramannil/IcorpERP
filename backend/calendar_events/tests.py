@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import status
@@ -13,12 +13,12 @@ class CalendarEventTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username="calendaruser",
-            email="cal@icorp.local",
+            email="cal@transt.local",
             password="testpassword123",
         )
         self.other_user = User.objects.create_user(
             username="otheruser",
-            email="other@icorp.local",
+            email="other@transt.local",
             password="testpassword123",
         )
         self.company = Company.objects.create(

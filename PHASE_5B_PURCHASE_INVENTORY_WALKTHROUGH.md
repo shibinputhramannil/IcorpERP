@@ -1,4 +1,4 @@
-# ICORP ERP - Phase 5B: Purchase + Inventory Integration Walkthrough
+﻿# transt - Phase 5B: Purchase + Inventory Integration Walkthrough
 ## Goods Receiving, Partial Receiving, Stock IN Ledger & Automated Order Fulfillment
 
 ---
@@ -14,21 +14,21 @@ Phase 5B establishes the critical integration bridge between the **Purchase Orde
 ### Procurement-to-Inventory State Progression
 ```
 Purchase Order (CONFIRMED / PROCESSING)
-       │
-       ▼
+       â”‚
+       â–¼
 Goods Receiving (POST /api/companies/<id>/purchases/orders/<id>/receive/)
-       │
-       ├─► Sequential GRN Assignment (GRN-YYYY-######)
-       │
-       ├─► Validation & Over-Receiving Prevention (qty <= remaining)
-       │
-       ├─► Row-locked Stock Increment: Stock.quantity += received_quantity
-       │
-       ├─► Immutable Ledger Audit: StockTransaction (STOCK_IN, reference="PO / GRN")
-       │
-       └─► PO Fulfillment Recalculation:
-             ├─ All items remaining == 0 ──► status = COMPLETED
-             └─ Any item received > 0 ─────► status = PARTIALLY_RECEIVED
+       â”‚
+       â”œâ”€â–º Sequential GRN Assignment (GRN-YYYY-######)
+       â”‚
+       â”œâ”€â–º Validation & Over-Receiving Prevention (qty <= remaining)
+       â”‚
+       â”œâ”€â–º Row-locked Stock Increment: Stock.quantity += received_quantity
+       â”‚
+       â”œâ”€â–º Immutable Ledger Audit: StockTransaction (STOCK_IN, reference="PO / GRN")
+       â”‚
+       â””â”€â–º PO Fulfillment Recalculation:
+             â”œâ”€ All items remaining == 0 â”€â”€â–º status = COMPLETED
+             â””â”€ Any item received > 0 â”€â”€â”€â”€â”€â–º status = PARTIALLY_RECEIVED
 ```
 
 ---

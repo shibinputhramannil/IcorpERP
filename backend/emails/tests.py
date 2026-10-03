@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+﻿from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -11,7 +11,7 @@ class EmailMessageTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username="emailuser",
-            email="sender@icorp.local",
+            email="sender@transt.local",
             password="testpassword123",
         )
         self.company = Company.objects.create(

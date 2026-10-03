@@ -61,13 +61,35 @@ class MockProvider(BaseAIProvider):
                             "tool_calls": tool_calls
                         }
 
+        # Specific static responses for the UI suggestion buttons
+        if "lead" in last_message:
+            return {
+                "content": "I have analyzed your CRM module. You currently have 45 active leads in your pipeline. 12 are in the 'Negotiation' stage, and 33 are 'New'.",
+                "tool_calls": []
+            }
+        if "collect" in last_message or "collection" in last_message:
+            return {
+                "content": "This month, you have successfully collected $142,500 across 85 invoices. You currently have $24,000 in outstanding payments.",
+                "tool_calls": []
+            }
+        if "outstanding" in last_message or "invoice" in last_message:
+            return {
+                "content": "There are currently 14 outstanding invoices totaling $24,000. 3 of them are overdue by more than 15 days.",
+                "tool_calls": []
+            }
+        if "purchase" in last_message:
+            return {
+                "content": "Your total purchases for this month amount to $85,200 across 22 purchase orders. Your top vendor by spend is AlphaTech Supplies.",
+                "tool_calls": []
+            }
+
         # If it's the second pass (after a tool call), the last message will be tool role
         if messages[-1]["role"] == "tool" or messages[-1]["role"] == "function":
             return {"content": "Here is the dynamic data retrieved from your ERP system based on your request! I have analyzed the module and everything looks perfectly on track.", "tool_calls": []}
 
         # Default conversational response
         return {
-            "content": f"I am your local intelligent Copilot! You said: '{last_message}'. Try asking me about 'leads', 'sales', or to 'export a pdf' to see my dynamic capabilities!",
+            "content": f"I am your local intelligent Copilot! You said: '{last_message}'. Try asking me about 'leads', 'sales', 'purchases', or to 'export a pdf' to see my dynamic capabilities!",
             "tool_calls": []
         }
 

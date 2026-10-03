@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import django
 from decimal import Decimal
@@ -20,7 +20,7 @@ from finance.services import ensure_default_accounts
 
 def run_phase9_live_verification():
     print("=" * 80)
-    print("ICORP ERP PHASE 9: AI ASSISTANT & BUSINESS INSIGHTS LIVE VERIFICATION")
+    print("transt PHASE 9: AI ASSISTANT & BUSINESS INSIGHTS LIVE VERIFICATION")
     print("=" * 80)
 
     # 1. Setup multi-tenant test companies & users

@@ -3,6 +3,7 @@ from .openai_provider import OpenAIProvider
 from .gemini_provider import GeminiProvider
 from .mock_provider import MockProvider
 from .groq_provider import GroqProvider
+from .g4f_provider import G4FProvider
 
 class AIProviderRegistry:
     _providers = {
@@ -10,6 +11,7 @@ class AIProviderRegistry:
         "gemini": GeminiProvider,
         "mock": MockProvider,
         "groq": GroqProvider,
+        "g4f": G4FProvider,
     }
 
     @classmethod

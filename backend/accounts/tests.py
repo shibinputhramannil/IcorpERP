@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+﻿from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -17,7 +17,7 @@ class AuthenticationAndMembershipTests(APITestCase):
         self.user_password = "SecurePassword123!"
         self.user = User.objects.create_user(
             username="testuser",
-            email="testuser@icorp.com",
+            email="testuser@transt.com",
             password=self.user_password,
             first_name="Test",
             last_name="User",
@@ -25,7 +25,7 @@ class AuthenticationAndMembershipTests(APITestCase):
 
         self.other_user = User.objects.create_user(
             username="otheruser",
-            email="otheruser@icorp.com",
+            email="otheruser@transt.com",
             password=self.user_password,
             first_name="Other",
             last_name="User",
@@ -33,7 +33,7 @@ class AuthenticationAndMembershipTests(APITestCase):
 
         self.superuser = User.objects.create_superuser(
             username="superadmin",
-            email="superadmin@icorp.com",
+            email="superadmin@transt.com",
             password=self.user_password,
         )
 
@@ -66,13 +66,13 @@ class AuthenticationAndMembershipTests(APITestCase):
     def test_login_with_email(self):
         url = reverse("token_obtain_pair")
         response = self.client.post(url, {
-            "username": "testuser@icorp.com",
+            "username": "testuser@transt.com",
             "password": self.user_password,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
-        self.assertEqual(response.data["user"]["email"], "testuser@icorp.com")
+        self.assertEqual(response.data["user"]["email"], "testuser@transt.com")
 
     def test_login_invalid_password(self):
         url = reverse("token_obtain_pair")

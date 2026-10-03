@@ -1,8 +1,8 @@
-# ICORP ERP - Phase 4B: Sales Order + Inventory Reservation Walkthrough & Verification Report
+﻿# transt - Phase 4B: Sales Order + Inventory Reservation Walkthrough & Verification Report
 
 ## 1. Executive Summary
 
-Phase 4B implements full operational integration between **Sales Orders** and the **Inventory Module** for ICORP ERP. It establishes a multi-tenant, concurrency-safe stock reservation and fulfillment engine.
+Phase 4B implements full operational integration between **Sales Orders** and the **Inventory Module** for transt. It establishes a multi-tenant, concurrency-safe stock reservation and fulfillment engine.
 
 ### Key Capabilities Delivered:
 - **Fulfillment Warehouse Assignment**: Sales orders explicitly select a fulfillment warehouse (`SalesOrder.warehouse`).
@@ -17,28 +17,28 @@ Phase 4B implements full operational integration between **Sales Orders** and th
 ## 2. Architecture & Data Flow
 
 ```
-                     ┌────────────────────────┐
-                     │    Company (Tenant)    │
-                     └───────────┬────────────┘
-                                 │
-           ┌─────────────────────┴─────────────────────┐
-           ▼                                           ▼
-  ┌─────────────────┐                         ┌─────────────────┐
-  │   SalesOrder    │────────(warehouse)─────►│   Warehouse     │
-  └────────┬────────┘                         └────────┬────────┘
-           │                                           │
-           ├─────────────────┐                         │
-           ▼                 ▼                         ▼
-  ┌─────────────────┐┌─────────────────┐      ┌─────────────────┐
-  │ SalesOrderItem  ││SalesOrderReserv-│◄────►│      Stock      │
-  │ (Product Link)  ││ation (Audit)    │      │ (Physical/Res)  │
-  └────────┬────────┘└─────────────────┘      └────────┬────────┘
-           │                                           │
-           ▼                                           ▼
-  ┌─────────────────┐                         ┌─────────────────┐
-  │inventory.Product│                         │StockTransaction │
-  └─────────────────┘                         │   (STOCK_OUT)   │
-                                              └─────────────────┘
+                     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                     â”‚    Company (Tenant)    â”‚
+                     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                 â”‚
+           â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+           â–¼                                           â–¼
+  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+  â”‚   SalesOrder    â”‚â”€â”€â”€â”€â”€â”€â”€â”€(warehouse)â”€â”€â”€â”€â”€â–ºâ”‚   Warehouse     â”‚
+  â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜                         â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+           â”‚                                           â”‚
+           â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                         â”‚
+           â–¼                 â–¼                         â–¼
+  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”      â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+  â”‚ SalesOrderItem  â”‚â”‚SalesOrderReserv-â”‚â—„â”€â”€â”€â”€â–ºâ”‚      Stock      â”‚
+  â”‚ (Product Link)  â”‚â”‚ation (Audit)    â”‚      â”‚ (Physical/Res)  â”‚
+  â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜      â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+           â”‚                                           â”‚
+           â–¼                                           â–¼
+  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                         â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+  â”‚inventory.Productâ”‚                         â”‚StockTransaction â”‚
+  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                         â”‚   (STOCK_OUT)   â”‚
+                                              â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### 2.1 Database Models & Extensions
@@ -144,8 +144,8 @@ Direct HTTP requests against live Django/PostgreSQL backend:
 - Command: `npm run build` in `frontend/`
   ```
   vite v8.3.0 building client environment for production...
-  ✓ 1060 modules transformed.
-  ✓ built in 666ms
+  âœ“ 1060 modules transformed.
+  âœ“ built in 666ms
   ```
   **Result**: Clean compilation with 0 errors.
 
@@ -154,5 +154,5 @@ Direct HTTP requests against live Django/PostgreSQL backend:
   **Result**: Successfully seeded demo warehouses, stock, and sample orders with active and fulfilled reservations.
 
 ### 5.5 Postman Collection
-- Located at: `backend/postman/ICORP_ERP_Phase4B.postman_collection.json`
+- Located at: `backend/postman/transt_ERP_Phase4B.postman_collection.json`
 - Includes pre-configured environment variables, tests, assertions, and complete order-to-fulfillment flows.

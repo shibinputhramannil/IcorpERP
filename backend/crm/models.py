@@ -2,31 +2,15 @@ from django.contrib.auth.models import User
 from django.db import models
 from company.models import Company
 
-
 class Customer(models.Model):
     CUSTOMER_TYPE_CHOICES = [
         ("Corporate", "Corporate"),
         ("Individual", "Individual"),
     ]
-
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="crm_customers",
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="owned_customers",
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="crm_customers")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_customers")
     name = models.CharField(max_length=200)
-    customer_type = models.CharField(
-        max_length=50,
-        choices=CUSTOMER_TYPE_CHOICES,
-        default="Corporate",
-    )
+    customer_type = models.CharField(max_length=50, choices=CUSTOMER_TYPE_CHOICES, default="Corporate")
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=50, blank=True)
     website = models.URLField(blank=True)
@@ -44,27 +28,10 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
-
 class Contact(models.Model):
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="contacts",
-    )
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="contacts",
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="owned_contacts",
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="contacts")
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name="contacts")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_contacts")
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(blank=True)
@@ -81,59 +48,36 @@ class Contact(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
 
-
 class Lead(models.Model):
     STATUS_CHOICES = [
         ("New", "New"),
         ("Contacted", "Contacted"),
         ("Qualified", "Qualified"),
+        ("Negotiation", "Negotiation"),
         ("Converted", "Converted"),
         ("Lost", "Lost"),
     ]
-
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="leads",
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="owned_leads",
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="leads")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_leads")
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(blank=True)
-    phone = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
     lead_company = models.CharField(max_length=200, blank=True)
     source = models.CharField(max_length=100, blank=True)
-    status = models.CharField(
-        max_length=50,
-        choices=STATUS_CHOICES,
-        default="New",
-    )
-    estimated_value = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0.00,
-    )
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="New")
+    location = models.CharField(max_length=200, blank=True)
+    industry = models.CharField(max_length=100, blank=True)
+    estimated_value = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    probability = models.PositiveIntegerField(default=10)
+    expected_close_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
-    converted_customer = models.ForeignKey(
-        Customer,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="converted_from_leads",
-    )
-    converted_contact = models.ForeignKey(
-        Contact,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="converted_from_leads",
-    )
+    tags = models.CharField(max_length=200, blank=True)
+    next_action = models.CharField(max_length=200, blank=True)
+    last_activity = models.DateTimeField(null=True, blank=True)
+    
+    converted_customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name="converted_from_leads")
+    converted_contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, blank=True, related_name="converted_from_leads")
     converted_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -145,7 +89,6 @@ class Lead(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()
 
-
 class Deal(models.Model):
     STAGE_CHOICES = [
         ("Discovery", "Discovery"),
@@ -154,46 +97,19 @@ class Deal(models.Model):
         ("Won", "Won"),
         ("Lost", "Lost"),
     ]
-
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="deals",
-    )
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        related_name="deals",
-    )
-    contact = models.ForeignKey(
-        Contact,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="deals",
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="owned_deals",
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="deals")
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="deals")
+    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, blank=True, related_name="deals")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_deals")
     title = models.CharField(max_length=200)
-    value = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0.00,
-    )
+    value = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     currency = models.CharField(max_length=10, default="USD")
-    stage = models.CharField(
-        max_length=50,
-        choices=STAGE_CHOICES,
-        default="Discovery",
-    )
+    stage = models.CharField(max_length=50, choices=STAGE_CHOICES, default="Discovery")
     probability = models.PositiveIntegerField(default=20)
     expected_close_date = models.DateField(null=True, blank=True)
+    source = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
+    next_action = models.CharField(max_length=200, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -204,7 +120,6 @@ class Deal(models.Model):
     def __str__(self):
         return f"{self.title} (${self.value})"
 
-
 class Activity(models.Model):
     ACTIVITY_TYPE_CHOICES = [
         ("Note", "Note"),
@@ -212,75 +127,32 @@ class Activity(models.Model):
         ("Meeting", "Meeting"),
         ("Task", "Task"),
         ("Email", "Email"),
+        ("Follow-up", "Follow-up"),
     ]
-
     STATUS_CHOICES = [
         ("Pending", "Pending"),
         ("Completed", "Completed"),
         ("Cancelled", "Cancelled"),
     ]
-
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="crm_activities",
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="crm_activities",
-    )
-    activity_type = models.CharField(
-        max_length=50,
-        choices=ACTIVITY_TYPE_CHOICES,
-        default="Note",
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="crm_activities")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="crm_activities")
+    activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPE_CHOICES, default="Note")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-
-    # Optional linkages to CRM entities
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="activities",
-    )
-    contact = models.ForeignKey(
-        Contact,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="activities",
-    )
-    deal = models.ForeignKey(
-        Deal,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="activities",
-    )
-    lead = models.ForeignKey(
-        Lead,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="activities",
-    )
+    
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True, related_name="activities")
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True, related_name="activities")
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE, null=True, blank=True, related_name="activities")
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True, related_name="activities")
 
     due_date = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(
-        max_length=50,
-        choices=STATUS_CHOICES,
-        default="Pending",
-    )
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
+    priority = models.CharField(max_length=50, choices=[("Low", "Low"), ("Medium", "Medium"), ("High", "High")], default="Medium")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["due_date", "-created_at"]
         verbose_name_plural = "Activities"
 
     def __str__(self):

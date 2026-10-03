@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
                     helperText={error}
                     disabled={isSubmitting}
                     InputLabelProps={{ shrink: true }}
-                    placeholder="e.g. employee@icorp.com"
+                    placeholder="e.g. employee@transt.com"
                   />
 
                   <Button

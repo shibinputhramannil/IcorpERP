@@ -1,7 +1,7 @@
-# ICORP ERP — Phase 7: Practical Read-Only AI ERP Assistant
+﻿# transt â€” Phase 7: Practical Read-Only AI ERP Assistant
 
 ## Executive Overview
-Phase 7 introduces a company-scoped, read-only AI Assistant for the ICORP ERP ecosystem. The assistant provides real-time natural language querying, cross-module operational telemetry (Sales, Purchases, Inventory, Finance), customer and vendor intelligence lookups, and executive digests—without any external dependency requirements or state alteration risks.
+Phase 7 introduces a company-scoped, read-only AI Assistant for the transt ecosystem. The assistant provides real-time natural language querying, cross-module operational telemetry (Sales, Purchases, Inventory, Finance), customer and vendor intelligence lookups, and executive digestsâ€”without any external dependency requirements or state alteration risks.
 
 ---
 
@@ -9,28 +9,28 @@ Phase 7 introduces a company-scoped, read-only AI Assistant for the ICORP ERP ec
 
 ```
 User Prompt (Web UI or API)
-       │
-       ▼
+       â”‚
+       â–¼
 Authentication & Multi-Tenant Scoping (AIBaseView)
-  └── Strictly verifies active company membership (HTTP 403 on mismatch)
-       │
-       ▼
+  â””â”€â”€ Strictly verifies active company membership (HTTP 403 on mismatch)
+       â”‚
+       â–¼
 Intent Classification & Entity Extractor (classify_query)
-  └── Regex / keyword semantic matching across 13 core ERP intents
-       │
-       ▼
+  â””â”€â”€ Regex / keyword semantic matching across 13 core ERP intents
+       â”‚
+       â–¼
 Safe Read-Only Data Aggregator (services.py)
-  └── Strictly uses .filter(), .aggregate(), .select_related()
-  └── Zero record creation, mutation, stock adjustments, or journal alterations
-       │
-       ▼
+  â””â”€â”€ Strictly uses .filter(), .aggregate(), .select_related()
+  â””â”€â”€ Zero record creation, mutation, stock adjustments, or journal alterations
+       â”‚
+       â–¼
 Response Synthesizer
-  ├── Offline / Deterministic Mode: 100% mathematical precision with Markdown tables & bold figures
-  └── Optional LLM Augmentation: Gemini or OpenAI API (if configured in .env) with safe fallback
-       │
-       ▼
+  â”œâ”€â”€ Offline / Deterministic Mode: 100% mathematical precision with Markdown tables & bold figures
+  â””â”€â”€ Optional LLM Augmentation: Gemini or OpenAI API (if configured in .env) with safe fallback
+       â”‚
+       â–¼
 Structured Response Payload (AIChatResponseSerializer)
-  └── answer, intent, data, suggested_questions, llm_augmented
+  â””â”€â”€ answer, intent, data, suggested_questions, llm_augmented
 ```
 
 ---
@@ -90,17 +90,17 @@ All endpoints are company-scoped under `/api/companies/<int:company_id>/ai/`:
 ## 5. Frontend UI Implementation
 
 ### Components Added & Updated
-- **[`frontend/src/pages/AIAssistantPage.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/pages/AIAssistantPage.jsx)**:
+- **[`frontend/src/pages/AIAssistantPage.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/pages/AIAssistantPage.jsx)**:
   - **Quick Prompts Carousel**: One-click chip buttons for all 10 core questions.
   - **Chat Stream**: Clean conversation history with user bubbles, AI avatars, copy buttons, and suggested question follow-up chips.
   - **Native Markdown Formatter**: Custom zero-dependency parser for headings, bullet points, bold figures, and responsive data tables.
   - **Executive Digest Tab**: Real-time KPI cards for Month Sales, Total Purchases, Net Profit, Liquid Capital, Inventory Stock Health, and Balance Sheet summary.
   - **Entity Intelligence Tab**: Quick dual-mode search tool for customers and suppliers.
-- **[`frontend/src/services/aiService.js`](file:///C:/Assignment/erp/IcorpERP/frontend/src/services/aiService.js)**:
+- **[`frontend/src/services/aiService.js`](file:///C:/Assignment/erp/transtERP/frontend/src/services/aiService.js)**:
   - Full Axios client handling chat, insights, and entity lookup endpoints.
 - **Navigation & Routing**:
-  - Route `/ai-assistant` and `/ai` alias configured in [`AppRoutes.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/routes/AppRoutes.jsx).
-  - Navigation item marked `live` in [`Sidebar.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/layouts/Sidebar.jsx).
+  - Route `/ai-assistant` and `/ai` alias configured in [`AppRoutes.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/routes/AppRoutes.jsx).
+  - Navigation item marked `live` in [`Sidebar.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/layouts/Sidebar.jsx).
 
 ---
 
@@ -124,6 +124,6 @@ All endpoints are company-scoped under `/api/companies/<int:company_id>/ai/`:
 4. **Frontend Production Build**:
    ```
    npm run build
-   ✓ 1101 modules transformed.
-   ✓ built in 907ms (0 Errors)
+   âœ“ 1101 modules transformed.
+   âœ“ built in 907ms (0 Errors)
    ```

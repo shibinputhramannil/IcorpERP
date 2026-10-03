@@ -1,4 +1,4 @@
-import os
+﻿import os
 import django
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -18,11 +18,11 @@ def run_live_verification():
 
     company = Company.objects.first()
     if not company:
-        company = Company.objects.create(name="Live Test Company", email="test@icorp.com")
+        company = Company.objects.create(name="Live Test Company", email="test@transt.com")
 
     user = User.objects.filter(is_superuser=True).first() or User.objects.first()
     if not user:
-        user = User.objects.create_user(username="live_collab_user", email="collab@icorp.com", password="password123")
+        user = User.objects.create_user(username="live_collab_user", email="collab@transt.com", password="password123")
 
     membership = CompanyMembership.objects.filter(company=company, user=user).first()
     if not membership:

@@ -1,4 +1,4 @@
-import os
+﻿import os
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
@@ -17,12 +17,12 @@ def run_live_verification():
     company = Company.objects.first()
     if not company:
         print("[!] No company found in DB, creating demo company")
-        company = Company.objects.create(name="Live Demo Corp", email="demo@icorp.com")
+        company = Company.objects.create(name="Live Demo Corp", email="demo@transt.com")
 
     user = User.objects.filter(is_superuser=True).first() or User.objects.first()
     if not user:
         print("[!] No user found, creating test user")
-        user = User.objects.create_user(username="live_test_user", email="live@icorp.com", password="password123")
+        user = User.objects.create_user(username="live_test_user", email="live@transt.com", password="password123")
 
     membership = CompanyMembership.objects.filter(company=company, user=user).first()
     if not membership:

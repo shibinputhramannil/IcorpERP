@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -137,7 +137,7 @@ export default function LoginPage() {
               <LockOutlinedIcon sx={{ fontSize: 26 }} />
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', letterSpacing: '-0.02em' }}>
-              ICORP ERP
+              transt
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Sign in to your enterprise account
@@ -169,7 +169,7 @@ export default function LoginPage() {
                 helperText={errors.username}
                 disabled={isSubmitting}
                 InputLabelProps={{ shrink: true }}
-                placeholder="e.g. admin or employee@icorp.com"
+                placeholder="e.g. admin or employee@transt.com"
               />
 
               <TextField

@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+﻿from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -12,7 +12,7 @@ class GlobalAITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username="globalaiuser",
-            email="global@icorp.local",
+            email="global@transt.local",
             password="testpassword123",
         )
         self.company1 = Company.objects.create(

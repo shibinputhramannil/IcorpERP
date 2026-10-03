@@ -1,7 +1,7 @@
-# ICORP ERP — Phase 9: AI Assistant & Business Insights
+﻿# transt â€” Phase 9: AI Assistant & Business Insights
 
 ## Executive Summary
-Phase 9 expands ICORP ERP with a high-performance, lightweight business intelligence and AI assistant layer. The system aggregates real-time telemetry across all 6 core ERP dimensions—**Sales, Purchases, Inventory, CRM, Finance, and HR**—generating executive narrative digests, multi-tier operational alerts, performance trends, and an interactive Q&A assistant with safe, deterministic fallbacks and strict read-only guarantees.
+Phase 9 expands transt with a high-performance, lightweight business intelligence and AI assistant layer. The system aggregates real-time telemetry across all 6 core ERP dimensionsâ€”**Sales, Purchases, Inventory, CRM, Finance, and HR**â€”generating executive narrative digests, multi-tier operational alerts, performance trends, and an interactive Q&A assistant with safe, deterministic fallbacks and strict read-only guarantees.
 
 ---
 
@@ -9,47 +9,47 @@ Phase 9 expands ICORP ERP with a high-performance, lightweight business intellig
 
 ```
                                     User / Frontend Application
-                                                │
-                                                ▼
-                     ┌───────────────────────────────────────────────────────┐
-                     │          REST API & Multi-Tenant Gateway              │
-                     │                 (AIBaseView)                          │
-                     │   Enforces CompanyMembership verification (HTTP 403)  │
-                     └──────────────────────────┬────────────────────────────┘
-                                                │
-                 ┌──────────────────────────────┼──────────────────────────────┐
-                 ▼                              ▼                              ▼
+                                                â”‚
+                                                â–¼
+                     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                     â”‚          REST API & Multi-Tenant Gateway              â”‚
+                     â”‚                 (AIBaseView)                          â”‚
+                     â”‚   Enforces CompanyMembership verification (HTTP 403)  â”‚
+                     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                                â”‚
+                 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                 â–¼                              â–¼                              â–¼
       /ai/dashboard/                       /ai/summary/                     /ai/ask/
   Structured Cross-Module            Executive Narrative Digest         Natural Language
   Telemetry & KPI Aggregation       Strengths, Risks & Actions          Question Processing
-                 │                              │                              │
-                 └──────────────────────────────┼──────────────────────────────┘
-                                                ▼
-                               ┌─────────────────────────────────┐
-                               │  ERP Read-Only Extraction Layer │
-                               │        (ai/services.py)         │
-                               └────────────────┬────────────────┘
-                                                │
-                  ┌───────────────┬─────────────┼───────────────┬───────────────┐
-                  ▼               ▼             ▼               ▼               ▼
+                 â”‚                              â”‚                              â”‚
+                 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                                â–¼
+                               â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                               â”‚  ERP Read-Only Extraction Layer â”‚
+                               â”‚        (ai/services.py)         â”‚
+                               â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                                â”‚
+                  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                  â–¼               â–¼             â–¼               â–¼               â–¼
                 Sales         Purchases     Inventory          CRM           Finance & HR
               Invoices,        Bills,       Catalog,       Customers,        P&L Ledger,
               Orders,          POs,         Valuation,     Leads, Deals,     Liquidity,
               Collections      Payables     Reorder Alerts Pipeline          Headcount
-                                                │
-                                                ▼
-                               ┌─────────────────────────────────┐
-                               │     AI Synthesis & Fallback     │
-                               └────────────────┬────────────────┘
-                                                │
-                        ┌───────────────────────┴───────────────────────┐
-                        ▼                                               ▼
+                                                â”‚
+                                                â–¼
+                               â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                               â”‚     AI Synthesis & Fallback     â”‚
+                               â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                                â”‚
+                        â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                        â–¼                                               â–¼
              [External AI API Key Configured]               [No AI Key / Fallback Mode]
            Gemini / OpenAI (via urllib REST API)          Deterministic ERP Synthesis
            Strictly ground prompt with live data          100% accurate mathematical output
-                        │                                               │
-                        └───────────────────────┬───────────────────────┘
-                                                ▼
+                        â”‚                                               â”‚
+                        â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                                â–¼
                                     JSON Response Payload
                                (ai/serializers.py Validation)
 ```
@@ -122,14 +122,14 @@ When no external AI key is configured (or in disconnected environments):
 
 ## 6. Frontend Implementation (`frontend/src/`)
 
-- **Page**: [`frontend/src/pages/AIPage.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/pages/AIPage.jsx)
+- **Page**: [`frontend/src/pages/AIPage.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/pages/AIPage.jsx)
   - **Overview Tab**: Executive narrative card, high-level KPI StatCards, and 6 modular intelligence cards (Sales, Purchases, Inventory, Finance, CRM, HR).
   - **Alerts & Trends Tab**: Active operational alerts with severity badges, performance trend cards (Sales, Margins, Working Capital, Pipeline), and low-stock reorder warnings table.
   - **Ask AI Tab**: Conversational chat interface with quick-prompt carousel, chat history, loading indicators, and markdown formatting.
-- **Service**: [`frontend/src/services/aiService.js`](file:///C:/Assignment/erp/IcorpERP/frontend/src/services/aiService.js)
+- **Service**: [`frontend/src/services/aiService.js`](file:///C:/Assignment/erp/transtERP/frontend/src/services/aiService.js)
   - Exports `getDashboard`, `getSummary`, `ask`, `chat`, `getInsights`, `lookupCustomer`, and `lookupVendor`.
-- **Routing**: Protected `/ai` and `/ai-assistant` routes registered in [`frontend/src/routes/AppRoutes.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/routes/AppRoutes.jsx).
-- **Navigation**: Sidebar link with `AutoAwesomeOutlinedIcon` live badge in [`frontend/src/layouts/Sidebar.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/layouts/Sidebar.jsx).
+- **Routing**: Protected `/ai` and `/ai-assistant` routes registered in [`frontend/src/routes/AppRoutes.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/routes/AppRoutes.jsx).
+- **Navigation**: Sidebar link with `AutoAwesomeOutlinedIcon` live badge in [`frontend/src/layouts/Sidebar.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/layouts/Sidebar.jsx).
 
 ---
 

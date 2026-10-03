@@ -1,8 +1,8 @@
-# ICORP ERP: Phase 3 - Inventory Module Walkthrough
+﻿# transt: Phase 3 - Inventory Module Walkthrough
 
 ## Executive Summary
-Phase 3 establishes a production-grade, multi-tenant Inventory Management Module for ICORP ERP.
-All inventory models, atomic stock workflows, audit transaction ledgers, supplier directories, and real-time dashboard calculations are backed by PostgreSQL (`icorp_erp`) and integrated with React 18, Vite, and Material UI.
+Phase 3 establishes a production-grade, multi-tenant Inventory Management Module for transt.
+All inventory models, atomic stock workflows, audit transaction ledgers, supplier directories, and real-time dashboard calculations are backed by PostgreSQL (`transt_erp`) and integrated with React 18, Vite, and Material UI.
 
 Zero mock data is used; every mutation directly validates business rules and persists to the database.
 
@@ -10,17 +10,17 @@ Zero mock data is used; every mutation directly validates business rules and per
 
 ## 1. Data Models & Database Relationships
 
-Located in [`backend/inventory/models.py`](file:///C:/Assignment/erp/IcorpERP/backend/inventory/models.py):
+Located in [`backend/inventory/models.py`](file:///C:/Assignment/erp/transtERP/backend/inventory/models.py):
 
 ### Relationships Diagram:
 ```
 Company (Tenant Root)
-  ├── Category (Products taxonomy)
-  ├── Warehouse (Facility / storage site)
-  ├── Product (SKU catalogue & pricing)
-  │     ├── Stock (Product @ Warehouse balance)
-  │     └── StockTransaction (Immutable audit movement ledger)
-  └── Vendor (Suppliers registry)
+  â”œâ”€â”€ Category (Products taxonomy)
+  â”œâ”€â”€ Warehouse (Facility / storage site)
+  â”œâ”€â”€ Product (SKU catalogue & pricing)
+  â”‚     â”œâ”€â”€ Stock (Product @ Warehouse balance)
+  â”‚     â””â”€â”€ StockTransaction (Immutable audit movement ledger)
+  â””â”€â”€ Vendor (Suppliers registry)
 ```
 
 1. **`Category`**:
@@ -105,13 +105,13 @@ All endpoints are scoped under `/api/companies/<company_id>/inventory/` and enfo
 
 ## 5. Frontend Architecture & Pages
 
-- **Service Layer** in [`frontend/src/services/inventoryService.js`](file:///C:/Assignment/erp/IcorpERP/frontend/src/services/inventoryService.js):
+- **Service Layer** in [`frontend/src/services/inventoryService.js`](file:///C:/Assignment/erp/transtERP/frontend/src/services/inventoryService.js):
   - Provides Axios methods for Products, Categories, Warehouses, Stock, Transactions, Vendors, and Dashboard statistics.
-- **Sidebar Integration** in [`frontend/src/layouts/Sidebar.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/layouts/Sidebar.jsx):
+- **Sidebar Integration** in [`frontend/src/layouts/Sidebar.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/layouts/Sidebar.jsx):
   - `Inventory` navigation is marked `live` with `Inventory2OutlinedIcon`.
-- **Route Mapping** in [`frontend/src/routes/AppRoutes.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/routes/AppRoutes.jsx):
+- **Route Mapping** in [`frontend/src/routes/AppRoutes.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/routes/AppRoutes.jsx):
   - `/inventory` connects directly to `InventoryPage.jsx`.
-- **Interactive 7-Tab Workspace** in [`frontend/src/pages/InventoryPage.jsx`](file:///C:/Assignment/erp/IcorpERP/frontend/src/pages/InventoryPage.jsx):
+- **Interactive 7-Tab Workspace** in [`frontend/src/pages/InventoryPage.jsx`](file:///C:/Assignment/erp/transtERP/frontend/src/pages/InventoryPage.jsx):
   - **Tab 0: Dashboard**: Real-time KPI stat cards (Total Products, Warehouses, Total Units, Stock Valuation, Stock Alerts), Quick Action buttons, and Recent Movements timeline.
   - **Tab 1: Products**: Search bar, category filter, active toggle, table with prices and total available stock, "Add Product" and "Edit Product" dialogs, and soft deactivation.
   - **Tab 2: Stock Levels**: Filter by warehouse and search, available stock calculations, low-stock chips, and quick "Add Stock" / "Transfer" buttons.
@@ -164,4 +164,4 @@ npm run build
 - Built production bundle in 430ms with **0 errors and 0 warnings**.
 
 ### Postman Collection
-- Created [`backend/postman/ICORP_ERP_Phase3.postman_collection.json`](file:///C:/Assignment/erp/IcorpERP/backend/postman/ICORP_ERP_Phase3.postman_collection.json) with automated `{{access_token}}` capture and requests for all inventory workflows.
+- Created [`backend/postman/transt_ERP_Phase3.postman_collection.json`](file:///C:/Assignment/erp/transtERP/backend/postman/transt_ERP_Phase3.postman_collection.json) with automated `{{access_token}}` capture and requests for all inventory workflows.

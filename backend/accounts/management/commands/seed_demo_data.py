@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+﻿from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 from company.models import Company
 from accounts.models import CompanyMembership
@@ -24,10 +24,10 @@ from django.utils import timezone
 
 
 class Command(BaseCommand):
-    help = "Seeds repeatable, realistic development data for ICORP ERP without destroying existing data."
+    help = "Seeds repeatable, realistic development data for transt without destroying existing data."
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.NOTICE("Seeding ICORP ERP demo data..."))
+        self.stdout.write(self.style.NOTICE("Seeding transt demo data..."))
 
         # 1. Ensure Default Groups exist
         admin_group, _ = Group.objects.get_or_create(name="Company Admin")
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         if not admin_user:
             admin_user = User.objects.create_superuser(
                 username="admin",
-                email="admin@icorp.com",
+                email="admin@transt.com",
                 password="admin",
                 first_name="System",
                 last_name="Administrator",

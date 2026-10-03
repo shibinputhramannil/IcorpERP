@@ -1,11 +1,11 @@
-# ICORP ERP — Phase 9A + 9B + 9C Walkthrough
+﻿# transt â€” Phase 9A + 9B + 9C Walkthrough
 ## Workspace & Collaboration + Notifications + Settings
 
 ### 1. Executive Summary
-This milestone delivers three integrated enterprise modules for the ICORP ERP platform:
-1. **Phase 9A — Workspace & Collaboration**: Multi-tenant company workspaces with real-time membership management, role assignment, safe member deactivation, and workspace activity auditing.
-2. **Phase 9B — Centralized Notifications**: Tenant-isolated notification dispatching and preference filtering with the reusable `NotificationBell` header widget and a full `NotificationsPage`.
-3. **Phase 9C — Settings & Configuration**: Centralized multi-tab settings management for user profile, security password updates, company organization details, and granular notification preferences.
+This milestone delivers three integrated enterprise modules for the transt platform:
+1. **Phase 9A â€” Workspace & Collaboration**: Multi-tenant company workspaces with real-time membership management, role assignment, safe member deactivation, and workspace activity auditing.
+2. **Phase 9B â€” Centralized Notifications**: Tenant-isolated notification dispatching and preference filtering with the reusable `NotificationBell` header widget and a full `NotificationsPage`.
+3. **Phase 9C â€” Settings & Configuration**: Centralized multi-tab settings management for user profile, security password updates, company organization details, and granular notification preferences.
 
 ---
 
@@ -106,10 +106,10 @@ npm run build
 ```
 Result:
 ```text
-✓ 1125 modules transformed.
-dist/index.html                     0.79 kB │ gzip:   0.44 kB
-dist/assets/index-AMNwdC7g.css      0.41 kB │ gzip:   0.25 kB
-dist/assets/index-v9WzpjGB.js   1,236.56 kB │ gzip: 313.46 kB
-✓ built in 565ms
+âœ“ 1125 modules transformed.
+dist/index.html                     0.79 kB â”‚ gzip:   0.44 kB
+dist/assets/index-AMNwdC7g.css      0.41 kB â”‚ gzip:   0.25 kB
+dist/assets/index-v9WzpjGB.js   1,236.56 kB â”‚ gzip: 313.46 kB
+âœ“ built in 565ms
 ```
 - 0 JSX errors, 0 compilation warnings.

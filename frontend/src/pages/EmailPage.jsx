@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -615,7 +615,7 @@ export default function EmailPage() {
                 <TextField
                   fullWidth
                   label="Cc"
-                  placeholder="e.g. manager@icorp.com"
+                  placeholder="e.g. manager@transt.com"
                   value={composeData.cc}
                   onChange={(e) => setComposeData({ ...composeData, cc: e.target.value })}
                 />
@@ -624,7 +624,7 @@ export default function EmailPage() {
                 <TextField
                   fullWidth
                   label="Bcc"
-                  placeholder="e.g. records@icorp.com"
+                  placeholder="e.g. records@transt.com"
                   value={composeData.bcc}
                   onChange={(e) => setComposeData({ ...composeData, bcc: e.target.value })}
                 />
