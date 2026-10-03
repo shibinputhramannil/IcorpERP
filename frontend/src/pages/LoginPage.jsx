@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -120,25 +120,11 @@ export default function LoginPage() {
         <CardContent sx={{ p: 0 }}>
           {/* Header & Branding */}
           <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2.5,
-                backgroundColor: 'primary.main',
-                color: '#ffffff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-                boxShadow: '0 4px 10px rgba(30, 58, 138, 0.25)',
-              }}
-            >
-              <LockOutlinedIcon sx={{ fontSize: 26 }} />
-            </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', letterSpacing: '-0.02em' }}>
-              transt
-            </Typography>
+            <img 
+              src="/src/assets/branding/transt-logo.svg" 
+              alt="transt" 
+              style={{ height: 60, width: 'auto', marginBottom: '16px' }} 
+            />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Sign in to your enterprise account
             </Typography>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -114,22 +114,11 @@ export default function ForgotPasswordPage() {
             <>
               {/* Header */}
               <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2.5,
-                    backgroundColor: 'primary.main',
-                    color: '#ffffff',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
-                    boxShadow: '0 4px 10px rgba(30, 58, 138, 0.25)',
-                  }}
-                >
-                  <LockResetOutlinedIcon sx={{ fontSize: 26 }} />
-                </Box>
+                <img 
+                  src="/src/assets/branding/transt-logo.svg" 
+                  alt="transt" 
+                  style={{ height: 50, width: 'auto', marginBottom: '16px' }} 
+                />
                 <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
                   Reset Password
                 </Typography>

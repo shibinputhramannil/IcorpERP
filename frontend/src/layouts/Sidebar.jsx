@@ -96,33 +96,13 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           px: 3,
           borderBottom: 1,
           borderColor: 'divider',
-          gap: 1.5,
         }}
       >
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: 1.5,
-            backgroundColor: 'primary.main',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: '1rem',
-          }}
-        >
-          IC
-        </Box>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary' }}>
-            transt
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-            Enterprise Suite
-          </Typography>
-        </Box>
+        <img 
+          src="/src/assets/branding/transt-logo.svg" 
+          alt="transt" 
+          style={{ height: 40, width: 'auto', display: 'block' }} 
+        />
       </Box>
 
       {/* Navigation List */}
