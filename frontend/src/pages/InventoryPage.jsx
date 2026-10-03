@@ -690,7 +690,7 @@ export default function InventoryPage() {
               <StatCard
                 title="Total Stock Units"
                 value={dashboard.metrics.total_stock_quantity}
-                subtitle={`Across {formatCurrency(dashboard.metrics.total_warehouses)} warehouses`}
+                subtitle={`Across ${formatCurrency(dashboard.metrics.total_warehouses)} warehouses`}
                 icon={LayersOutlinedIcon}
                 color="#0284c7"
               />
@@ -869,7 +869,7 @@ export default function InventoryPage() {
                       <TableCell sx={{ fontWeight: 600 }}>{formatCurrency(Number(prod.selling_price).toFixed(2))}</TableCell>
                       <TableCell>
                         <Chip
-                          label={`{formatCurrency(prod.total_available_stock)} ${prod.unit}`}
+                          label={`${formatCurrency(prod.total_available_stock)} ${prod.unit}`}
                           size="small"
                           color={
                             Number(prod.total_available_stock) === 0

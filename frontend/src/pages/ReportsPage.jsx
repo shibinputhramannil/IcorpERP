@@ -445,7 +445,7 @@ export default function ReportsPage() {
                   <StatCard
                     title="Average Order Value"
                     value={reportData.summary?.average_order_value_formatted || '₹0.00'}
-                    subtitle={`{formatCurrency(reportData.summary?.total_orders || 0)} total sales orders`}
+                    subtitle={`${formatCurrency(reportData.summary?.total_orders || 0)} total sales orders`}
                     icon={TrendingUpOutlinedIcon}
                     color="info"
                   />
@@ -593,7 +593,7 @@ export default function ReportsPage() {
                   <StatCard
                     title="Average PO Size"
                     value={reportData.summary?.average_po_value_formatted || '₹0.00'}
-                    subtitle={`{formatCurrency(reportData.summary?.total_purchase_orders || 0)} total POs`}
+                    subtitle={`${formatCurrency(reportData.summary?.total_purchase_orders || 0)} total POs`}
                     icon={TrendingDownOutlinedIcon}
                     color="info"
                   />
@@ -673,7 +673,7 @@ export default function ReportsPage() {
                   <StatCard
                     title="Total Inventory Valuation"
                     value={reportData.summary?.total_valuation_formatted || '₹0.00'}
-                    subtitle={`{formatCurrency(reportData.summary?.total_skus || 0)} active SKUs`}
+                    subtitle={`${formatCurrency(reportData.summary?.total_skus || 0)} active SKUs`}
                     icon={Inventory2OutlinedIcon}
                     color="primary"
                   />
@@ -811,7 +811,7 @@ export default function ReportsPage() {
                   <StatCard
                     title="Deal Pipeline Value"
                     value={reportData.summary?.total_deal_pipeline_value_formatted || '₹0.00'}
-                    subtitle={`{formatCurrency(reportData.summary?.total_deals || 0)} active deals`}
+                    subtitle={`${formatCurrency(reportData.summary?.total_deals || 0)} active deals`}
                     icon={AccountBalanceWalletOutlinedIcon}
                     color="warning"
                   />
@@ -907,7 +907,7 @@ export default function ReportsPage() {
                   <StatCard
                     title="Total Liquid Capital"
                     value={reportData.liquidity?.total_liquid_capital_formatted || '₹0.00'}
-                    subtitle={`Bank: {formatCurrency(reportData.liquidity?.total_bank_balance_formatted || '₹0.00')}`}
+                    subtitle={`Bank: ${formatCurrency(reportData.liquidity?.total_bank_balance_formatted || '₹0.00')}`}
                     icon={AccountBalanceWalletOutlinedIcon}
                     color="info"
                   />

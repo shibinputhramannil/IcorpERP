@@ -195,8 +195,8 @@ export default function DocumentsPage() {
   const totalSizeBytes = documents.reduce((acc, d) => acc + (d.file_size || 0), 0);
   const totalSizeFormatted =
     totalSizeBytes < 1024 * 1024
-      ? `{formatCurrency((totalSizeBytes / 1024).toFixed(1))} KB`
-      : `{formatCurrency((totalSizeBytes / (1024 * 1024)).toFixed(2))} MB`;
+      ? `${formatCurrency((totalSizeBytes / 1024).toFixed(1))} KB`
+      : `${formatCurrency((totalSizeBytes / (1024 * 1024)).toFixed(2))} MB`;
 
   if (!currentCompany) {
     return (

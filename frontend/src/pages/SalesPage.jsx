@@ -975,7 +975,7 @@ export default function SalesPage() {
                 <StatCard
                   title="Total Sales Value"
                   value={`${formatCurrency(dashboard.summary.total_sales_value || 0)}`}
-                  subtitle={`{formatCurrency(dashboard.summary.total_orders)} total orders recorded`}
+                  subtitle={`${formatCurrency(dashboard.summary.total_orders)} total orders recorded`}
                   icon={MonetizationOnOutlinedIcon}
                   color="#2e7d32"
                 />
@@ -984,7 +984,7 @@ export default function SalesPage() {
                 <StatCard
                   title="Conversion Rate"
                   value={`${dashboard.summary.conversion_rate_percentage}%`}
-                  subtitle={`${dashboard.summary.converted_quotations} of {formatCurrency(dashboard.summary.total_quotations)} quotes converted`}
+                  subtitle={`${dashboard.summary.converted_quotations} of ${formatCurrency(dashboard.summary.total_quotations)} quotes converted`}
                   icon={TrendingUpOutlinedIcon}
                   color="#ed6c02"
                 />
@@ -1006,7 +1006,7 @@ export default function SalesPage() {
                     <StatCard
                       title="Total Invoiced"
                       value={`${formatCurrency(financialSummary.total_invoiced_amount || financialSummary.total_invoiced || 0)}`}
-                      subtitle={`{formatCurrency(financialSummary.total_invoices_count || financialSummary.invoices_count || 0)} total invoices`}
+                      subtitle={`${formatCurrency(financialSummary.total_invoices_count || financialSummary.invoices_count || 0)} total invoices`}
                       icon={DescriptionOutlinedIcon}
                       color="#0288d1"
                     />
@@ -2095,7 +2095,7 @@ export default function SalesPage() {
                     <StatCard
                       title="Total Orders"
                       value={reportData.data.total_orders}
-                      subtitle={`Avg Order: {formatCurrency(formatCurrency(reportData.data.average_order_value || 0))}`}
+                      subtitle={`Avg Order: ${formatCurrency(reportData.data.average_order_value || 0)}`}
                       icon={ShoppingBagOutlinedIcon}
                       color="#1976d2"
                     />
@@ -2122,7 +2122,7 @@ export default function SalesPage() {
                     <StatCard
                       title="Outstanding Balance"
                       value={`${formatCurrency(reportData.data.total_outstanding || 0)}`}
-                      subtitle={`Returns: {formatCurrency(formatCurrency(reportData.data.total_returns_amount || 0))}`}
+                      subtitle={`Returns: ${formatCurrency(reportData.data.total_returns_amount || 0)}`}
                       icon={CreditCardOutlinedIcon}
                       color="#ed6c02"
                     />

@@ -1161,8 +1161,8 @@ export default function PurchasePage() {
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
                     title="Total Procurement Value"
-                    value={`{formatCurrency(formatCurrency(dashboard.metrics?.total_purchase_value || 0))}`}
-                    subtitle={`Pending: {formatCurrency(formatCurrency(dashboard.metrics?.pending_purchase_value || 0))}`}
+                    value={formatCurrency(dashboard.metrics?.total_purchase_value || 0)}
+                    subtitle={`Pending: ${formatCurrency(dashboard.metrics?.pending_purchase_value || 0)}`}
                     icon={MonetizationOnOutlinedIcon}
                     color="success"
                   />
@@ -1223,7 +1223,7 @@ export default function PurchasePage() {
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
                     title="Total Invoiced"
-                    value={`{formatCurrency(formatCurrency(dashboard.metrics?.total_invoiced_amount || 0))}`}
+                    value={formatCurrency(dashboard.metrics?.total_invoiced_amount || 0)}
                     subtitle="Purchase bills registered"
                     icon={ReceiptLongOutlinedIcon}
                     color="primary"
@@ -1232,7 +1232,7 @@ export default function PurchasePage() {
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
                     title="Total Paid"
-                    value={`{formatCurrency(formatCurrency(dashboard.metrics?.total_paid_amount || 0))}`}
+                    value={formatCurrency(dashboard.metrics?.total_paid_amount || 0)}
                     subtitle="Supplier payments completed"
                     icon={PaymentOutlinedIcon}
                     color="success"
@@ -1241,7 +1241,7 @@ export default function PurchasePage() {
                 <Grid item xs={12} sm={6} md={3}>
                   <StatCard
                     title="Outstanding AP"
-                    value={`{formatCurrency(formatCurrency(dashboard.metrics?.total_outstanding_amount || 0))}`}
+                    value={formatCurrency(dashboard.metrics?.total_outstanding_amount || 0)}
                     subtitle="Unsettled payable balance"
                     icon={MonetizationOnOutlinedIcon}
                     color="warning"
@@ -1252,11 +1252,10 @@ export default function PurchasePage() {
                     title="Payment Fulfillment"
                     value={
                       parseFloat(dashboard.metrics?.total_invoiced_amount || 0) > 0
-                        ? `{formatCurrency((
-                            (parseFloat(dashboard.metrics?.total_paid_amount || 0) /
+                        ? `${( (parseFloat(dashboard.metrics?.total_paid_amount || 0) /
                               parseFloat(dashboard.metrics?.total_invoiced_amount || 1)) *
                             100
-                          ).toFixed(1))}%`
+                          ).toFixed(1) }%`
                         : '0%'
                     }
                     subtitle="Disbursed / Invoiced ratio"
